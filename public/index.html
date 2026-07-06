@@ -2347,7 +2347,13 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
     });
     h+='</div>';
     host.innerHTML=h; $('trt-result').innerHTML='';
-    host.querySelectorAll('.trt-age').forEach(function(b){ b.onclick=function(){ STATE.age=b.getAttribute('data-age'); renderAge(); }; });
+    host.querySelectorAll('.trt-age').forEach(function(b){ b.onclick=function(){
+      STATE.age=b.getAttribute('data-age');
+      // 선택 표시 갱신
+      host.querySelectorAll('.trt-age').forEach(function(x){ var on=x.getAttribute('data-age')===STATE.age; x.style.borderColor=on?'#5E35B1':'#CAD6DE'; x.style.background=on?'#F5F3FB':'#fff'; });
+      // 다음 버튼 활성화
+      var fwd=$('trt-fwd'); if(fwd){ fwd.disabled=false; fwd.style.background='#5E35B1'; fwd.style.cursor='pointer'; }
+    }; });
     wireNav();
   }
 
@@ -2366,6 +2372,10 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
       for(var v=0;v<=maxv;v++){ var lab=lk&&lk[v]?('<span class="ko-text">'+esc(lk[v])+'</span><span class="en-text">'+esc(le[v])+'</span>'):v; h+='<label style="flex:1;text-align:center;cursor:pointer" title="'+v+'"><input type="radio" name="'+esc(q.id)+'" value="'+v+'" style="display:none"><span class="trt-opt" style="display:block;padding:7px 2px;border:1px solid #CAD6DE;border-radius:8px;font-weight:700;color:#5C6166;font-size:11px">'+v+'</span></label>'; }
       h+='</div></div>';
     });
+    // 하단 다음 버튼 (스크롤 안 올려도 되게)
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid #EEF2F4">'+
+      '<button id="trt-back-b" style="padding:10px 18px;border:1px solid #CAD6DE;border-radius:9px;background:#fff;color:#5B7B94;font-weight:700;cursor:pointer;font-family:inherit">← '+KE('이전','Back')+'</button>'+
+      '<button id="trt-fwd-b" disabled style="padding:10px 22px;border:0;border-radius:9px;background:#DCD4EC;color:#fff;font-weight:800;cursor:default;font-family:inherit">'+KE('다음 단계','Next')+' →</button></div>';
     host.innerHTML=h;
     // 이전 응답 복원
     var saved=STATE['answers_'+layer]||{};
@@ -2374,9 +2384,14 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
       r.addEventListener('change', function(){ host.querySelectorAll('input[name="'+r.name+'"]').forEach(function(x){ var sp=x.nextElementSibling; sp.style.background=x.checked?'#5E35B1':'#fff'; sp.style.color=x.checked?'#fff':'#5C6166'; sp.style.borderColor=x.checked?'#5E35B1':'#CAD6DE'; }); STATE['answers_'+layer]=STATE['answers_'+layer]||{}; STATE['answers_'+layer][r.name]=r.value; refreshNav(layer,sv); });
     });
     wireNav();
+    // 하단 버튼 배선
+    var backB=$('trt-back-b'); if(backB) backB.onclick=function(){ if(STATE.step>0) stepBack(); };
+    var fwdB=$('trt-fwd-b'); if(fwdB) fwdB.onclick=function(){ if(fwdB.disabled) return; STATE.step++; render(); };
+    refreshNav(layer, sv);
   }
   function layerAnswered(layer, sv){ var a=STATE['answers_'+layer]||{}; var c=0; sv.items.forEach(function(q){ if(a[q.id]!=null)c++; }); return c; }
-  function refreshNav(layer, sv){ var fwd=$('trt-fwd'); if(!fwd)return; var ok=layerAnswered(layer,sv)>=Math.ceil(sv.items.length*0.7); fwd.disabled=!ok; fwd.style.background=ok?'#5E35B1':'#DCD4EC'; fwd.style.cursor=ok?'pointer':'default'; }
+  function refreshNav(layer, sv){ var ok=layerAnswered(layer,sv)>=Math.ceil(sv.items.length*0.7);
+    [$('trt-fwd'),$('trt-fwd-b')].forEach(function(fwd){ if(!fwd)return; fwd.disabled=!ok; fwd.style.background=ok?'#5E35B1':'#DCD4EC'; fwd.style.cursor=ok?'pointer':'default'; }); }
 
   // ── QEEG 옵션 (측정 / Skip) ──
   function renderQeeg(){
@@ -2548,8 +2563,9 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
   // ── 이벤트 배선 ──
   var _sessionCounts={};
   function wireNav(){
-    var back=$('trt-back'); if(back&&!back.disabled) back.onclick=stepBack;
-    var fwd=$('trt-fwd'); if(fwd&&!fwd.disabled&&_steps[STATE.step]!=='result'){ fwd.onclick=function(){
+    var back=$('trt-back'); if(back){ back.onclick=function(){ if(STATE.step>0) stepBack(); }; }
+    var fwd=$('trt-fwd'); if(fwd && _steps[STATE.step]!=='result'){ fwd.onclick=function(){
+      if(fwd.disabled) return;
       var name=_steps[STATE.step];
       if(name==='age'){ if(!STATE.age)return; }
       STATE.step++; render();
