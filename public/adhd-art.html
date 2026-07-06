@@ -162,7 +162,7 @@
       <h1><span class="ko">흩어진 집중을, <em>한곳으로.</em></span><span class="en">Scattered focus, <em>gathered in.</em></span></h1>
       <p class="lead"><span class="ko">집중을 트래킹하고, 작은 계획으로 진짜 시작하게 관리해요.</span><span class="en">Track focus and start with tiny plans that actually move you.</span></p>
       <div class="row">
-        <a class="cta" href="index.html?signup" onclick="if(window.adhdStart){window.adhdStart();return false;}"><span class="ko">시작하기</span><span class="en">Start tracking</span></a>
+        <a class="cta" href="app.html?signup" onclick="if(window.adhdStart){window.adhdStart();return false;}"><span class="ko">시작하기</span><span class="en">Start tracking</span></a>
       </div>
     </div>
   </div>
@@ -198,8 +198,8 @@
     var mount = document.getElementById('authBtns');
     if (!mount) return;
     function loggedOut(){
-      mount.innerHTML = '<a class="cta line" href="index.html?login" onclick="if(window.openGate){window.openGate(\'login\');return false;}"><span class="ko">로그인</span><span class="en">Log in</span></a>'
-        + '<a class="cta" href="index.html?signup" onclick="if(window.openGate){window.openGate(\'signup\');return false;}"><span class="ko">가입</span><span class="en">Sign up</span></a>';
+      mount.innerHTML = '<a class="cta line" href="app.html?login" onclick="if(window.openGate){window.openGate(\'login\');return false;}"><span class="ko">로그인</span><span class="en">Log in</span></a>'
+        + '<a class="cta" href="app.html?signup" onclick="if(window.openGate){window.openGate(\'signup\');return false;}"><span class="ko">가입</span><span class="en">Sign up</span></a>';
     }
     function loggedIn(){
       mount.innerHTML = '<button class="cta line" id="agLogout"><span class="ko">로그아웃</span><span class="en">Sign out</span></button>';
@@ -223,7 +223,7 @@
     window.adhdStart = async function(){
       var user = null;
       try { user = (window.AdhdAuth && window.AdhdAuth.configured()) ? await window.AdhdAuth.getUser() : null; } catch(e){}
-      if (user && window.AdhdAuth.isVerified(user)) { location.href = 'index.html'; }
+      if (user && window.AdhdAuth.isVerified(user)) { location.href = 'app.html'; }
       else if (window.openGate) { window.openGate('signup'); }
     };
   })();
