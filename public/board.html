@@ -34,12 +34,13 @@
   .modal .x{float:right;cursor:pointer;font-size:22px;border:none;background:none;line-height:1}
   /* bnm-lang-sync: body[data-lang] 기준 ko/en 마커 토글 (기본 en) */
   .ko-text{display:none}
+  .en-text{display:none}
   body[data-lang="ko"] .ko-text{display:inline}
-  body[data-lang="ko"] .en-text{display:none}
+  body[data-lang="en"] .en-text{display:inline}
 </style>
 <script src="/bnm-lang-sync.js"></script>
 </head>
-<body>
+<body data-lang="en">
 <!-- 비번 게이트 (일반관리자 bnm1#) -->
 <div id="gate">
   <h1><span class="en-text">Admin — Patients</span><span class="ko-text">관리자 — 환자</span></h1>
