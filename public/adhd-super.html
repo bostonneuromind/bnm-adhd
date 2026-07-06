@@ -114,7 +114,6 @@
     </table>
     <p id="mu-empty" style="display:none;color:#9b9b9b;font-size:13px;padding:14px 0"><span class="ko-text">회원이 없습니다.</span><span class="en-text">No members.</span></p>
   </div>
-  <!-- (동의서 패널은 sec-body[members] 안으로 이동됨 — 아래 CONSENT_MOVE 참고) -->
   </div><!-- /sec-body members -->
 
   <!-- ════ 엔진 관리 ════ -->
@@ -247,98 +246,7 @@
   $('cs-detail').addEventListener('click', function (e) { if (e.target === $('cs-detail')) show($('cs-detail'), false); });
   $('cs-print').addEventListener('click', function () {
     var w = window.open('', '_blank'); if (!w) return;
-    w.document.write('<html><head><title>Consent Record · Boston Neuromind</title></head><body style="font-family:system-ui,sans-serif;padding:30px">' + $('cs-body').innerHTML + '<script>
-// ── 상위 섹션 전환 (회원·동의 / 엔진 / Vault) ──
-(function(){
-  function $(id){return document.getElementById(id);}
-  var tabs = $('sec-tabs');
-  if(!tabs) return;
-  var engineLoaded = false, vaultLoaded = false;
-  function activate(sec){
-    [].forEach.call(document.querySelectorAll('.sec-tab'), function(b){
-      b.setAttribute('data-on', b.getAttribute('data-sec')===sec ? '1':'0');
-    });
-    [].forEach.call(document.querySelectorAll('.sec-body'), function(b){
-      b.setAttribute('data-on', b.getAttribute('data-sec')===sec ? '1':'0');
-    });
-    // consent card belongs to members section (it lives outside .wrap)
-    var cc = $('consent-card'); if(cc) cc.style.display = (sec==='members') ? 'block':'none';
-    if(sec==='engine' && !engineLoaded){ engineLoaded = true; loadEngine(); }
-    if(sec==='vault' && !vaultLoaded){ vaultLoaded = true; loadVault(); }
-  }
-  tabs.addEventListener('click', function(e){
-    var b = e.target.closest ? e.target.closest('.sec-tab') : null;
-    if(!b) return;
-    activate(b.getAttribute('data-sec'));
-  });
-
-  // ── 엔진 관리: adhd_rules.json → nf_training_response.protocols 렌더 ──
-  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-  function isEn(){return document.body.getAttribute('data-lang')==='en';}
-  function fmtChange(key, ch){
-    var d = ch.direction;
-    if(!d && typeof ch.mu==='number') d = ch.mu<0 ? 'decrease' : (ch.mu>0 ? 'increase' : '');
-    var dir = d==='decrease' ? '↓' : (d==='increase' ? '↑' : '·');
-    var label = key.replace(/_delta$/,'').replace(/_/g,' ');
-    var mu = (ch.mu!=null) ? 'μ='+esc(ch.mu) : '';
-    var sd = (ch.sd!=null) ? ' (sd '+esc(ch.sd)+')' : '';
-    return '<b>'+esc(label)+'</b> '+dir+' '+mu+sd;
-  }
-  async function loadEngine(){
-    try{
-      var r = await fetch('adhd-engine/rules/adhd_rules.json', {cache:'no-store'});
-      var d = await r.json();
-      var nf = (d.normative_databases && d.normative_databases.nf_training_response) || d.nf_training_response;
-      if(!nf || !nf.protocols){ $('eng-msg').textContent = 'nf_training_response not found in rules'; return; }
-      $('eng-src').innerHTML = (isEn()?'Source: ':'근거: ')+esc(nf.source||'')+' · n_studies='+esc(nf.n_studies_ref||'?');
-      var html = '';
-      Object.keys(nf.protocols).forEach(function(name){
-        var p = nf.protocols[name];
-        var rate = p.response_rate!=null ? Math.round(p.response_rate*100)+'%' : '—';
-        var sess = p.session_count_typical ? p.session_count_typical.join('–')+(isEn()?' sessions':'세션') : '';
-        var stv = p.sessions_to_visible_change ? (isEn()?'visible change ~':'가시변화 ~')+p.sessions_to_visible_change.mu+(isEn()?' sess':'세션') : '';
-        var chg = '';
-        if(p.expected_changes){
-          chg = Object.keys(p.expected_changes).map(function(k){return fmtChange(k, p.expected_changes[k]);}).join('<br>');
-        }
-        var warn = (p.non_responder_indicators&&p.non_responder_indicators.length)
-          ? '⚠ '+(isEn()?'non-responder: ':'비반응 지표: ')+p.non_responder_indicators.map(esc).join(', ') : '';
-        html += '<div class="proto-card">'
-          + '<h3>'+esc(name.replace(/_/g,' '))+'<span class="proto-rate">'+(isEn()?'resp ':'반응 ')+rate+'</span></h3>'
-          + '<div class="proto-meta">'+esc(p.description||'')+' · '+esc(p.indication||'')
-          + (sess?' · '+esc(sess):'')+(stv?' · '+esc(stv):'')+'</div>'
-          + '<div class="proto-chg">'+chg+'</div>'
-          + (warn?'<div class="proto-warn">'+esc(warn)+'</div>':'')
-          + '</div>';
-      });
-      $('eng-protocols').innerHTML = html;
-    }catch(e){ $('eng-msg').textContent = (isEn()?'Load error: ':'로드 오류: ')+(e&&e.message||e); }
-  }
-
-  // ── Vault 관리: vault/adhd.jsonl 셀 목록 (읽기) ──
-  async function loadVault(){
-    try{
-      var lang = isEn() ? 'adhd' : 'adhd_ko';
-      var r = await fetch('vault/'+lang+'.jsonl', {cache:'no-store'});
-      if(!r.ok){ r = await fetch('vault/adhd.jsonl', {cache:'no-store'}); }
-      var txt = await r.text();
-      var lines = txt.split(/\r?\n/).filter(function(l){return l.trim();});
-      var cells = lines.map(function(l){ try{return JSON.parse(l);}catch(e){return null;} }).filter(Boolean);
-      if(!cells.length){ $('vault-cells').innerHTML = '<p style="color:#9b9b9b;font-size:13px">'+(isEn()?'No cells.':'셀이 없습니다.')+'</p>'; return; }
-      var html = '<p style="font-size:12px;color:#6B7280;margin-bottom:8px">'+cells.length+(isEn()?' cells':' 셀')+'</p>';
-      html += cells.slice(0,50).map(function(c,i){
-        var title = c.title || c.topic || c.id || ('cell '+(i+1));
-        var body = c.text || c.content || c.answer || JSON.stringify(c);
-        return '<div style="border:1px solid #E3E6EA;border-radius:10px;padding:10px 12px;margin-bottom:8px">'
-          + '<b style="font-size:13px;color:#5E35B1">'+esc(title)+'</b>'
-          + '<div style="font-size:12px;color:#374151;margin-top:3px">'+esc(String(body).slice(0,180))+(String(body).length>180?'…':'')+'</div></div>';
-      }).join('');
-      $('vault-cells').innerHTML = html;
-    }catch(e){ $('vault-msg').textContent = (isEn()?'Vault load error: ':'Vault 로드 오류: ')+(e&&e.message||e); }
-  }
-})();
-</script>
-</body></html>');
+    w.document.write('<html><head><title>Consent Record · Boston Neuromind</title></head><body style="font-family:system-ui,sans-serif;padding:30px">' + $('cs-body').innerHTML + '</body></html>');
     w.document.close(); w.focus(); w.print();
   });
   load();
@@ -428,6 +336,74 @@
   $('mu-edit').addEventListener('click', function (e) { if (e.target === $('mu-edit')) show($('mu-edit'), false); });
   // 게이트 통과 후 로드 (bnmSuperOK). 게이트 미통과면 빈 화면(게이트가 덮음).
   load();
+})();
+</script>
+<script>
+// section switching + engine/vault rendering
+(function(){
+  function $(id){return document.getElementById(id);}
+  var tabs = $('sec-tabs');
+  if(!tabs) return;
+  var engineLoaded=false, vaultLoaded=false;
+  function activate(sec){
+    [].forEach.call(document.querySelectorAll('.sec-tab'), function(b){ b.setAttribute('data-on', b.getAttribute('data-sec')===sec?'1':'0'); });
+    [].forEach.call(document.querySelectorAll('.sec-body'), function(b){ b.setAttribute('data-on', b.getAttribute('data-sec')===sec?'1':'0'); });
+    var cc=$('consent-card'); if(cc) cc.style.display=(sec==='members')?'block':'none';
+    if(sec==='engine' && !engineLoaded){ engineLoaded=true; loadEngine(); }
+    if(sec==='vault' && !vaultLoaded){ vaultLoaded=true; loadVault(); }
+  }
+  tabs.addEventListener('click', function(e){ var b=e.target.closest?e.target.closest('.sec-tab'):null; if(b) activate(b.getAttribute('data-sec')); });
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function isEn(){return document.body.getAttribute('data-lang')==='en';}
+  function fmtChange(key, ch){
+    var d=ch.direction;
+    if(!d && typeof ch.mu==='number') d=ch.mu<0?'decrease':(ch.mu>0?'increase':'');
+    var dir=d==='decrease'?'\u2193':(d==='increase'?'\u2191':'\u00b7');
+    var label=key.replace(/_delta$/,'').replace(/_/g,' ');
+    var mu=(ch.mu!=null)?'\u03bc='+esc(ch.mu):'';
+    var sd=(ch.sd!=null)?' (sd '+esc(ch.sd)+')':'';
+    return '<b>'+esc(label)+'</b> '+dir+' '+mu+sd;
+  }
+  async function loadEngine(){
+    try{
+      var r=await fetch('adhd-engine/rules/adhd_rules.json',{cache:'no-store'});
+      var d=await r.json();
+      var nf=(d.normative_databases&&d.normative_databases.nf_training_response)||d.nf_training_response;
+      if(!nf||!nf.protocols){ $('eng-msg').textContent='nf_training_response not found in rules'; return; }
+      $('eng-src').innerHTML=(isEn()?'Source: ':'\uadfc\uac70: ')+esc(nf.source||'')+' \u00b7 n_studies='+esc(nf.n_studies_ref||'?');
+      var html='';
+      Object.keys(nf.protocols).forEach(function(name){
+        var p=nf.protocols[name];
+        var rate=p.response_rate!=null?Math.round(p.response_rate*100)+'%':'\u2014';
+        var sess=p.session_count_typical?p.session_count_typical.join('\u2013')+(isEn()?' sessions':'\uc138\uc158'):'';
+        var stv=p.sessions_to_visible_change?(isEn()?'visible change ~':'\uac00\uc2dc\ubcc0\ud654 ~')+p.sessions_to_visible_change.mu+(isEn()?' sess':'\uc138\uc158'):'';
+        var chg=p.expected_changes?Object.keys(p.expected_changes).map(function(k){return fmtChange(k,p.expected_changes[k]);}).join('<br>'):'';
+        var warn=(p.non_responder_indicators&&p.non_responder_indicators.length)?'\u26a0 '+(isEn()?'non-responder: ':'\ube44\ubc18\uc751 \uc9c0\ud45c: ')+p.non_responder_indicators.map(esc).join(', '):'';
+        html+='<div class="proto-card"><h3>'+esc(name.replace(/_/g,' '))+'<span class="proto-rate">'+(isEn()?'resp ':'\ubc18\uc751 ')+rate+'</span></h3>'
+          +'<div class="proto-meta">'+esc(p.description||'')+' \u00b7 '+esc(p.indication||'')+(sess?' \u00b7 '+esc(sess):'')+(stv?' \u00b7 '+esc(stv):'')+'</div>'
+          +'<div class="proto-chg">'+chg+'</div>'+(warn?'<div class="proto-warn">'+esc(warn)+'</div>':'')+'</div>';
+      });
+      $('eng-protocols').innerHTML=html;
+    }catch(e){ $('eng-msg').textContent=(isEn()?'Load error: ':'\ub85c\ub4dc \uc624\ub958: ')+(e&&e.message||e); }
+  }
+  async function loadVault(){
+    try{
+      var lang=isEn()?'adhd':'adhd_ko';
+      var r=await fetch('vault/'+lang+'.jsonl',{cache:'no-store'});
+      if(!r.ok){ r=await fetch('vault/adhd.jsonl',{cache:'no-store'}); }
+      var txt=await r.text();
+      var lines=txt.split(/\r?\n/).filter(function(l){return l.trim();});
+      var cells=lines.map(function(l){try{return JSON.parse(l);}catch(e){return null;}}).filter(Boolean);
+      if(!cells.length){ $('vault-cells').innerHTML='<p style="color:#9b9b9b;font-size:13px">'+(isEn()?'No cells.':'\uc140\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.')+'</p>'; return; }
+      var html='<p style="font-size:12px;color:#6B7280;margin-bottom:8px">'+cells.length+(isEn()?' cells':' \uc140')+'</p>';
+      html+=cells.slice(0,50).map(function(c,i){
+        var title=c.title||c.topic||c.id||('cell '+(i+1));
+        var body=c.text||c.content||c.answer||JSON.stringify(c);
+        return '<div style="border:1px solid #E3E6EA;border-radius:10px;padding:10px 12px;margin-bottom:8px"><b style="font-size:13px;color:#5E35B1">'+esc(title)+'</b><div style="font-size:12px;color:#374151;margin-top:3px">'+esc(String(body).slice(0,180))+(String(body).length>180?'\u2026':'')+'</div></div>';
+      }).join('');
+      $('vault-cells').innerHTML=html;
+    }catch(e){ $('vault-msg').textContent=(isEn()?'Vault load error: ':'Vault \ub85c\ub4dc \uc624\ub958: ')+(e&&e.message||e); }
+  }
 })();
 </script>
 </body>
