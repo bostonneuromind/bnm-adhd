@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Patients — Boston Neuromind</title>
+<style>
+  body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:0;background:#F4F8FB;color:#23303A}
+  .wrap{max-width:1120px;margin:0 auto;padding:20px}
+  header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  h1{font-size:20px;margin:0}
+  h2{font-size:17px;margin:6px 0}
+  h3{font-size:15px;margin:18px 0 8px}
+  .lang button{font:inherit;padding:4px 11px;border:1px solid #7BAFD0;border-radius:6px;background:#fff;cursor:pointer}
+  .lang button.on{background:#4A90C2;color:#fff;border-color:#4A90C2}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid #E8F1F8;font-size:13px;white-space:nowrap}
+  th{background:#E8F1F8;font-weight:700}
+  td button,.btn{font:inherit;font-size:13px;padding:3px 9px;margin:0 1px;border:1px solid #BDD7E7;border-radius:6px;background:#fafdff;cursor:pointer}
+  .btn-main{background:#4A90C2;color:#fff;border-color:#4A90C2}
+  #pager,#qpager{margin-top:14px;display:flex;gap:4px;flex-wrap:wrap}
+  #pager button,#qpager button{font:inherit;padding:5px 11px;border:1px solid #BDD7E7;border-radius:6px;background:#fff;cursor:pointer}
+  #pager button.on,#qpager button.on{background:#4A90C2;color:#fff;border-color:#4A90C2}
+  #gate{max-width:340px;margin:80px auto;text-align:center;background:#fff;padding:30px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  #gate input{font:inherit;padding:8px;width:100%;box-sizing:border-box;border:1px solid #BDD7E7;border-radius:6px;margin:10px 0}
+  #gate button{font:inherit;padding:8px 18px;border:none;border-radius:6px;background:#4A90C2;color:#fff;cursor:pointer}
+  .muted{color:#8A9199}
+  .pt-meta{background:#fff;border-radius:10px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:6px}
+  .pt-meta span{margin-right:18px}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100}
+  .modal{background:#fff;max-width:780px;max-height:82vh;overflow:auto;border-radius:12px;padding:20px;width:90%}
+  .modal h3{margin:0 0 10px}
+  .modal pre{white-space:pre-wrap;word-break:break-word;font-size:12px;background:#F4F8FB;padding:12px;border-radius:8px;line-height:1.5}
+  .modal .x{float:right;cursor:pointer;font-size:22px;border:none;background:none;line-height:1}
+  /* bnm-lang-sync: body[data-lang] 기준 ko/en 마커 토글 (기본 en) */
+  .ko-text{display:none}
+  body[data-lang="ko"] .ko-text{display:inline}
+  body[data-lang="ko"] .en-text{display:none}
+</style>
+<script src="/bnm-lang-sync.js"></script>
+</head>
+<body>
+<!-- 비번 게이트 (일반관리자 bnm1#) -->
+<div id="gate">
+  <h1><span class="en-text">Admin — Patients</span><span class="ko-text">관리자 — 환자</span></h1>
+  <input type="password" id="pw" placeholder="Password" autocomplete="off">
+  <button id="pw-go"><span class="en-text">Enter</span><span class="ko-text">입장</span></button>
+  <p id="pw-err" class="muted" style="display:none"><span class="en-text">Wrong password</span><span class="ko-text">비밀번호가 틀렸습니다</span></p>
+</div>
+
+<div id="board" class="wrap" style="display:none">
+  <header>
+    <h1><span class="en-text">Patients</span><span class="ko-text">환자 게시판</span></h1>
+    <span id="dept-tag" class="muted"></span>
+    <span style="flex:1"></span>
+    <a href="/qeeg.html" class="btn" style="text-decoration:none">← <span class="ko-text">앱으로</span><span class="en-text">Back to app</span></a>
+    <span class="lang"><button id="g-en" class="on">EN</button><button id="g-ko">KO</button></span>
+  </header>
+
+  <!-- 뷰 A: 환자 목록 -->
+  <div id="view-list">
+    <div id="regBar" style="margin-bottom:12px;display:none"><button id="regBtn" style="font:inherit;padding:8px 16px;border:none;border-radius:8px;background:#4A90C2;color:#fff;cursor:pointer;font-weight:700">+ <span class="en-text">Register patient</span><span class="ko-text">환자 등록</span></button></div>
+    <table>
+      <thead><tr>
+        <th>#</th>
+        <th><span class="en-text">Name</span><span class="ko-text">이름</span></th>
+        <th><span class="en-text">DOB (Age)</span><span class="ko-text">생년월일 (나이)</span></th>
+        <th><span class="en-text">Sex</span><span class="ko-text">성별</span></th>
+        <th><span class="en-text">Status</span><span class="ko-text">상태</span></th>
+        <th>Code</th>
+        <th></th>
+      </tr></thead>
+      <tbody id="cli-rows"></tbody>
+    </table>
+    <div id="pager"></div>
+    <p id="cli-empty" class="muted" style="display:none"><span class="en-text">No patients.</span><span class="ko-text">환자가 없습니다.</span></p>
+  </div>
+
+  <!-- 뷰 B: 환자 상세 -->
+  <div id="view-detail" style="display:none">
+    <button id="back" class="btn">&larr; <span class="en-text">Back to list</span><span class="ko-text">목록으로</span></button>
+    <div class="pt-meta" id="pt-meta"></div>
+
+    <h3><span class="en-text">QEEG Results</span><span class="ko-text">QEEG 결과</span></h3>
+    <table>
+      <thead><tr>
+        <th>#</th>
+        <th><span class="en-text">Date</span><span class="ko-text">날짜</span></th>
+        <th><span class="en-text">Lens</span><span class="ko-text">관점</span></th>
+        <th><span class="en-text">Area</span><span class="ko-text">영역</span></th>
+        <th><span class="en-text">Calc NF</span><span class="ko-text">계산 NF</span></th>
+        <th><span class="en-text">AI Deep</span><span class="ko-text">AI 심층</span></th>
+        <th>AI NF</th><th>QEEG</th>
+      </tr></thead>
+      <tbody id="qeeg-rows"></tbody>
+    </table>
+    <div id="qpager"></div>
+    <p id="qeeg-empty" class="muted" style="display:none"><span class="en-text">No QEEG results.</span><span class="ko-text">QEEG 결과가 없습니다.</span></p>
+
+    <h3><span class="en-text">Assessments</span><span class="ko-text">설문 평가</span></h3>
+    <table>
+      <thead><tr>
+        <th><span class="en-text">Date</span><span class="ko-text">날짜</span></th>
+        <th>ID</th>
+        <th><span class="en-text">Total</span><span class="ko-text">총점</span></th>
+        <th><span class="en-text">Inatt.</span><span class="ko-text">주의</span></th>
+        <th><span class="en-text">Hyper.</span><span class="ko-text">과활동</span></th>
+        <th><span class="en-text">Subtype</span><span class="ko-text">아형</span></th>
+        <th>DSM</th>
+      </tr></thead>
+      <tbody id="ass-rows"></tbody>
+    </table>
+    <p id="ass-empty" class="muted" style="display:none"><span class="en-text">No assessments.</span><span class="ko-text">설문 결과가 없습니다.</span></p>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg"><div class="modal"><button class="x" id="modal-x">&times;</button><h3 id="modal-t"></h3><pre id="modal-c"></pre></div></div>
+
+<!-- [E] 환자 등록 모달 (createClient — primary_clinician_id 자동) -->
+<div class="modal-bg" id="regBg"><div class="modal" style="max-width:440px">
+  <button class="x" id="regX">&times;</button>
+  <h3><span class="en-text">Register patient</span><span class="ko-text">환자 등록</span></h3>
+  <div style="display:grid;gap:9px">
+    <label><span class="en-text">First name</span><span class="ko-text">이름</span> *<input id="rFirst" style="width:100%;padding:8px;border:1px solid #BDD7E7;border-radius:6px;font:inherit;box-sizing:border-box"></label>
+    <label><span class="en-text">Last name</span><span class="ko-text">성</span><input id="rLast" style="width:100%;padding:8px;border:1px solid #BDD7E7;border-radius:6px;font:inherit;box-sizing:border-box"></label>
+    <label><span class="en-text">Date of birth</span><span class="ko-text">생년월일</span><input id="rDob" type="date" style="width:100%;padding:8px;border:1px solid #BDD7E7;border-radius:6px;font:inherit;box-sizing:border-box"></label>
+    <label><span class="en-text">Sex</span><span class="ko-text">성별</span><select id="rSex" style="width:100%;padding:8px;border:1px solid #BDD7E7;border-radius:6px;font:inherit;box-sizing:border-box"><option value="">—</option><option value="M">M</option><option value="F">F</option><option value="other">other</option></select></label>
+    <label><span class="en-text">Client code</span><span class="ko-text">코드</span><input id="rCode" placeholder="auto if blank" style="width:100%;padding:8px;border:1px solid #BDD7E7;border-radius:6px;font:inherit;box-sizing:border-box"></label>
+    <label>Email<input id="rEmail" type="email" style="width:100%;padding:8px;border:1px solid #BDD7E7;border-radius:6px;font:inherit;box-sizing:border-box"></label>
+  </div>
+  <p id="rErr" class="muted" style="margin:8px 0 0;color:#C9444F"></p>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+    <button id="rCancel" style="font:inherit;padding:7px 14px;border:1px solid #BDD7E7;border-radius:8px;background:#fff;cursor:pointer"><span class="en-text">Cancel</span><span class="ko-text">취소</span></button>
+    <button id="rSave" style="font:inherit;padding:7px 16px;border:none;border-radius:8px;background:#4A90C2;color:#fff;cursor:pointer;font-weight:700"><span class="en-text">Save</span><span class="ko-text">저장</span></button>
+  </div>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/adhd-training/shared/adhd-config.js"></script>
+<script src="/adhd-training/shared/adhd-db.js"></script>
+<script src="/adhd-training/shared/adhd-auth.js"></script>
+<script src="/adhd-training/shared/adhd-session.js"></script>
+<script>
+(function () {
+  'use strict';
+  var COLS = { calc: 'calc_nf', deep: 'ai_deep', ainf: 'ai_nf', qeeg: 'qeeg_data' };
+  var LABELS = { calc: { en: 'Calc NF', ko: '계산 NF' }, deep: { en: 'AI Deep', ko: 'AI 심층' }, ainf: { en: 'AI NF', ko: 'AI NF' }, qeeg: { en: 'QEEG', ko: 'QEEG' } };
+  var _dept = '', _cliRows = [], _cliPage = 0, _cliTotal = 0, _per = 10;
+  var _client = null, _qRows = [], _qPage = 0, _qTotal = 0;
+
+  function kr() { try { return (typeof window.bnmGetLang === 'function' ? window.bnmGetLang() : 'en') === 'ko'; } catch (e) { return false; } }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function getDept() { try { var p = new URLSearchParams(location.search).get('dept'); if (p) return p; } catch (e) { } var s = window.ADHD_SESSION || {}; return s.dept || 'adhd'; }
+  function ageOf(dob) { if (!dob) return ''; try { var b = new Date(dob), n = new Date(); var a = n.getFullYear() - b.getFullYear(); if (n.getMonth() < b.getMonth() || (n.getMonth() === b.getMonth() && n.getDate() < b.getDate())) a--; return (a >= 0 && a < 130) ? a : ''; } catch (e) { return ''; } }
+  function fmtDate(d) { if (!d) return ''; try { return new Date(d).toLocaleDateString(kr() ? 'ko-KR' : 'en-US'); } catch (e) { return String(d); } }
+  function fmtDateTime(d) { if (!d) return ''; try { return new Date(d).toLocaleString(kr() ? 'ko-KR' : 'en-US'); } catch (e) { return String(d); } }
+  function pct(v) { return (v == null) ? '' : Math.round((+v) * 100) + '%'; }
+
+  /* 게이트 */
+  function unlock() {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('board').style.display = 'block';
+    _dept = getDept();
+    document.getElementById('dept-tag').textContent = '· ' + _dept;
+    showList(); loadList(0);
+  }
+  function _roleUnlock() {   // 로그인 role(owner/admin/clinician) 자동통과 — clinician.html 골든 패턴
+    try { var _s = window.ADHD_SESSION || {}; var _r = _s.role;
+      if (_r === 'owner' || _r === 'admin' || _r === 'clinician') { unlock(); return true; } } catch (e) { }
+    return false;
+  }
+  try { if (!_roleUnlock() && sessionStorage.getItem('bnmAdminOk') === '1') unlock(); } catch (e) { }   // role 우선, 없으면 bnm1# 폴백
+  if (window.AdhdAuth && window.AdhdAuth.onChange) window.AdhdAuth.onChange(function () {   // 로그인 직후 재평가
+    (async function () { try {
+      if (document.getElementById('gate').style.display === 'none') return;   // 이미 열림
+      if (window.AdhdSession && window.AdhdSession.ensure) { try { await window.AdhdSession.ensure(); } catch (e) { } }
+      _roleUnlock();
+    } catch (e) { } })();
+  });
+  function tryPw() {
+    var v = document.getElementById('pw').value;
+    if (v === 'bnm1#') { try { sessionStorage.setItem('bnmAdminOk', '1'); } catch (e) { } unlock(); }
+    else { document.getElementById('pw-err').style.display = 'block'; }
+  }
+  document.getElementById('pw-go').addEventListener('click', tryPw);
+  document.getElementById('pw').addEventListener('keydown', function (e) { if (e.key === 'Enter') tryPw(); });
+
+  function showList() { document.getElementById('view-list').style.display = 'block'; document.getElementById('view-detail').style.display = 'none'; }
+  function showDetail() { document.getElementById('view-list').style.display = 'none'; document.getElementById('view-detail').style.display = 'block'; }
+
+  /* ---------- 뷰 A: 환자 목록 ---------- */
+  async function loadList(page) {
+    _cliPage = page || 0;
+    var sess = window.ADHD_SESSION || {};
+    var rowsEl = document.getElementById('cli-rows');
+    rowsEl.innerHTML = '<tr><td colspan="7" class="muted">' + (kr() ? '불러오는 중…' : 'Loading…') + '</td></tr>';
+    var res = { rows: [], total: 0, page: _cliPage, per: _per };
+    try {
+      if (window.ADHD_DB && ADHD_DB.listClientsPaged) {
+        res = await ADHD_DB.listClientsPaged({ dept: _dept, role: sess.role, userId: sess.user_id, clientId: sess.self_client_id, page: _cliPage });
+      }
+    } catch (e) { console.warn('[admin] listClientsPaged', e); }
+    _cliRows = res.rows || []; _cliTotal = res.total || 0; _per = res.per || 10;
+    renderClients(); renderPager('pager', _cliTotal, _cliPage, function (p) { loadList(p); });
+    document.getElementById('cli-empty').style.display = _cliRows.length ? 'none' : 'block';
+    var _r = sess.role, rb = document.getElementById('regBar');   // [E] 임상가/관리자만 환자 등록(consumer=본인이라 불요)
+    if (rb) rb.style.display = (_r === 'clinician' || _r === 'admin' || _r === 'owner') ? 'block' : 'none';
+  }
+  function renderClients() {
+    document.getElementById('cli-rows').innerHTML = _cliRows.map(function (r, i) {
+      var num = _cliPage * _per + i + 1;
+      var dob = r.date_of_birth ? (fmtDate(r.date_of_birth) + (ageOf(r.date_of_birth) !== '' ? ' (' + ageOf(r.date_of_birth) + ')' : '')) : '—';
+      return '<tr><td>' + num + '</td><td>' + esc(r.full_name || '—') + '</td><td>' + esc(dob) + '</td><td>' + esc(r.gender || '') + '</td><td>' + esc(r.status || '') + '</td><td>' + esc(r.client_code || '') + '</td>' +
+        '<td><button class="btn btn-main" data-client="' + esc(r.id) + '">' + (kr() ? '상세' : 'Detail') + '</button></td></tr>';
+    }).join('');
+  }
+
+  /* ---------- 뷰 B: 환자 상세 ---------- */
+  async function openDetail(clientId) {
+    _client = _cliRows.find(function (r) { return r.id === clientId; }) || { id: clientId };
+    showDetail();
+    var meta = document.getElementById('pt-meta');
+    meta.innerHTML = '<h2>' + esc(_client.full_name || _client.id) + '</h2>' +
+      '<span><strong>' + (kr() ? '생년월일' : 'DOB') + ':</strong> ' + esc(fmtDate(_client.date_of_birth) || '—') + (ageOf(_client.date_of_birth) !== '' ? ' (' + ageOf(_client.date_of_birth) + ')' : '') + '</span>' +
+      '<span><strong>' + (kr() ? '성별' : 'Sex') + ':</strong> ' + esc(_client.gender || '—') + '</span>' +
+      '<span><strong>' + (kr() ? '상태' : 'Status') + ':</strong> ' + esc(_client.status || '—') + '</span>' +
+      '<span><strong>Code:</strong> ' + esc(_client.client_code || '—') + '</span>';
+    loadQeeg(0); loadAssess();
+  }
+  async function loadQeeg(page) {
+    _qPage = page || 0;
+    var rowsEl = document.getElementById('qeeg-rows');
+    rowsEl.innerHTML = '<tr><td colspan="8" class="muted">' + (kr() ? '불러오는 중…' : 'Loading…') + '</td></tr>';
+    var res = { rows: [], total: 0, page: _qPage, per: _per };
+    try {
+      if (window.ADHD_DB && ADHD_DB.listQeegResults) {
+        res = await ADHD_DB.listQeegResults({ dept: _dept, clientId: _client.id, page: _qPage });
+      }
+    } catch (e) { console.warn('[admin] listQeegResults', e); }
+    _qRows = res.rows || []; _qTotal = res.total || 0;
+    renderQeeg(); renderPager('qpager', _qTotal, _qPage, function (p) { loadQeeg(p); });
+    document.getElementById('qeeg-empty').style.display = _qRows.length ? 'none' : 'block';
+  }
+  function hasFile(v) { if (v == null) return false; if (typeof v === 'string') return !!v.trim(); if (Array.isArray(v)) return v.length > 0; if (typeof v === 'object') return Object.keys(v).length > 0; return true; }
+  function fileCell(kind, val, idx) {
+    if (!hasFile(val)) return '<td class="muted">—</td>';
+    return '<td><button data-act="view" data-i="' + idx + '" data-k="' + kind + '" title="view">👁</button>' +
+           '<button data-act="dl" data-i="' + idx + '" data-k="' + kind + '" title="download">⬇</button>' +
+           '<button data-act="pdf" data-i="' + idx + '" data-k="' + kind + '" title="print/PDF">📄</button></td>';
+  }
+  function renderQeeg() {
+    document.getElementById('qeeg-rows').innerHTML = _qRows.map(function (r, i) {
+      var num = _qPage * _per + i + 1;
+      return '<tr><td>' + num + '</td><td>' + esc(fmtDateTime(r.created_at)) + '</td><td>' + esc(r.framework || '') + '</td><td>' + esc(r.domain || '') + '</td>' +
+        fileCell('calc', r.calc_nf, i) + fileCell('deep', r.ai_deep, i) + fileCell('ainf', r.ai_nf, i) + fileCell('qeeg', r.qeeg_data, i) + '</tr>';
+    }).join('');
+  }
+  async function loadAssess() {
+    var rowsEl = document.getElementById('ass-rows');
+    rowsEl.innerHTML = '';
+    var rows = [];
+    try { if (window.ADHD_DB && ADHD_DB.listAssessments) rows = await ADHD_DB.listAssessments(_client.id); } catch (e) { console.warn('[admin] listAssessments', e); }
+    rows = rows || [];
+    document.getElementById('ass-empty').style.display = rows.length ? 'none' : 'block';
+    rowsEl.innerHTML = rows.map(function (a) {
+      return '<tr><td>' + esc(fmtDate(a.session_date)) + '</td><td>' + esc(a.assessment_id || '') + '</td><td>' + esc(pct(a.total_score)) + '</td><td>' + esc(pct(a.inattention_score)) + '</td><td>' + esc(pct(a.hyperactivity_score)) + '</td><td>' + esc(a.subtype || '') + '</td><td>' + esc(a.criteria_met_count != null ? a.criteria_met_count : '') + '</td></tr>';
+    }).join('');
+  }
+
+  /* ---------- 보기 / 다운로드 / PDF(인쇄) ---------- */
+  function asText(v, kind) { if (kind === 'deep') return (typeof v === 'string') ? v : JSON.stringify(v, null, 2); return JSON.stringify(v, null, 2); }
+  function openView(i, kind) {
+    var r = _qRows[i]; if (!r) return; var v = r[COLS[kind]];
+    document.getElementById('modal-t').textContent = (kr() ? LABELS[kind].ko : LABELS[kind].en) + ' — ' + (_client.full_name || _client.client_code || '');
+    document.getElementById('modal-c').textContent = asText(v, kind);
+    document.getElementById('modal-bg').style.display = 'flex';
+  }
+  function download(i, kind) {
+    var r = _qRows[i]; if (!r) return; var v = r[COLS[kind]];
+    var isText = kind === 'deep' && typeof v === 'string';
+    var body = isText ? v : asText(v, kind);
+    var ext = isText ? 'md' : 'json';
+    var name = 'qeeg_' + kind + '_' + (_client.client_code || r.client_id || 'anon') + '_' + String(r.id || '').slice(0, 8) + '.' + ext;
+    var blob = new Blob([body], { type: isText ? 'text/markdown' : 'application/json' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+  function printPdf(i, kind) {   // [B] PDF 자리 = 새 창 인쇄(브라우저 PDF 저장). 서버 변환은 별도.
+    var r = _qRows[i]; if (!r) return; var v = r[COLS[kind]];
+    var title = (kr() ? LABELS[kind].ko : LABELS[kind].en) + ' — ' + (_client.full_name || _client.client_code || '');
+    var w = window.open('', '_blank'); if (!w) return;
+    w.document.write('<html><head><meta charset="utf-8"><title>' + esc(title) + '</title></head><body><h2>' + esc(title) + '</h2><pre style="white-space:pre-wrap;word-break:break-word;font:13px/1.5 system-ui">' + esc(asText(v, kind)) + '</pre></body></html>');
+    w.document.close(); w.focus(); setTimeout(function () { try { w.print(); } catch (e) { } }, 300);
+  }
+
+  /* ---------- 페이지네이션 (공용) ---------- */
+  var _pagerCb = {};
+  function renderPager(elId, total, page, cb) {
+    _pagerCb[elId] = cb;
+    var el = document.getElementById(elId);
+    var pages = Math.max(1, Math.ceil(total / _per));
+    if (pages <= 1) { el.innerHTML = ''; return; }
+    var h = '';
+    for (var i = 0; i < pages; i++) { h += '<button data-pager="' + elId + '" data-page="' + i + '"' + (i === page ? ' class="on"' : '') + '>' + (i + 1) + '</button>'; }
+    el.innerHTML = h;
+  }
+
+  /* ---------- 이벤트 위임 ---------- */
+  document.addEventListener('click', function (e) {
+    var t = e.target; if (!t || !t.matches) return;
+    if (t.id === 'modal-x' || t.id === 'modal-bg') { document.getElementById('modal-bg').style.display = 'none'; return; }
+    if (t.id === 'back' || (t.closest && t.closest('#back'))) { showList(); return; }
+    if (t.matches('[data-client]')) { openDetail(t.getAttribute('data-client')); return; }
+    if (t.matches('[data-pager]')) { var cb = _pagerCb[t.getAttribute('data-pager')]; if (cb) cb(parseInt(t.getAttribute('data-page'), 10) || 0); return; }
+    if (t.matches('[data-act]')) {
+      var i = parseInt(t.getAttribute('data-i'), 10), k = t.getAttribute('data-k'), act = t.getAttribute('data-act');
+      if (act === 'view') openView(i, k); else if (act === 'dl') download(i, k); else if (act === 'pdf') printPdf(i, k);
+    }
+  });
+
+  /* ---------- 언어 토글 (bnm-lang-sync 표준) + 동적 재렌더 ---------- */
+  document.getElementById('g-en').addEventListener('click', function () { if (typeof window.bnmSetLang === 'function') window.bnmSetLang('en'); });
+  document.getElementById('g-ko').addEventListener('click', function () { if (typeof window.bnmSetLang === 'function') window.bnmSetLang('ko'); });
+  window.addEventListener('bnm-lang-change', function () {
+    setTimeout(function () {
+      var en = !kr();
+      document.getElementById('g-en').classList.toggle('on', en);
+      document.getElementById('g-ko').classList.toggle('on', !en);
+      if (document.getElementById('board').style.display === 'none') return;
+      if (document.getElementById('view-detail').style.display !== 'none' && _client) { renderQeeg(); loadAssess(); if (_client) openDetailMetaOnly(); }
+      else { renderClients(); }
+    }, 0);
+  });
+  /* [E] 환자 등록 — createClient (primary_clinician_id 자동) */
+  function closeReg() { document.getElementById('regBg').style.display = 'none'; }
+  document.getElementById('regBtn').addEventListener('click', function () {
+    ['rFirst', 'rLast', 'rDob', 'rCode', 'rEmail'].forEach(function (id) { document.getElementById(id).value = ''; });
+    document.getElementById('rSex').value = ''; document.getElementById('rErr').textContent = '';
+    document.getElementById('regBg').style.display = 'flex';
+  });
+  document.getElementById('rCancel').addEventListener('click', closeReg);
+  document.getElementById('regX').addEventListener('click', closeReg);
+  document.getElementById('rSave').addEventListener('click', async function () {
+    var first = document.getElementById('rFirst').value.trim();
+    if (!first) { document.getElementById('rErr').textContent = kr() ? '이름은 필수입니다.' : 'First name is required.'; return; }
+    if (!(window.ADHD_DB && ADHD_DB.createClient)) { document.getElementById('rErr').textContent = 'ADHD_DB unavailable'; return; }
+    try {
+      await ADHD_DB.createClient({
+        first_name: first,
+        last_name: document.getElementById('rLast').value.trim() || null,
+        date_of_birth: document.getElementById('rDob').value || null,
+        gender: document.getElementById('rSex').value || null,
+        client_code: document.getElementById('rCode').value.trim() || null,
+        email: document.getElementById('rEmail').value.trim() || null
+      });
+      closeReg(); loadList(0);   // 새 환자 → 목록 새로고침
+    } catch (e) { document.getElementById('rErr').textContent = (e && e.message) || String(e); }
+  });
+
+  function openDetailMetaOnly() {   // 언어 토글 시 메타 라벨만 재렌더(데이터 재조회 없이)
+    if (!_client) return;
+    var meta = document.getElementById('pt-meta');
+    meta.innerHTML = '<h2>' + esc(_client.full_name || _client.id) + '</h2>' +
+      '<span><strong>' + (kr() ? '생년월일' : 'DOB') + ':</strong> ' + esc(fmtDate(_client.date_of_birth) || '—') + (ageOf(_client.date_of_birth) !== '' ? ' (' + ageOf(_client.date_of_birth) + ')' : '') + '</span>' +
+      '<span><strong>' + (kr() ? '성별' : 'Sex') + ':</strong> ' + esc(_client.gender || '—') + '</span>' +
+      '<span><strong>' + (kr() ? '상태' : 'Status') + ':</strong> ' + esc(_client.status || '—') + '</span>' +
+      '<span><strong>Code:</strong> ' + esc(_client.client_code || '—') + '</span>';
+  }
+})();
+</script>
+</body></html>
