@@ -2038,7 +2038,7 @@
       "arousal": {
         "ko": "피질 각성",
         "en": "Cortical Arousal",
-        "color": "#E8833C",
+        "color": "#2E5A7A",
         "basis": "Sergeant Cognitive-Energetic; Barry arousal-EEG; Monastra theta/beta. 과각성↔저각성 양방향.",
         "ref": [
           "sergeant",
@@ -2048,7 +2048,7 @@
       "attention": {
         "ko": "주의 용량",
         "en": "Attention Capacity",
-        "color": "#3B82F6",
+        "color": "#4A90C2",
         "basis": "Posner attention networks; Sergeant sustained attention; Lubar theta/beta ratio.",
         "ref": [
           "sergeant",
@@ -2058,7 +2058,7 @@
       "impulseControl": {
         "ko": "충동 조절",
         "en": "Impulse Control",
-        "color": "#8B5CF6",
+        "color": "#5B9BD0",
         "basis": "Barkley response inhibition; prefrontal no-go; Go/No-Go & Stroop paradigms.",
         "ref": [
           "barkley"
@@ -2067,7 +2067,7 @@
       "autonomic": {
         "ko": "자율신경",
         "en": "Autonomic Balance",
-        "color": "#10B981",
+        "color": "#7BAFD0",
         "basis": "Thayer neurovisceral integration; HRV; Porges polyvagal. 자율신경 균형.",
         "ref": [
           "thayer"
@@ -2076,7 +2076,7 @@
       "emotional": {
         "ko": "정서 안정",
         "en": "Emotional Stability",
-        "color": "#EC4899",
+        "color": "#9DC3E0",
         "basis": "Shaw 2014 emotional dysregulation in ADHD; amygdala-prefrontal regulation.",
         "ref": [
           "shaw"
