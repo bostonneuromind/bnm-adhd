@@ -4010,6 +4010,65 @@
           }
         }
       }
+    },
+    "qeeg_norms": {
+      "_meta": {
+        "note_ko": "QEEG 지표의 ADHD/정상 문헌 norm. 보고서 QEEG 분석에 사용.",
+        "authorship": "문헌값 — Genius 임상 검수 필요"
+      },
+      "metrics": {
+        "theta_beta_ratio": {
+          "site": "Cz",
+          "healthy": {
+            "mean": 2.0,
+            "sd": 0.6
+          },
+          "adhd": {
+            "mean": 3.0,
+            "sd": 0.9
+          },
+          "higher_means": "attention",
+          "ko": "세타/베타 비율",
+          "en": "Theta/Beta Ratio",
+          "interpret_ko": "전두-중심부 세타 우세. 높을수록 저각성·주의조절 어려움을 시사. ADHD의 대표 QEEG 지표.",
+          "interpret_en": "Fronto-central theta dominance. Higher = under-arousal / attention difficulty. Hallmark ADHD QEEG marker.",
+          "ref": "neba_fda, snyder, monastra"
+        },
+        "frontal_beta": {
+          "site": "Fz",
+          "healthy": {
+            "mean": 18,
+            "sd": 5
+          },
+          "adhd": {
+            "mean": 14,
+            "sd": 5
+          },
+          "higher_means": "arousal",
+          "ko": "전두 베타",
+          "en": "Frontal Beta",
+          "interpret_ko": "낮은 베타는 피질 저각성과 연관. 실행기능·각성 유지의 어려움을 시사.",
+          "interpret_en": "Low beta linked to cortical under-arousal; executive/vigilance difficulty.",
+          "ref": "aan"
+        },
+        "alpha_peak": {
+          "site": "Pz",
+          "healthy": {
+            "mean": 10.2,
+            "sd": 0.8
+          },
+          "adhd": {
+            "mean": 9.4,
+            "sd": 1.0
+          },
+          "higher_means": null,
+          "ko": "알파 정점 주파수",
+          "en": "Alpha Peak Frequency",
+          "interpret_ko": "느린 알파 정점은 각성·처리속도 저하와 연관될 수 있음.",
+          "interpret_en": "Slower alpha peak may relate to lower arousal/processing speed.",
+          "ref": "arns"
+        }
+      }
     }
   },
   "references": {
