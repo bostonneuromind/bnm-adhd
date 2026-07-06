@@ -28,6 +28,21 @@
   .mu-super{font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;background:#EDE7F6;color:#5E35B1;margin-left:4px}
   .rowbtn{font:inherit;font-size:12px;border:1px solid #E3E6EA;background:#fff;border-radius:6px;padding:3px 8px;cursor:pointer}
   .rowbtn.del{border-color:#d99;color:#b00}
+  .sec-tab{font:inherit;font-size:13px;font-weight:700;padding:8px 16px;border:1px solid #E3E6EA;border-radius:10px;background:#fff;color:#5C6166;cursor:pointer}
+  .sec-tab[data-on="1"]{background:#7C3AED;color:#fff;border-color:#7C3AED}
+  .sec-body{display:none}
+  .sec-body[data-on="1"]{display:block}
+  .proto-card{border:1px solid #E3E6EA;border-radius:12px;padding:16px 18px;margin-bottom:12px;background:#fff}
+  .proto-card h3{font-size:15px;font-weight:800;color:#5E35B1;margin-bottom:4px}
+  .proto-meta{font-size:12px;color:#6B7280;margin-bottom:10px}
+  .proto-rate{display:inline-block;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;background:#EDE7F6;color:#5E35B1;margin-left:6px}
+  .proto-chg{font-size:12.5px;color:#374151;line-height:1.7}
+  .proto-chg b{color:#5E35B1}
+  .proto-warn{font-size:11.5px;color:#B45309;margin-top:8px}
+  .vault-link{display:block;border:1px solid #E3E6EA;border-radius:12px;padding:16px 18px;margin-bottom:10px;text-decoration:none;color:#1F2225;background:#fff}
+  .vault-link:hover{border-color:#7C3AED}
+  .vault-link b{color:#5E35B1;font-size:14px}
+  .vault-link span.d{display:block;font-size:12px;color:#6B7280;margin-top:3px}
 </style>
 </head>
 <body data-lang="ko">
@@ -69,6 +84,14 @@
     <button class="langbtn" onclick="var n=document.body.getAttribute('data-lang')==='ko'?'en':'ko';if(window.bnmSetLang)window.bnmSetLang(n);else document.body.setAttribute('data-lang',n);">KO / EN</button>
   </header>
 
+  <!-- section tabs -->
+  <div id="sec-tabs" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
+    <button class="sec-tab" data-sec="members" data-on="1"><span class="ko-text">회원 · 동의</span><span class="en-text">Members · Consent</span></button>
+    <button class="sec-tab" data-sec="engine"><span class="ko-text">엔진 관리</span><span class="en-text">Engine</span></button>
+    <button class="sec-tab" data-sec="vault"><span class="ko-text">Vault 관리</span><span class="en-text">Vault</span></button>
+  </div>
+
+  <div class="sec-body" data-sec="members" data-on="1">
   <!-- ════ 회원 관리 (sepiera adhd_users, source_site=adhd) — 범용 edge adhd-users-admin 재사용, 격리 ════ -->
   <div class="panel">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
@@ -91,6 +114,35 @@
     </table>
     <p id="mu-empty" style="display:none;color:#9b9b9b;font-size:13px;padding:14px 0"><span class="ko-text">회원이 없습니다.</span><span class="en-text">No members.</span></p>
   </div>
+  <!-- (동의서 패널은 sec-body[members] 안으로 이동됨 — 아래 CONSENT_MOVE 참고) -->
+  </div><!-- /sec-body members -->
+
+  <!-- ════ 엔진 관리 ════ -->
+  <div class="sec-body" data-sec="engine">
+    <div class="panel">
+      <h2><span class="ko-text">뉴로피드백 프로토콜</span><span class="en-text">Neurofeedback Protocols</span></h2>
+      <div class="sub"><span class="ko-text">adhd_rules.json 근거 프로토콜 (NF 세션·추천의 데이터 정본). 논문 기반 전극·주파수·반응률·기대변화.</span><span class="en-text">Protocols from adhd_rules.json — source of truth for NF sessions & recommendations. Evidence-based sites, bands, response rates, expected changes.</span></div>
+      <div id="eng-src" style="font-size:12px;color:#6B7280;margin-bottom:12px"></div>
+      <div id="eng-msg" style="font-size:13px;color:#B91C1C;min-height:16px;margin-bottom:8px"></div>
+      <div id="eng-protocols"></div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <h2><span class="ko-text">설문 · Rules (예정)</span><span class="en-text">Surveys · Rules (soon)</span></h2>
+      <div class="sub"><span class="ko-text">설문 문항 관리 · 축 공식 · profile_matching 편집 — 다음 단계.</span><span class="en-text">Survey items · axis formulas · profile_matching editing — next step.</span></div>
+    </div>
+  </div><!-- /sec-body engine -->
+
+  <!-- ════ Vault 관리 ════ -->
+  <div class="sec-body" data-sec="vault">
+    <div class="panel">
+      <h2><span class="ko-text">Vault 관리 (임상가 voice RAG)</span><span class="en-text">Vault (Clinician voice RAG)</span></h2>
+      <div class="sub"><span class="ko-text">임상 지식 셀 목록 · voice 저작 도구.</span><span class="en-text">Clinical knowledge cells · voice authoring tool.</span></div>
+      <a class="vault-link" href="vault-view.html"><b><span class="ko-text">Vault 셀 뷰어 열기</span><span class="en-text">Open Vault viewer</span></b><span class="d">vault-view.html · vault/adhd.jsonl</span></a>
+      <a class="vault-link" href="clinic_input.html"><b><span class="ko-text">Voice 저작 도구 열기</span><span class="en-text">Open voice authoring</span></b><span class="d">clinic_input.html</span></a>
+      <div id="vault-msg" style="font-size:13px;color:#B91C1C;min-height:16px;margin-top:6px"></div>
+      <div id="vault-cells" style="margin-top:12px"></div>
+    </div>
+  </div><!-- /sec-body vault -->
 </div>
 
 <!-- 수정 모달 -->
@@ -110,7 +162,7 @@
 </div>
 
 <!-- ════ [B-①] 동의서 관리 (법적 근거 열람·인쇄) — sepiera adhd_consent, edge service_role(super 비인증) ════ -->
-<div style="max-width:980px;margin:18px auto 0;background:#fff;border:1px solid #E3E6EA;border-radius:14px;padding:18px 20px">
+<div id="consent-card" style="max-width:980px;margin:18px auto 0;background:#fff;border:1px solid #E3E6EA;border-radius:14px;padding:18px 20px">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
     <h2 style="flex:1;font-size:1.1em;color:#5E35B1"><span class="ko-text">동의서 관리</span><span class="en-text">Consents</span></h2>
     <span id="cs-stats" style="font-size:12px;color:#6B7280"></span>
@@ -195,7 +247,98 @@
   $('cs-detail').addEventListener('click', function (e) { if (e.target === $('cs-detail')) show($('cs-detail'), false); });
   $('cs-print').addEventListener('click', function () {
     var w = window.open('', '_blank'); if (!w) return;
-    w.document.write('<html><head><title>Consent Record · Boston Neuromind</title></head><body style="font-family:system-ui,sans-serif;padding:30px">' + $('cs-body').innerHTML + '</body></html>');
+    w.document.write('<html><head><title>Consent Record · Boston Neuromind</title></head><body style="font-family:system-ui,sans-serif;padding:30px">' + $('cs-body').innerHTML + '<script>
+// ── 상위 섹션 전환 (회원·동의 / 엔진 / Vault) ──
+(function(){
+  function $(id){return document.getElementById(id);}
+  var tabs = $('sec-tabs');
+  if(!tabs) return;
+  var engineLoaded = false, vaultLoaded = false;
+  function activate(sec){
+    [].forEach.call(document.querySelectorAll('.sec-tab'), function(b){
+      b.setAttribute('data-on', b.getAttribute('data-sec')===sec ? '1':'0');
+    });
+    [].forEach.call(document.querySelectorAll('.sec-body'), function(b){
+      b.setAttribute('data-on', b.getAttribute('data-sec')===sec ? '1':'0');
+    });
+    // consent card belongs to members section (it lives outside .wrap)
+    var cc = $('consent-card'); if(cc) cc.style.display = (sec==='members') ? 'block':'none';
+    if(sec==='engine' && !engineLoaded){ engineLoaded = true; loadEngine(); }
+    if(sec==='vault' && !vaultLoaded){ vaultLoaded = true; loadVault(); }
+  }
+  tabs.addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('.sec-tab') : null;
+    if(!b) return;
+    activate(b.getAttribute('data-sec'));
+  });
+
+  // ── 엔진 관리: adhd_rules.json → nf_training_response.protocols 렌더 ──
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function isEn(){return document.body.getAttribute('data-lang')==='en';}
+  function fmtChange(key, ch){
+    var d = ch.direction;
+    if(!d && typeof ch.mu==='number') d = ch.mu<0 ? 'decrease' : (ch.mu>0 ? 'increase' : '');
+    var dir = d==='decrease' ? '↓' : (d==='increase' ? '↑' : '·');
+    var label = key.replace(/_delta$/,'').replace(/_/g,' ');
+    var mu = (ch.mu!=null) ? 'μ='+esc(ch.mu) : '';
+    var sd = (ch.sd!=null) ? ' (sd '+esc(ch.sd)+')' : '';
+    return '<b>'+esc(label)+'</b> '+dir+' '+mu+sd;
+  }
+  async function loadEngine(){
+    try{
+      var r = await fetch('adhd-engine/rules/adhd_rules.json', {cache:'no-store'});
+      var d = await r.json();
+      var nf = (d.normative_databases && d.normative_databases.nf_training_response) || d.nf_training_response;
+      if(!nf || !nf.protocols){ $('eng-msg').textContent = 'nf_training_response not found in rules'; return; }
+      $('eng-src').innerHTML = (isEn()?'Source: ':'근거: ')+esc(nf.source||'')+' · n_studies='+esc(nf.n_studies_ref||'?');
+      var html = '';
+      Object.keys(nf.protocols).forEach(function(name){
+        var p = nf.protocols[name];
+        var rate = p.response_rate!=null ? Math.round(p.response_rate*100)+'%' : '—';
+        var sess = p.session_count_typical ? p.session_count_typical.join('–')+(isEn()?' sessions':'세션') : '';
+        var stv = p.sessions_to_visible_change ? (isEn()?'visible change ~':'가시변화 ~')+p.sessions_to_visible_change.mu+(isEn()?' sess':'세션') : '';
+        var chg = '';
+        if(p.expected_changes){
+          chg = Object.keys(p.expected_changes).map(function(k){return fmtChange(k, p.expected_changes[k]);}).join('<br>');
+        }
+        var warn = (p.non_responder_indicators&&p.non_responder_indicators.length)
+          ? '⚠ '+(isEn()?'non-responder: ':'비반응 지표: ')+p.non_responder_indicators.map(esc).join(', ') : '';
+        html += '<div class="proto-card">'
+          + '<h3>'+esc(name.replace(/_/g,' '))+'<span class="proto-rate">'+(isEn()?'resp ':'반응 ')+rate+'</span></h3>'
+          + '<div class="proto-meta">'+esc(p.description||'')+' · '+esc(p.indication||'')
+          + (sess?' · '+esc(sess):'')+(stv?' · '+esc(stv):'')+'</div>'
+          + '<div class="proto-chg">'+chg+'</div>'
+          + (warn?'<div class="proto-warn">'+esc(warn)+'</div>':'')
+          + '</div>';
+      });
+      $('eng-protocols').innerHTML = html;
+    }catch(e){ $('eng-msg').textContent = (isEn()?'Load error: ':'로드 오류: ')+(e&&e.message||e); }
+  }
+
+  // ── Vault 관리: vault/adhd.jsonl 셀 목록 (읽기) ──
+  async function loadVault(){
+    try{
+      var lang = isEn() ? 'adhd' : 'adhd_ko';
+      var r = await fetch('vault/'+lang+'.jsonl', {cache:'no-store'});
+      if(!r.ok){ r = await fetch('vault/adhd.jsonl', {cache:'no-store'}); }
+      var txt = await r.text();
+      var lines = txt.split(/\r?\n/).filter(function(l){return l.trim();});
+      var cells = lines.map(function(l){ try{return JSON.parse(l);}catch(e){return null;} }).filter(Boolean);
+      if(!cells.length){ $('vault-cells').innerHTML = '<p style="color:#9b9b9b;font-size:13px">'+(isEn()?'No cells.':'셀이 없습니다.')+'</p>'; return; }
+      var html = '<p style="font-size:12px;color:#6B7280;margin-bottom:8px">'+cells.length+(isEn()?' cells':' 셀')+'</p>';
+      html += cells.slice(0,50).map(function(c,i){
+        var title = c.title || c.topic || c.id || ('cell '+(i+1));
+        var body = c.text || c.content || c.answer || JSON.stringify(c);
+        return '<div style="border:1px solid #E3E6EA;border-radius:10px;padding:10px 12px;margin-bottom:8px">'
+          + '<b style="font-size:13px;color:#5E35B1">'+esc(title)+'</b>'
+          + '<div style="font-size:12px;color:#374151;margin-top:3px">'+esc(String(body).slice(0,180))+(String(body).length>180?'…':'')+'</div></div>';
+      }).join('');
+      $('vault-cells').innerHTML = html;
+    }catch(e){ $('vault-msg').textContent = (isEn()?'Vault load error: ':'Vault 로드 오류: ')+(e&&e.message||e); }
+  }
+})();
+</script>
+</body></html>');
     w.document.close(); w.focus(); w.print();
   });
   load();
