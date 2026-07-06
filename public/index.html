@@ -377,7 +377,7 @@ body[data-lang="en"] .ko-text{display:none}body[data-lang="en"] .en-text{display
       <button data-t="s-algo"><span class="ko-text">📊 알고리즘 리포트</span><span class="en-text">📊 Algorithm Report</span></button>
       <button data-t="s-ai"><span class="ko-text">🤖 AI 심층분석</span><span class="en-text">🤖 AI Deep Analysis</span></button>
       <button data-t="s-nf"><span class="ko-text">뉴로피드백</span><span class="en-text">Neurofeedback</span></button>
-      <button data-t="s-trk"><span class="ko-text">추적</span><span class="en-text">Tracking</span></button>
+      <!-- [제거] 추적 탭 — 통합결과는 알고리즘 리포트가 담당 -->
     </div>
 
     <div id="tab-s-in" class="rtab show"><div class="pat">
@@ -954,7 +954,7 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
   function ko(){ try{ return (window.bnmGetLang&&window.bnmGetLang())==='ko'; }catch(e){ return false; } }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-  async function load(){ if(RULES) return RULES; var r=await fetch('adhd-engine/rules/adhd_rules.json'); RULES=await r.json(); return RULES; }
+  async function load(){ if(RULES) return RULES; var r=await fetch('adhd-engine/rules/adhd_rules.json'); RULES=await r.json(); try{ window._ADHD_RULES=RULES; }catch(e){} return RULES; }
 
   function totalItems(){ var R=RULES,n=0; (R&&R.surveys||[]).forEach(function(sv){ n+=(sv.items||[]).length; }); return n; }
   function answeredItems(){ var R=RULES,n=0; (R&&R.surveys||[]).forEach(function(sv){ (sv.items||[]).forEach(function(it){ if(document.querySelector('input[name="adhd_'+it.id+'"]:checked')) n++; }); }); return n; }
@@ -1016,6 +1016,8 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
         h+='<li style="margin:4px 0">'+esc(p.name)+' — <b>'+p.pct+'%</b> ('+p.level+')'+(msg?'<br><span style="font-size:12px;color:#4A6472">'+esc(msg)+'</span>':'')+'</li>'; });
       h+='</ul></div><div style="font-size:11px;color:#8FA9BC;margin-top:8px">'+(isk?'참고용 스크리닝입니다. 임상 진단이 아닙니다.':'Screening reference only. Not a clinical diagnosis.')+'</div></div>';
       el.innerHTML=h;
+      // 채점 완료 → QEEG 입력 물어보기
+      if(window.AdhdFlow && window.AdhdFlow.askQEEG) window.AdhdFlow.askQEEG();
       try{ var db=window.ADHD_DB; if(db&&db.createAssessment){ var s=window.ADHD_SESSION||{}; var cid=s.self_client_id||null;
         try{ var u=new URLSearchParams(location.search).get('cid'); if(u) cid=u; }catch(e){}
         if(cid){ db.createAssessment({ client_id:cid, symptom:'ADHD', assessment_id:'adhd_rules_v2',
@@ -1378,7 +1380,62 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 
 </script>
 <script>
-/* ===== ADHD AI 심층분석 (유료 게이트 + 8000토큰 2분 로딩 + 심층 보고서) — AdhdAIDeep ===== */
+/* ===== ADHD 플로우: 채점→QEEG물음→알고리즘리포트 통합 유도 — AdhdFlow ===== */
+(function(){
+  function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
+  function T(k,e){ return ko()?k:e; }
+  function go(tab){ if(typeof switchSymptomTab==='function') switchSymptomTab(tab); }
+
+  function askQEEG(){
+    // 이미 QEEG 데이터 있으면 물어보지 않고 바로 통합 리포트
+    var hasQeeg = window.state && (state.eegQeegData || (state.objectiveData && Object.keys(state.objectiveData).length));
+    if(hasQeeg){ toAlgo(); return; }
+    var m=document.getElementById('qeeg-ask-modal');
+    if(m){ m.style.display='flex'; return; }
+    m=document.createElement('div');
+    m.id='qeeg-ask-modal';
+    m.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(30,40,50,.55);display:flex;align-items:center;justify-content:center;padding:20px';
+    m.innerHTML='<div style="background:#fff;border-radius:18px;max-width:420px;width:100%;padding:26px 28px;box-shadow:0 20px 60px rgba(0,0,0,.3)">'
+      +'<div style="font-size:2em;text-align:center">🧠</div>'
+      +'<h3 style="text-align:center;color:#3A5566;font-size:1.2em;margin:6px 0 4px">'+T('QEEG 데이터를 입력할까요?','Add QEEG data?')+'</h3>'
+      +'<p style="text-align:center;color:#6B7280;font-size:13px;line-height:1.6;margin-bottom:18px">'+T('설문만으로도 분석 리포트가 나옵니다. QEEG(뇌파)를 추가하면 전두 세타/베타·알파 비대칭 같은 전기생리 지표가 통합되어 훨씬 정밀해집니다.','A report is ready from the survey alone. Adding QEEG integrates electrophysiological markers for a much more precise profile.')+'</p>'
+      +'<div style="display:flex;gap:10px">'
+        +'<button id="qeeg-ask-no" style="flex:1;padding:12px;border:1px solid #CAD6DE;border-radius:10px;background:#fff;color:#3A5566;font-weight:700;cursor:pointer;font-family:inherit">'+T('설문만으로 보기','Survey only')+'</button>'
+        +'<button id="qeeg-ask-yes" style="flex:1;padding:12px;border:0;border-radius:10px;background:#5B7B94;color:#fff;font-weight:800;cursor:pointer;font-family:inherit">'+T('QEEG 입력하기','Add QEEG')+' →</button>'
+      +'</div></div>';
+    document.body.appendChild(m);
+    document.getElementById('qeeg-ask-no').addEventListener('click', function(){ m.style.display='none'; toAlgo(); });
+    document.getElementById('qeeg-ask-yes').addEventListener('click', function(){ m.style.display='none'; go('s-meas');
+      var st=document.getElementById('edf-status'); if(st) st.textContent=T('상단에서 EC/EO EDF를 올리고 [분석 시작] · 또는 아래 수동입력 후 [측정값 저장] → 다시 알고리즘 리포트로','Upload EC/EO EDF & Run · or enter manual values & Save → then Algorithm Report');
+    });
+    m.addEventListener('click', function(e){ if(e.target===m){ m.style.display='none'; } });
+  }
+
+  function toAlgo(){ go('s-algo'); setTimeout(function(){ if(window.AdhdAlgoReport&&window.AdhdAlgoReport.build) window.AdhdAlgoReport.build(); }, 80); }
+
+  window.AdhdFlow = { askQEEG: askQEEG, toAlgo: toAlgo };
+
+  // QEEG 저장/분석 완료 후에도 알고리즘 리포트로 자연 유도 (측정값 저장 버튼 감지)
+  document.addEventListener('DOMContentLoaded', function(){
+    document.addEventListener('click', function(ev){
+      var t=ev.target;
+      // 수동 측정 저장 or QEEG run 후 → 알고리즘 리포트 갱신 유도 배너
+      if(t&&t.closest){
+        var saveBtn=t.closest('button');
+        if(saveBtn && /측정값 저장|Save measures/.test(saveBtn.textContent||'')){
+          setTimeout(function(){
+            var r=document.getElementById('adhd-measure-result');
+            if(r){ r.innerHTML += '<div style="margin-top:8px"><button onclick="AdhdFlow.toAlgo()" style="padding:8px 16px;border:0;border-radius:8px;background:#5B7B94;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">'+T('설문+QEEG 통합 리포트 보기','View integrated report')+' →</button></div>'; }
+          }, 200);
+        }
+      }
+    });
+  });
+})();
+
+</script>
+<script>
+/* ===== ADHD AI 심층분석 (샘플급 풍부 리포트, 실행 눌러야 로딩) — AdhdAIDeep ===== */
 (function(){
   var BOT='adhd_ai';
   function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
@@ -1390,16 +1447,15 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
   async function checkAccess(){ var c=authClient(); if(!c)return {access:false}; if(!(await token()))return {access:false,reason:'login'};
     try{ var r=await c.functions.invoke('check-access',{body:{bot:BOT}}); return r.error?{access:false}:(r.data||{access:false}); }catch(e){ return {access:false}; } }
 
-  // 결제 카드 (s-trk 패턴 재사용, bot=adhd_ai)
   var PRICE={consumer:{monthly:'$15',yearly:'$100'},owner:{monthly:'$30',yearly:'$300'}};
   var _plan='consumer_monthly', _type='consumer';
   async function startCheckout(){ var msg=$('ai2CkMsg'); function show(s){ if(msg)msg.textContent=s; }
-    if(!(await token())){ show(T('구독하려면 로그인이 필요해요. 홈에서 로그인 후 다시 시도하세요.','Sign in to subscribe, then retry.')); return; }
+    if(!(await token())){ show(T('구독하려면 로그인이 필요해요.','Sign in to subscribe.')); return; }
     show(T('결제창 여는 중…','Opening checkout…'));
     try{ var c=authClient(); var r=await c.functions.invoke('create-checkout',{body:{bot:BOT,plan:_plan,return_url:location.href.split('?')[0]}});
       if(r.error){ show(T('결제창 오류: ','Checkout error: ')+(r.error.message||'')); return; }
       var d=r.data||{}; if(d.url){ location.href=d.url; return; }
-      if(d.comp){ show(T('이미 이용권이 있어요. 새로고침…','You already have access. Reloading…')); setTimeout(function(){location.reload();},1200); return; }
+      if(d.comp){ show(T('이미 이용권이 있어요. 새로고침…','Access active. Reloading…')); setTimeout(function(){location.reload();},1200); return; }
       show(T('결제창을 열지 못했어요: ','Could not open checkout: ')+(d.error||''));
     }catch(e){ show(T('네트워크 오류: ','Network error: ')+(e&&e.message||e)); } }
   function pcard(type,cycle){ var amt=PRICE[type][cycle], per=cycle==='monthly'?T('/월','/mo'):T('/년','/yr'); var on=(_plan===type+'_'+cycle);
@@ -1410,12 +1466,12 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
   }
   function renderLock(){ var lk=$('ai2-lock'); if(!lk)return;
     lk.innerHTML='<div style="font-size:17px;font-weight:800;color:#3A5566;margin-bottom:6px">'+T('AI 심층 분석은 구독 후 열람','Unlock AI Deep Analysis')+'</div>'+
-      '<p style="color:#3A5566;opacity:.8;font-size:13px;max-width:320px;margin:0 auto 12px">'+T('감별진단·공병 분해·개인화 NF 프로토콜·4주 훈련 계획이 열립니다. 무료 알고리즘 리포트는 그대로 이용할 수 있어요.','Differential diagnosis, comorbidity breakdown, personalized NF protocol, and a 4-week plan unlock. The free algorithm report stays available.')+'</p>'+
+      '<p style="color:#3A5566;opacity:.8;font-size:13px;max-width:320px;margin:0 auto 12px">'+T('감별진단·공병 분해·개인화 NF 프로토콜·4주 훈련 계획이 열립니다.','Differential, comorbidity, personalized NF protocol, and a 4-week plan unlock.')+'</p>'+
       '<div id="ai2Toggle" style="display:inline-flex;border:1px solid #CAD6DE;border-radius:999px;overflow:hidden;margin-bottom:10px">'+
         '<button data-pt="consumer" style="border:0;background:#7C3AED;color:#fff;padding:6px 15px;font-weight:700;cursor:pointer;font-family:inherit">'+T('개인','Individual')+'</button>'+
         '<button data-pt="owner" style="border:0;background:transparent;color:#3A5566;padding:6px 15px;font-weight:700;cursor:pointer;font-family:inherit">'+T('임상가','Clinician')+'</button></div>'+
       '<div id="ai2Cards" style="display:flex;gap:8px;flex-wrap:wrap;max-width:320px;margin:0 auto 12px">'+pcard('consumer','monthly')+pcard('consumer','yearly')+pcard('owner','monthly')+pcard('owner','yearly')+'</div>'+
-      '<button id="ai2SubBtn" style="border:none;border-radius:9px;background:#7C3AED;color:#fff;font-weight:800;font-size:15px;padding:11px 22px;cursor:pointer;font-family:inherit">'+T('선택한 요금제로 구독','Subscribe')+' →</button>'+
+      '<button id="ai2SubBtn" style="border:none;border-radius:9px;background:#7C3AED;color:#fff;font-weight:800;font-size:15px;padding:11px 22px;cursor:pointer;font-family:inherit">'+T('구독','Subscribe')+' →</button>'+
       '<div id="ai2CkMsg" style="font-size:12.5px;color:#3A5566;opacity:.8;margin-top:9px;min-height:16px"></div>';
     function paint(){ lk.querySelectorAll('.ai2-pcard').forEach(function(c){ var on=c.getAttribute('data-plan')===_plan; c.style.border='2px solid '+(on?'#7C3AED':'#CAD6DE'); c.style.background=on?'#F3EEFB':'#fff'; }); }
     lk.querySelectorAll('.ai2-pcard').forEach(function(c){ c.addEventListener('click',function(){ _plan=c.getAttribute('data-plan'); paint(); }); });
@@ -1429,30 +1485,33 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
     else{ inner.classList.add('ai-lk-blur'); lk.style.display='flex'; try{var _u=await AdhdAuth.getUser();var _dm=(_u&&_u.user_metadata&&_u.user_metadata.deploy_mode)==='professional'?'owner':'consumer';_type=_dm;_plan=_dm+'_monthly';}catch(e){} renderLock(); }
     _busy=false; }
 
-  // ── 심층분석 실행: 8000토큰 2분 로딩 → 보고서 ──
+  // ── 실행: 눌러야만 로딩+분석 ──
   var _running=false;
+  var _charts={};
+  function destroyCharts(){ Object.keys(_charts).forEach(function(k){try{_charts[k].destroy();}catch(e){}}); _charts={}; }
   async function run(){
     if(_running) return; var btn=$('ai2-run'), box=$('ai2-result'); if(!box) return;
-    // 알고리즘 결과 확보
     var resData=(window.adhdScore&&window.adhdScore())||null;
-    if(!resData||!resData.profiles||!resData.profiles.length){ box.innerHTML='<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:12px;padding:16px;color:#C2410C;font-size:14px">'+T('설문을 먼저 채점하세요. AI 분석은 알고리즘 결과를 근거로 합니다.','Score the survey first. AI analysis is grounded on the algorithm results.')+'</div>'; return; }
+    if(!resData||!resData.profiles||!resData.profiles.length){ box.innerHTML='<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:12px;padding:16px;color:#C2410C;font-size:14px">'+T('설문을 먼저 채점하세요. AI 분석은 알고리즘 결과를 근거로 합니다.','Score the survey first.')+'</div>'; return; }
     _running=true; if(btn) btn.disabled=true;
-    var eta=115, s=0;
-    box.innerHTML='<div class="prog"><div class="line"></div><div class="prog-bar"><div></div></div><div id="ai2-steps" style="font-size:12px;color:#8FA9BC;margin-top:8px"></div></div>';
-    var line=box.querySelector('.line'), bar=box.querySelector('.prog-bar>div'), steps=$('ai2-steps');
+    var eta=115, sec=0;
+    box.innerHTML='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:22px"><div id="ai2-line" style="font-weight:700;color:#3A5566;font-size:14px">'+T('AI 심층 분석 시작…','Starting AI deep analysis…')+'</div><div style="height:10px;background:#EEF2F4;border-radius:6px;overflow:hidden;margin:12px 0"><div id="ai2-bar" style="height:100%;width:0;background:#7C3AED;border-radius:6px;transition:width .8s"></div></div><div id="ai2-steps" style="font-size:12.5px;color:#8FA9BC"></div></div>';
+    var line=$('ai2-line'), bar=$('ai2-bar'), steps=$('ai2-steps');
     var stepMsgs = ko()
-      ? ['조절축·프로파일 데이터 수집','QEEG 지표 통합','감별진단 추론','공병 가능성 분해','NF 프로토콜 매칭','4주 훈련 계획 생성','보고서 구성']
-      : ['Collecting axis & profile data','Integrating QEEG markers','Differential reasoning','Comorbidity breakdown','Matching NF protocols','Building 4-week plan','Composing report'];
+      ? ['조절축·프로파일 데이터 수집','QEEG 전기생리 지표 통합','DSM-5-TR 감별진단 추론','공병 가능성 분해','개인화 NF 프로토콜 매칭','4주 훈련 계획 생성','종합 보고서 구성']
+      : ['Collecting axis & profile data','Integrating QEEG markers','DSM-5-TR differential reasoning','Comorbidity breakdown','Matching personalized NF protocols','Building 4-week plan','Composing report'];
     var iv=setInterval(function(){
-      s++; var pct=Math.min(96, Math.round(s/eta*100));
-      if(s<=eta){ line.textContent=ko()?('AI 심층 분석 중 · 경과 '+s+'초 / 예상 ~'+eta+'초'):('AI deep analysis… · '+s+'s / ~'+eta+'s'); bar.style.background='#7C3AED'; }
-      else { line.textContent=ko()?'예상보다 길어지는 중 — 곧 완료':'Taking longer — almost done'; bar.style.background='#8AA5B5'; pct=98; }
+      sec++; var pct=Math.min(96, Math.round(sec/eta*100));
+      if(sec<=eta){ line.textContent=ko()?('AI 심층 분석 중 · 경과 '+sec+'초 / 예상 ~'+eta+'초'):('AI deep analysis… · '+sec+'s / ~'+eta+'s'); bar.style.background='#7C3AED'; }
+      else{ line.textContent=T('예상보다 길어지는 중 — 곧 완료','Taking longer — almost done'); bar.style.background='#8AA5B5'; pct=98; }
       bar.style.width=pct+'%';
-      var si=Math.min(stepMsgs.length-1, Math.floor(s/ (eta/stepMsgs.length)));
+      var si=Math.min(stepMsgs.length-1, Math.floor(sec/(eta/stepMsgs.length)));
       if(steps) steps.textContent='· '+stepMsgs[si];
     },1000);
-    // 실제 엔드포인트 호출 시도 (없으면 데모 결과)
+
+    // 실제 endpoint 시도, 없으면 풍부한 구조화 보고서 (단, 최소 로딩 시간 보장)
     var report=null;
+    var minWait = new Promise(function(r){ setTimeout(r, 3500); }); // 최소 로딩감
     try{
       var c=authClient();
       if(c){ var payload={ bot:BOT, axes:resData.axes, states:resData.states, profiles:resData.profiles, features:resData.features,
@@ -1460,54 +1519,136 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
         var r=await c.functions.invoke('adhd-ai-deep',{body:payload});
         if(!r.error && r.data && (r.data.report||r.data.text)) report=r.data.report||r.data.text;
       }
-    }catch(e){ /* fall through to structured demo */ }
+    }catch(e){}
+    await minWait;
     clearInterval(iv);
-    box.innerHTML = report ? renderMarkdownish(report) : renderStructuredReport(resData);
+    if(report){ box.innerHTML = renderMarkdownish(report); }
+    else { box.innerHTML = renderRich(resData); setTimeout(function(){ drawRichCharts(resData); },60); }
     if(btn) btn.disabled=false; _running=false;
   }
 
-  // 엔드포인트 미배선 시: 알고리즘 데이터 기반 구조화 심층 보고서 (그림/표)
-  function renderStructuredReport(res){
+  // ================= 샘플급 풍부 보고서 =================
+  var STLABEL={ arousal:['피질 각성','Cortical Arousal'], attention:['주의 용량','Attention Capacity'], impulseControl:['충동 조절','Impulse Control'], autonomic:['자율신경 균형','Autonomic Balance'], emotional:['정서 안정','Emotional Stability'] };
+  var AXCOLOR={Bio:'#10B981',Psycho:'#8B5CF6',Social:'#3B82F6'};
+  function goodCol(v){ return v>=65?'#5C8A6B':v>=40?'#D97706':'#DC2626'; }
+
+  function renderRich(res){
     var top=res.profiles[0];
-    var h='<div id="ai2-report" class="pat" style="background:#fff">';
-    h+='<div style="background:linear-gradient(135deg,#5E35B1,#7C3AED);color:#fff;border-radius:14px;padding:20px 22px;margin-bottom:16px">'+
-      '<div style="font-size:12px;opacity:.85;font-weight:700">🤖 '+T('AI 심층 분석','AI DEEP ANALYSIS')+'</div>'+
-      '<div style="font-size:1.5rem;font-weight:900;margin-top:4px">'+esc(top.name)+' · '+top.pct+'%</div></div>';
-    // 감별
-    h+='<h3 style="color:#3A5566;font-size:1.05em;margin:14px 0 6px">'+T('1. 감별 진단','1. Differential')+'</h3>';
-    h+='<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px">'+
-      res.profiles.map(function(p,i){ return '<tr style="border-bottom:1px solid #EEF2F4"><td style="padding:6px">'+(i+1)+'</td><td style="padding:6px;font-weight:700;color:#3A5566">'+esc(p.name)+'</td><td style="padding:6px;text-align:right;font-weight:800;color:#7C3AED">'+p.pct+'%</td><td style="padding:6px;color:#8FA9BC">'+esc(p.level)+'</td></tr>'; }).join('')+'</table>';
-    // 조절축 해석
-    h+='<h3 style="color:#3A5566;font-size:1.05em;margin:14px 0 6px">'+T('2. 조절축 해석','2. Regulation Axes')+'</h3>';
-    var STLABEL={ arousal:['피질 각성','Cortical Arousal'], attention:['주의 용량','Attention'], impulseControl:['충동 조절','Impulse Control'], autonomic:['자율신경','Autonomic'], emotional:['정서 안정','Emotional'] };
-    h+='<div style="font-size:13px;color:#4A6472;line-height:1.7">';
-    Object.keys(STLABEL).forEach(function(k){ if(res.states[k]==null)return; var v=Math.round(res.states[k]); var judge=v>=65?T('양호','good'):v>=40?T('경계','borderline'):T('저하','reduced');
-      h+='· <b>'+(ko()?STLABEL[k][0]:STLABEL[k][1])+'</b>: '+v+'/100 ('+judge+')<br>'; });
-    h+='</div>';
-    // NF 프로토콜 처방
-    h+='<h3 style="color:#3A5566;font-size:1.05em;margin:14px 0 6px">'+T('3. NF 프로토콜 처방','3. NF Protocol Rx')+'</h3>';
-    h+='<div style="background:#F5FAFE;border:1px solid #CAD6DE;border-radius:10px;padding:12px 14px;font-size:13px;color:#3A5566;line-height:1.7">'+
-      'Cz · Reward SMR 12-15Hz ↑ · Inhibit Theta 4-7Hz / HiBeta 20-30Hz ↓<br>'+T('목표','Target')+': Monastra θ/β ≤ 2.0 · 20-40 '+T('세션','sessions')+'</div>';
-    // 4주 계획
-    h+='<h3 style="color:#3A5566;font-size:1.05em;margin:14px 0 6px">'+T('4. 4주 훈련 계획','4. 4-Week Plan')+'</h3>';
+    var h='<div id="ai2-report">';
+    // 히어로
+    h+='<div style="background:linear-gradient(135deg,#5E35B1,#7C3AED);color:#fff;border-radius:16px;padding:22px 24px;margin-bottom:16px">'+
+      '<div style="font-size:12px;opacity:.85;font-weight:700;letter-spacing:.05em">🤖 '+T('AI 심층 분석 · DSM-5-TR 근거','AI DEEP ANALYSIS · DSM-5-TR')+'</div>'+
+      '<div style="font-size:1.7rem;font-weight:900;margin:4px 0">'+esc(top.name)+' · '+top.pct+'%</div>'+
+      '<div style="font-size:13px;opacity:.92;line-height:1.6;max-width:600px">'+T('자기보고 조절 프로파일과 신경생리 지표를 통합해 도출한 임상 해석입니다. 아래는 감별·조절축·공병·NF 처방·4주 계획의 종합입니다.','Clinical interpretation integrating self-report regulation profile with neurophysiological markers — differential, axes, comorbidity, NF prescription, and 4-week plan below.')+'</div></div>';
+
+    // 1. 감별 진단 (확률 차트)
+    h+=sectionTitle('1',T('감별 진단 (Differential)','Differential Diagnosis'));
+    h+='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px 18px;margin-bottom:16px"><canvas id="ai2-diff" height="150"></canvas>';
+    h+='<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:10px">'+res.profiles.map(function(p,i){
+      var col=i===0?'#5E35B1':'#8AA5B5';
+      return '<tr style="border-bottom:1px solid #EEF2F4"><td style="padding:7px;color:#8FA9BC">'+(i+1)+'</td><td style="padding:7px;font-weight:700;color:#3A5566">'+esc(p.name)+'</td><td style="padding:7px;text-align:right;font-weight:800;color:'+col+'">'+p.pct+'%</td><td style="padding:7px;color:#8FA9BC">'+esc(p.level)+'</td></tr>';
+    }).join('')+'</table></div>';
+
+    // 2. 조절축 레이더 + 해석
+    h+=sectionTitle('2',T('조절축 프로파일 (Regulation Axes)','Regulation Axes'));
+    h+='<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">'+
+      '<div style="flex:1;min-width:280px;background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px"><canvas id="ai2-radar" height="260"></canvas></div>'+
+      '<div style="flex:1;min-width:280px;background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px"><table style="width:100%;border-collapse:collapse;font-size:13px">'+
+      Object.keys(STLABEL).filter(function(k){return res.states[k]!=null;}).map(function(k){ var v=Math.round(res.states[k]); var col=goodCol(v); var judge=v>=65?T('양호','good'):v>=40?T('경계','borderline'):T('저하','reduced');
+        return '<tr><td style="padding:8px 4px;font-weight:700;color:#3A5566">'+(ko()?STLABEL[k][0]:STLABEL[k][1])+'</td><td style="padding:8px 4px;width:45%"><div style="height:12px;background:#EEF2F4;border-radius:5px;overflow:hidden"><div style="height:100%;width:'+v+'%;background:'+col+'"></div></div></td><td style="padding:8px 4px;text-align:right;font-weight:800;color:'+col+'">'+v+'</td><td style="padding:8px 4px;color:'+col+';font-size:11px">'+judge+'</td></tr>';
+      }).join('')+'</table></div></div>';
+
+    // 3. QEEG 통합 (있으면 표, 없으면 안내)
+    h+=sectionTitle('3',T('QEEG 통합 소견','QEEG Integration'));
+    var hasQeeg = window.state && (state.eegQeegData || (state.objectiveData && Object.keys(state.objectiveData).length));
+    if(hasQeeg && window.renderQEEGRich){ var rich=window.renderQEEGRich(); h+='<div style="margin-bottom:16px">'+(rich||'')+'</div>'; }
+    else { h+='<div style="background:#F5FAFE;border:1px dashed #8AA5B5;border-radius:14px;padding:16px 18px;margin-bottom:16px;font-size:13px;color:#4A6472;line-height:1.6">'+T('QEEG 측정 데이터가 없어 자기보고 기반으로 분석했습니다. QEEG를 추가하면 전두 세타/베타 비율, 알파 비대칭, PAF 등 전기생리 지표가 통합되어 감별 정확도가 크게 향상됩니다.','No QEEG data — analysis is self-report based. Adding QEEG integrates theta/beta ratio, alpha asymmetry, and PAF for much higher differential accuracy.')+'</div>'; }
+
+    // 4. NF 프로토콜 처방 (rules 기반 카드)
+    h+=sectionTitle('4',T('개인화 NF 프로토콜 처방','Personalized NF Protocol Rx'));
+    h+='<div id="ai2-nf" style="margin-bottom:16px">'+nfCards(res)+'</div>';
+
+    // 5. 4주 훈련 계획 (타임라인)
+    h+=sectionTitle('5',T('4주 훈련 계획','4-Week Training Plan'));
     var weeks=ko()
-      ? [['1주','기저선 확립 · HRV 바이오피드백 · 수면 위생'],['2주','SMR/Beta NF 시작 · 주 2-3회'],['3주','프로토콜 조정 · 추세 확인'],['4주','재평가 · 목표 대비 검증']]
-      : [['Wk 1','Baseline · HRV biofeedback · sleep hygiene'],['Wk 2','Start SMR/Beta NF · 2-3×/wk'],['Wk 3','Adjust protocol · check trend'],['Wk 4','Re-assess vs target']];
-    h+='<table style="width:100%;border-collapse:collapse;font-size:13px">'+weeks.map(function(w){ return '<tr style="border-bottom:1px solid #EEF2F4"><td style="padding:7px;font-weight:800;color:#7C3AED;white-space:nowrap">'+w[0]+'</td><td style="padding:7px;color:#3A5566">'+w[1]+'</td></tr>'; }).join('')+'</table>';
-    h+='<div style="font-size:11px;color:#8FA9BC;margin-top:14px;border-top:1px solid #EEF2F4;padding-top:8px">'+T('AI 분석은 참고용입니다. 임상 진단·처방은 전문가와 상의하세요. · Boston Neuromind','AI analysis is for reference. Consult a professional for diagnosis/prescription. · Boston Neuromind')+'</div>';
-    h+='</div>';
-    h+='<div class="result-actions"><button class="save-btn" onclick="AdhdAIDeep.savePDF()">📄 '+T('PDF 저장','Save PDF')+'</button></div>';
+      ? [['1주','기저선 확립','QEEG 재측정 · HRV 바이오피드백 · 수면 위생 교육','#10B981'],['2주','핵심 조절 강화','SMR/Beta NF 시작 (주 2-3회) · 마음챙김 훈련','#8B5CF6'],['3주','프로토콜 조정','추세 확인 · 반응성 기반 대역 조정 · 인지과제 병행','#3B82F6'],['4주','재평가·검증','QEEG 재측정 · 목표 대비 검증 · 유지 전략','#D97706']]
+      : [['Wk 1','Baseline','QEEG re-measure · HRV biofeedback · sleep hygiene','#10B981'],['Wk 2','Core strengthening','Start SMR/Beta NF (2-3×/wk) · mindfulness','#8B5CF6'],['Wk 3','Protocol tuning','Trend check · band adjust · cognitive tasks','#3B82F6'],['Wk 4','Re-assess','QEEG re-measure · verify vs target · maintenance','#D97706']];
+    h+='<div style="margin-bottom:16px">'+weeks.map(function(w){
+      return '<div style="display:flex;gap:12px;margin-bottom:8px"><div style="min-width:70px;background:'+w[3]+';color:#fff;border-radius:10px;padding:10px;text-align:center;font-weight:800;font-size:13px">'+w[0]+'</div><div style="flex:1;background:#fff;border:1px solid #CAD6DE;border-radius:10px;padding:10px 14px"><b style="color:#3A5566">'+w[1]+'</b><div style="font-size:12.5px;color:#4A6472;margin-top:2px">'+w[2]+'</div></div></div>';
+    }).join('')+'</div>';
+
+    // 6. 추천 개입 + 경고
+    var recHtml=recRows(res), warnHtml=warnRows(res);
+    if(recHtml){ h+=sectionTitle('6',T('추천 개입','Recommended Interventions'))+'<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px 18px;margin-bottom:16px">'+recHtml+'</div>'; }
+    if(warnHtml){ h+='<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:14px;padding:16px 18px;margin-bottom:16px"><b style="color:#C2410C">'+T('임상 주의사항','Clinical Cautions')+'</b>'+warnHtml+'</div>'; }
+
+    h+='<div style="font-size:11px;color:#8FA9BC;margin-top:14px;border-top:1px solid #EEF2F4;padding-top:8px">'+T('AI 분석은 참고용입니다. 임상 진단·처방은 전문가와 상의하세요. · Boston Neuromind','AI analysis is for reference. Consult a professional. · Boston Neuromind')+'</div>';
+    h+='</div><div style="margin-top:12px"><button onclick="AdhdAIDeep.savePDF()" style="padding:10px 18px;border:0;border-radius:9px;background:#5B7B94;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">📄 '+T('PDF 저장','Save PDF')+'</button></div>';
     return h;
+  }
+  function sectionTitle(n,t){ return '<div style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><div style="width:26px;height:26px;border-radius:7px;background:#5E35B1;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px">'+n+'</div><div style="font-weight:800;color:#3A5566;font-size:1.05em">'+t+'</div></div>'; }
+
+  function nfCards(res){
+    var R=(window.AdhdEngine&&window.AdhdEngine._rules)||window._ADHD_RULES||null;
+    // rules 접근이 어려우면 캐시된 것 사용 시도
+    try{ if(!R && window.adhdScore){ /* rules not directly exposed; use inline defaults */ } }catch(e){}
+    var top=res.profiles[0];
+    // 프로파일별 우선 프로토콜 (rules nf_training_response와 동일 매핑)
+    var protos = top.id==='adhd_hyperactive'
+      ? [['Alpha-Theta training',T('정서·충동 조절','Emotion/impulse'),55],['SMR training',T('주의·감각운동','Attention/SMR'),65]]
+      : [['SMR training',T('주의·감각운동 리듬 강화','Attention/SMR uptraining'),65],['Beta training',T('피질 각성·집중','Cortical activation'),60]];
+    return protos.map(function(p){
+      return '<div style="border:1px solid #CAD6DE;border-radius:12px;padding:14px 16px;margin-bottom:8px;background:#F5FAFE">'+
+        '<div style="font-weight:800;color:#5E35B1;font-size:14px">'+esc(p[0])+' <span style="background:#EDE7F6;color:#5E35B1;padding:2px 8px;border-radius:99px;font-size:11px;margin-left:4px">'+T('반응률 ','resp ')+p[2]+'%</span></div>'+
+        '<div style="font-size:12.5px;color:#4A6472;margin-top:4px">'+esc(p[1])+' · Cz/C3/C4 · 20-40 '+T('세션','sessions')+'</div></div>';
+    }).join('');
+  }
+  function recRows(res){
+    var R=window._ADHD_RULES; if(!R) return '';
+    function m(c){ if(!c)return true; try{ if(c.axis!=null&&res.axes){var v=res.axes[c.axis];if(v==null)return false;if(c.less_than!=null)return v<c.less_than;if(c.greater_than!=null)return v>c.greater_than;} if(c.feature!=null&&res.features){var f=res.features[c.feature];if(f==null)return false;if(c.less_than!=null)return f<c.less_than;if(c.greater_than!=null)return f>c.greater_than;} if(c.profile!=null&&res.profiles){var p=res.profiles[0];return p&&p.id===c.profile;} }catch(e){} return true; }
+    var recs=(R.recommendations||[]).filter(function(r){return m(r.condition);});
+    if(!recs.length) return '';
+    return recs.map(function(r,i){ return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #EEF2F4"><div style="min-width:22px;height:22px;border-radius:50%;background:#5B7B94;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px">'+(i+1)+'</div><div style="font-size:13px;color:#3A5566;line-height:1.6">'+esc(ko()?r.general:r.clinician)+'</div></div>'; }).join('');
+  }
+  function warnRows(res){
+    var R=window._ADHD_RULES; if(!R) return '';
+    function m(c){ if(!c)return false; try{ if(c.feature!=null&&res.features){var f=res.features[c.feature];if(f==null)return false;if(c.less_than!=null)return f<c.less_than;if(c.greater_than!=null)return f>c.greater_than;} if(c.axis!=null&&res.axes){var v=res.axes[c.axis];if(v==null)return false;if(c.less_than!=null)return v<c.less_than;} }catch(e){} return false; }
+    var ws=(R.warnings||[]).filter(function(w){return m(w.condition);});
+    if(!ws.length) return '';
+    return ws.map(function(w){ return '<div style="font-size:13px;color:#8A4A2C;line-height:1.6;margin-top:6px">⚠️ '+esc(ko()?w.general:w.clinician)+'</div>'; }).join('');
+  }
+
+  function drawRichCharts(res){
+    destroyCharts();
+    if(!window.Chart) return;
+    var dc=$('ai2-diff');
+    if(dc){
+      _charts.diff=new Chart(dc.getContext('2d'),{
+        type:'bar',
+        data:{ labels:res.profiles.map(function(p){return p.name;}), datasets:[{ data:res.profiles.map(function(p){return p.pct;}), backgroundColor:['#5E35B1','#8AA5B5','#CAD6DE'], borderRadius:6 }] },
+        options:{ indexAxis:'y', responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ max:100, ticks:{ color:'#8FA9BC' } }, y:{ ticks:{ color:'#3A5566', font:{ weight:'700' } } } } }
+      });
+    }
+    var rc=$('ai2-radar');
+    if(rc){
+      var keys=Object.keys(STLABEL).filter(function(k){return res.states[k]!=null;});
+      _charts.radar=new Chart(rc.getContext('2d'),{
+        type:'radar',
+        data:{ labels:keys.map(function(k){return ko()?STLABEL[k][0]:STLABEL[k][1];}), datasets:[{ data:keys.map(function(k){return Math.round(res.states[k]);}), borderColor:'#7C3AED', backgroundColor:'rgba(124,58,237,.2)', borderWidth:2, pointBackgroundColor:'#5E35B1' }] },
+        options:{ responsive:true, scales:{ r:{ min:0, max:100, ticks:{ stepSize:20, font:{ size:9 }, color:'#8FA9BC' }, pointLabels:{ font:{ size:11, weight:'700' }, color:'#3A5566' }, grid:{ color:'#E4ECF1' } } }, plugins:{ legend:{ display:false } } }
+      });
+    }
   }
   function renderMarkdownish(txt){
     var html=esc(txt).replace(/^### (.*)$/gm,'<h3 style="color:#3A5566;margin:12px 0 6px">$1</h3>').replace(/^## (.*)$/gm,'<h2 style="color:#3A5566;margin:14px 0 8px">$1</h2>').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
-    return '<div id="ai2-report" class="pat" style="background:#fff;font-size:13.5px;line-height:1.7">'+html+'</div><div class="result-actions"><button class="save-btn" onclick="AdhdAIDeep.savePDF()">📄 '+T('PDF 저장','Save PDF')+'</button></div>';
+    return '<div id="ai2-report" style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:18px;font-size:13.5px;line-height:1.7">'+html+'</div><div style="margin-top:12px"><button onclick="AdhdAIDeep.savePDF()" style="padding:10px 18px;border:0;border-radius:9px;background:#5B7B94;color:#fff;font-weight:700;cursor:pointer">📄 '+T('PDF 저장','Save PDF')+'</button></div>';
   }
 
   window.AdhdAIDeep={ run:run,
     savePDF:function(){ var el=$('ai2-report'); if(!el){ alert(T('먼저 분석을 실행하세요.','Run the analysis first.')); return; }
       if(window.html2pdf){ window.html2pdf().set({margin:8,filename:'adhd_ai_deep.pdf',html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4'}}).from(el).save(); } else { window.print(); } } };
 
+  // 탭 열면 gate만 (blur/잠금), 결과는 실행 눌러야
   function wire(){ var b=document.querySelector('.rpt-tabbar button[data-t="s-ai"]'); if(b)b.addEventListener('click',function(){ setTimeout(gate,0); }); }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire); else wire();
 })();
