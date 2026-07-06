@@ -12,7 +12,6 @@
   <script src="../shared/adhd-db.js?v=1"></script>
   <script src="../shared/adhd-auth.js?v=1"></script>
   <script src="../shared/adhd-session.js?v=1"></script>
-  <script src="tc-auth.js?v=1"></script>
   <style>
   :root{ --accent:#444; --ink:#1a1a1a; --muted:#6b6b6b; --line:#d8d8d8; --panel:#f6f6f6; }
   *{ box-sizing:border-box; margin:0; padding:0; }
@@ -82,13 +81,7 @@
     <div class="hero" style="margin-top:8px">
       <div class="kor">Admin · ADHD</div>
       <h1 style="font-size:30px"><span class="ko-text">반짝이 관리자</span><span class="en-text">ADHD Admin</span></h1>
-      <p><span class="ko-text">무료 이용권·가입자·구독자를 관리합니다.</span><span class="en-text">Manage free access, users and subscribers.</span></p>
-    </div>
-
-    <div class="panel">
-      <h2>🛠️ <span class="ko-text">접근 관리</span><span class="en-text">Access Management</span></h2>
-      <div class="sub"><span class="ko-text">결제 우회(무료 이용권) · 가입자 · 구독자.</span><span class="en-text">Free-access bypass · users · subscribers.</span></div>
-      <div id="adminMount"></div>
+      <p><span class="ko-text">환자 보드 · 동의서 · 임상 도구.</span><span class="en-text">Patient board · consents · clinical tools.</span></p>
     </div>
 
     <div class="cards">
@@ -153,16 +146,14 @@
     <div style="text-align:center;margin-top:24px">
       <a class="btn ghost" style="display:inline-block;width:auto;padding:11px 22px" href="adhd.html">← <span class="ko-text">ADHD 페이지</span><span class="en-text">ADHD page</span></a>
     </div>
-    <div class="ftr">© Boston Neuromind LLC · TrackCatcher Admin</div>
+    <div class="ftr">© Boston Neuromind LLC · ADHD Admin</div>
   </div>
 
-  <script src="service-admin.js?v=2"></script>
   <script>
-  const PASS='bnm1#', SKEY='tc_admin_adhd', BOT='adhd';
+  const PASS='bnm1#', SKEY='tc_admin_adhd';
   const gate=document.getElementById('gateWrap'), panel=document.getElementById('panelWrap');
   function openPanel(){
     gate.style.display='none'; panel.style.display='block';
-    if(window.TCAdmin) window.TCAdmin.init({ botKey: BOT, mount: document.getElementById('adminMount') });
   }
   if(sessionStorage.getItem(SKEY)==='1') openPanel();
   document.getElementById('enter').onclick = ()=>{
