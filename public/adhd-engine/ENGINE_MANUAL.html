@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BNM 엔진 매뉴얼 — Catcher Treatment Engine</title>
+<style>
+:root{--dark:#2E5A7A;--main:#4A90C2;--mid:#7BAFD0;--soft:#BDD7E7;--bg:#E8F1F8;--ink:#374151;--dim:#8FA9BC;}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Malgun Gothic',sans-serif;color:var(--ink);background:#F7FAFC;line-height:1.65}
+.wrap{max-width:920px;margin:0 auto;padding:24px 20px 80px}
+.hero{background:linear-gradient(135deg,var(--dark),var(--main));color:#fff;border-radius:18px;padding:28px 30px;margin-bottom:8px}
+.hero h1{margin:0;font-size:1.7rem;font-weight:900}
+.hero p{margin:8px 0 0;opacity:.92;font-size:14px}
+.toc{background:#fff;border:1px solid var(--soft);border-radius:14px;padding:16px 20px;margin:16px 0}
+.toc a{color:var(--main);text-decoration:none;font-size:13.5px;display:inline-block;margin:3px 10px 3px 0;font-weight:600}
+.toc a:hover{text-decoration:underline}
+section{background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:22px 24px;margin:14px 0}
+h2{color:var(--dark);font-size:1.3rem;margin:0 0 6px;font-weight:800;border-bottom:2px solid var(--bg);padding-bottom:8px}
+h3{color:var(--main);font-size:1.05rem;margin:18px 0 6px;font-weight:800}
+h4{color:var(--dark);font-size:.95rem;margin:12px 0 4px;font-weight:700}
+code{background:var(--bg);color:var(--dark);padding:1px 6px;border-radius:5px;font-size:.9em;font-family:'SF Mono',Consolas,monospace}
+pre{background:#1E3A52;color:#DCEAF5;border-radius:10px;padding:14px 16px;overflow-x:auto;font-size:12.5px;line-height:1.6}
+pre code{background:none;color:inherit;padding:0}
+.flow{background:var(--bg);border-radius:12px;padding:16px 18px;margin:12px 0;font-size:13.5px}
+.flow b{color:var(--dark)}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}
+th{background:var(--bg);color:var(--dark);text-align:left;padding:8px 10px;font-weight:700}
+td{border-bottom:1px solid #EEF2F4;padding:8px 10px;vertical-align:top}
+.pill{display:inline-block;background:var(--soft);color:var(--dark);padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700;margin:2px}
+.note{background:#FFF8E8;border-left:4px solid #E8A317;border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;margin:10px 0}
+.key{background:#F0F6FB;border-left:4px solid var(--main);border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;margin:10px 0}
+.gen{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap}
+.gen>div{flex:1;min-width:200px;border:1px solid var(--soft);border-radius:10px;padding:12px 14px}
+.gen .g1{border-top:3px solid var(--mid)}.gen .g2{border-top:3px solid var(--dark)}
+.step{display:flex;gap:12px;align-items:flex-start;margin:8px 0}
+.step .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--main);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.step .t{flex:1;font-size:13.5px}
+.foot{text-align:center;color:var(--dim);font-size:12px;margin-top:24px}
+</style></head>
+<body><div class="wrap">
+
+<div class="hero">
+<h1>🧠 Catcher Treatment Engine — 엔진 매뉴얼</h1>
+<p>Boston Neuromind · 증상 무관 진단·훈련·진화 엔진의 전체 구조 문서. 코드는 공통, 데이터(rules)만 교체해 증상을 복제한다.</p>
+</div>
+
+<div class="toc">
+<b style="color:var(--dark);font-size:13px">목차 &nbsp;</b>
+<a href="#philosophy">① 철학</a><a href="#bigflow">② 전체 흐름</a><a href="#layers">③ 3층 AI</a>
+<a href="#datapath">④ 데이터 경로</a><a href="#rules">⑤ rules 구조</a><a href="#modules">⑥ 코드 모듈</a>
+<a href="#qeegnf">⑦ QEEG·NF 통합</a><a href="#evolution">⑧ 진화 루프</a><a href="#clone">⑨ 증상 복제</a><a href="#todo">⑩ 로드맵</a>
+</div>
+
+<section id="philosophy">
+<h2>① 설계 철학</h2>
+<div class="key"><b>"AI 적용 안 되면 nothing."</b> 진짜 AI = LLM 호출(검색)이 아니라 <b>판단 메커니즘 + 스스로 자기발전하는 루프.</b> 데이터가 쌓일수록 정밀해지는 구조여야 카피 불가 IP가 된다.</div>
+<h3>핵심 원칙 4가지</h3>
+<table>
+<tr><th>원칙</th><th>의미</th></tr>
+<tr><td><b>엔진 차원</b></td><td>ADHD는 첫 콘텐츠일 뿐. 코드는 증상 무관, rules 데이터만 갈아끼워 10+ 증상 복제.</td></tr>
+<tr><td><b>1세대 → 2세대</b></td><td>논문 기반 합성으로 지금 작동(부트스트랩) → 실측 쌓이면 표상/정책 학습으로 진화.</td></tr>
+<tr><td><b>측정 = 훈련</b></td><td>게임 1판이 훈련이자 측정기(behavioral probe). 묻지 않고 재게 한다.</td></tr>
+<tr><td><b>판단 전시</b></td><td>엔진의 내부 추론(z지문·교차판별·적응)을 화면에 꺼내면, 같은 데이터가 "판단하는 AI"로 보인다.</td></tr>
+</table>
+<div class="note"><b>정직한 경계선:</b> 표상·정책 학습은 실측 N이 쌓여야 켜진다. N=0이면 못 돈다. 그래서 1세대(논문 합성)로 첫 데이터를 걷고, behavioral probe가 그 데이터를 누적한다.</div>
+</section>
+
+<section id="bigflow">
+<h2>② 전체 흐름 (사용자 여정)</h2>
+<div class="flow">
+<b>입력(나이·BPS)</b> → <b>설문(진단)</b> → <b>QEEG 측정</b> → <b>알고리즘 리포트</b> → <b>AI 심층분석</b> → <b>뉴로피드백</b> → <b>HRV·Temp·GSR</b> → <b>AI 치료훈련(게임)</b>
+</div>
+<h3>AI 치료훈련 탭 내부 흐름 (핵심 엔진)</h3>
+<div class="step"><div class="n">1</div><div class="t"><b>연령 선택</b> — 아동(6–12, 보호자)/성인(12+, 본인). 문항·표현이 갈린다.</div></div>
+<div class="step"><div class="n">2</div><div class="t"><b>3층 설문</b> — L1 진단(DSM-5) → L2 매칭(5조절축) → L3 참여스타일(SDT). 각 설문 전 "무엇을 재는지" 설명.</div></div>
+<div class="step"><div class="n">3</div><div class="t"><b>QEEG 옵션</b> — 측정하면 theta/beta로 축 보정, Skip 가능.</div></div>
+<div class="step"><div class="n">4</div><div class="t"><b>매칭 파이프라인</b> — 3레이어 곱하기 → 주요 타겟 축 + 강도 + 게임화 스타일.</div></div>
+<div class="step"><div class="n">5</div><div class="t"><b>보고서</b> — 개별 특징 + 왜 이 훈련인지 (표·바·문장·근거).</div></div>
+<div class="step"><div class="n">6</div><div class="t"><b>처방</b> — 분/일·일/주·주 (조절 가능 select). 총 세션 재계산.</div></div>
+<div class="step"><div class="n">7</div><div class="t"><b>게임 선택·실행</b> — 추천 3 + 전체 리스트박스. 선택 시 WHY 설명 + 인라인 시작.</div></div>
+<div class="step"><div class="n">8</div><div class="t"><b>게임 후 4단 전시</b> — 행동측정 판단 → 또래 z → 교차판별 → 적응 판정.</div></div>
+<div class="step"><div class="n">9</div><div class="t"><b>진전 모니터링</b> — baseline 대비 향상, 목표 달성도, 세션 추이 (영속 저장).</div></div>
+</section>
+
+<section id="layers">
+<h2>③ 3층 AI 구조 (경쟁력의 심장)</h2>
+<table>
+<tr><th>층위</th><th>AI 능력</th><th>데이터 필요</th><th>현재 상태</th></tr>
+<tr><td><b>L1 교차판별</b></td><td>설문+QEEG+행동을 융합해 사람이 못 잇는 판별</td><td>중간</td><td class="pill">1세대 가동 (norm 기반)</td></tr>
+<tr><td><b>L2 적응처방</b></td><td>반응 결과로 난이도·게임 순서 학습</td><td>많음</td><td class="pill">1세대 가동 (곡선 기반)</td></tr>
+<tr><td><b>L3 해석생성</b></td><td>엔진 근거를 LLM에 주입해 개인 해석 문장</td><td>0</td><td class="pill" style="background:#FFE8CC">API 대기 (자리 준비)</td></tr>
+</table>
+<h3>L1 — CrossEngine (교차 판별)</h3>
+<div class="key">게임 측정값 → 문헌 norm 대비 <b>z지문</b> → 설문 축과 <b>교차 판별</b>. 예: "설문은 주의문제를 가리키나 행동 z지문은 충동(commission +2.1σ)이 더 이탈 → 근본은 억제." 규칙표가 절대 못 하는 것.</div>
+<h4>교차 판별 3규칙</h4>
+<table>
+<tr><th>패턴</th><th>의미</th></tr>
+<tr><td>설문↑ 행동정상</td><td>상황 특이적이거나 주관적 부담 — 특정 맥락 확인</td></tr>
+<tr><td>설문정상 행동↑</td><td>본인이 인식 못 한 조절 어려움 — 객관 신호</td></tr>
+<tr><td>설문↑ 행동↑ (수렴)</td><td>두 독립 소스 일치 → 훈련 필요 신뢰 가능</td></tr>
+</table>
+<h3>L2 — AdaptEngine (적응 처방)</h3>
+<div class="key">세션 추이를 문헌 기대곡선(세션당 ~1.5% 향상)과 비교 → 판정: <span class="pill">🚀 빠름→난이도↑</span><span class="pill">✅ 정상→유지</span><span class="pill">🔄 정체→게임전환</span><span class="pill">🐢 느림→난이도↓</span><span class="pill">🏆 달성→다음축</span></div>
+<h3>L3 — LLM 해석 (API 대기)</h3>
+<div class="flow">엔진의 z지문·교차판별·차등을 LLM 프롬프트에 주입 → "당신의 억제율은 정상보다 1.8σ 낮고, RT변동성은 정상이라 순수 주의문제와 감별됩니다…" <b>검색형 챗봇은 근거 데이터가 없어 못 한다.</b> API 켜지면 같은 데이터가 AI 해석으로 격상.</div>
+</section>
+
+<section id="datapath">
+<h2>④ 데이터 경로</h2>
+<pre><code>설문 응답 ──┐
+QEEG 측정 ──┼─→ 매칭 파이프라인 ─→ 축 점수 ─→ 게임 추천
+행동 probe ─┘                              │
+                                           ↓
+게임 실행 → 측정값 ─→ z지문(norm 대비) ─→ 교차판별 ─→ 전시
+                │                              │
+                ├─→ 세션 저장(영속) ─→ 진전·모니터링
+                ├─→ 적응 판정 ─→ 다음 난이도/게임
+                └─→ norm 누적 ─→ 블렌딩(1세대→2세대 진화)</code></pre>
+<div class="key"><b>진화의 핵심:</b> 게임 측정값이 매번 <code>norm</code>에 누적된다. 실측이 쌓이면 문헌 norm과 자동 블렌딩(<code>w = n/(n+50)</code>, 캡 95%) → 쓸수록 정밀해진다.</div>
+</section>
+
+<section id="rules">
+<h2>⑤ rules 구조 (game_module)</h2>
+<div class="note">모든 임상 콘텐츠는 <code>adhd_rules.json</code>의 <code>game_module</code>에 있다. 증상 복제 = 이 섹션만 교체.</div>
+<table>
+<tr><th>섹션</th><th>내용</th><th>복제 시</th></tr>
+<tr><td><code>axes</code></td><td>5 조절축 (색·근거·정의)</td><td>증상별 재정의</td></tr>
+<tr><td><code>surveys</code></td><td>6 설문 (3층 × 2연령), 문항·채점</td><td>증상 문헌으로 교체</td></tr>
+<tr><td><code>games</code></td><td>11 게임 = 5엔진 + 파라미터</td><td>파라미터만 조정</td></tr>
+<tr><td><code>axis_game_map</code></td><td>축→게임 매핑</td><td>재매핑</td></tr>
+<tr><td><code>behavioral_markers</code></td><td>8 행동지표 (축·근거·의미)</td><td>증상별 지표</td></tr>
+<tr><td><code>norms</code></td><td>지표별 문헌 norm + 블렌딩 정책</td><td>증상 문헌 norm</td></tr>
+<tr><td><code>adaptation</code></td><td>반응곡선 + 적응 규칙</td><td>증상별 곡선</td></tr>
+<tr><td><code>prescription</code></td><td>강도별 처방 + 목표</td><td>증상별 용량</td></tr>
+<tr><td><code>matching_pipeline</code></td><td>3레이어 곱하기 순서</td><td>공통 (거의 고정)</td></tr>
+</table>
+<h3>5개 범용 게임 엔진</h3>
+<table>
+<tr><th>엔진</th><th>게임 예</th><th>측정 지표</th></tr>
+<tr><td><code>react_inhibit</code></td><td>Go/NoGo, 글자 GoNoGo</td><td>억제율·오반응</td></tr>
+<tr><td><code>detect_target</code></td><td>CPT-X, CPT-AX</td><td>탐지·RT변동·누락</td></tr>
+<tr><td><code>match_memory</code></td><td>1-back, 2-back</td><td>작업기억 정확도</td></tr>
+<tr><td><code>choice_conflict</code></td><td>Stroop, Flanker, Simon</td><td>갈등 간섭</td></tr>
+<tr><td><code>pace_regulate</code></td><td>호흡, 4-7-8</td><td>호흡 완료</td></tr>
+</table>
+</section>
+
+<section id="modules">
+<h2>⑥ 코드 모듈 (전부 증상 무관 공통)</h2>
+<table>
+<tr><th>모듈</th><th>window</th><th>역할</th></tr>
+<tr><td>engines_v3.js</td><td><code>AdhdGames</code></td><td>5 범용 엔진 + 디스패처 <code>.play(id,host,def,tuned)</code></td></tr>
+<tr><td>matcher.js</td><td><code>AdhdMatcher</code></td><td>3레이어 곱하기 → 축·강도·게임화</td></tr>
+<tr><td>progress_track.js</td><td><code>AdhdProgram</code></td><td>처방·세션저장(영속)·baseline 향상</td></tr>
+<tr><td>monitor.js</td><td><code>AdhdMonitor</code></td><td>진전 대시보드 (목표달성·추이)</td></tr>
+<tr><td>probe.js</td><td><code>AdhdProbe</code></td><td>측정 명세 배너 + 축상태 판단</td></tr>
+<tr><td>cross_engine.js</td><td><code>AdhdCross</code></td><td>L1: z지문·교차판별·norm블렌딩</td></tr>
+<tr><td>adapt_engine.js</td><td><code>AdhdAdapt</code></td><td>L2: 궤적분석·적응처방</td></tr>
+<tr><td>treatment_ui.js</td><td><code>AdhdTreatment</code></td><td>전체 UI 오케스트레이션</td></tr>
+</table>
+</section>
+
+<section id="qeegnf">
+<h2>⑦ QEEG · NF 통합 (설계)</h2>
+<h3>QEEG → 축 보정</h3>
+<div class="flow"><b>theta/beta @ Cz</b> 측정 → <code>qeeg_adjust</code> 규칙 → 주의·각성 축 z 보정. 근거: FDA NEBA(2013, 보조지표), Monastra, Snyder(2006 +32% theta). <b>진단 단독 아님, 보조.</b></div>
+<h3>NF 처방 (L2 정책학습의 대상)</h3>
+<div class="key">전통: 규칙표(이 대역 높으면 이 프로토콜). <b>AI 목표:</b> QEEG 상태 → 어느 NF 걸면 다음 측정이 좋아지는지 결과로부터 정책 학습 (adaptive-core Q함수). 게임 적응(L2)과 <b>같은 엔진 구조</b> — NF도 반응곡선 비교 → 프로토콜 적응으로 이식 가능.</div>
+<div class="note"><b>미배선:</b> HRV·Temp·GSR 탭(뉴로피드백 다음), NF 적응 엔진은 로드맵. 게임 L2 AdaptEngine을 NF에 재사용하는 것이 설계 방향.</div>
+</section>
+
+<section id="evolution">
+<h2>⑧ 진화 루프 (1세대 → 2세대)</h2>
+<div class="gen">
+<div class="g1"><b>1세대 (현재)</b><br>논문 기반 합성 norm으로 z지문·교차판별·적응이 <b>지금 작동</b>. 데이터 0에서 부트스트랩. behavioral probe가 실측을 걷는다.</div>
+<div class="g2"><b>2세대 (진화 후)</b><br>실측 N 쌓이면 norm 자동 블렌딩(문헌→실측). 표상학습(3소스 융합), 정책학습(처방 최적화)으로 격상.</div>
+</div>
+<h3>블렌딩 공식</h3>
+<pre><code>w_real = n_real / (n_real + K)   # K=50
+blended = 문헌 × (1 - w) + 실측 × w   # 캡 95% (문헌 최소 5% 유지)
+
+n=0   → 문헌 100%  (1세대)
+n=50  → 실측 50%
+n=500 → 실측 91%   (2세대)</code></pre>
+<div class="key"><b>화면에 정직하게 표시:</b> "기준: 문헌 norm (실측 N건 누적 중 — 쌓일수록 정밀해집니다)" → 사용자가 진화를 체감.</div>
+</section>
+
+<section id="clone">
+<h2>⑨ 증상 복제 절차 (예: OCD)</h2>
+<div class="step"><div class="n">1</div><div class="t"><code>axes</code> — OCD 조절축 재정의 (예: 강박사고·강박행동·불확실성 인내…)</div></div>
+<div class="step"><div class="n">2</div><div class="t"><code>surveys</code> — Y-BOCS 등 OCD 문헌으로 3층 설문 교체</div></div>
+<div class="step"><div class="n">3</div><div class="t"><code>games</code> — 5엔진 재사용, 파라미터만 OCD 훈련 목표로 (억제·불확실성 노출 등)</div></div>
+<div class="step"><div class="n">4</div><div class="t"><code>norms</code> — OCD 문헌 효과크기로 지표 norm 교체</div></div>
+<div class="step"><div class="n">5</div><div class="t"><code>adaptation</code> — OCD 훈련 반응곡선</div></div>
+<div class="step"><div class="n">6</div><div class="t"><b>코드는 0줄 수정.</b> 엔진 모듈 전부 재사용. 도메인만 새로.</div></div>
+<div class="note"><b>Genius 저작 필수:</b> 설문 문항·축 정의·norm 수치·반응곡선은 임상 저작. 코드가 아니라 데이터가 IP.</div>
+</section>
+
+<section id="todo">
+<h2>⑩ 로드맵</h2>
+<h4>완료</h4>
+<div><span class="pill">✅ 5엔진·11게임</span><span class="pill">✅ 3층 설문</span><span class="pill">✅ 매칭·처방</span><span class="pill">✅ behavioral probe</span><span class="pill">✅ 진전 모니터링(영속)</span><span class="pill">✅ L1 교차판별</span><span class="pill">✅ L2 적응처방</span><span class="pill">✅ norm 블렌딩</span></div>
+<h4>대기</h4>
+<div><span class="pill" style="background:#FFE8CC">⏳ HRV·Temp·GSR 탭</span><span class="pill" style="background:#FFE8CC">⏳ L3 LLM 해석(API)</span><span class="pill" style="background:#FFE8CC">⏳ NF 적응 엔진</span><span class="pill" style="background:#FFE8CC">⏳ 게임 재미요소</span><span class="pill" style="background:#FFE8CC">⏳ 슈퍼 게임/설문 편집</span><span class="pill" style="background:#FFE8CC">⏳ 10+ 증상 복제</span></div>
+</section>
+
+<div class="foot">Boston Neuromind · Catcher Treatment Engine 매뉴얼 · 코드=공통 / rules=증상별 · 이 문서는 슈퍼 관리 참조용</div>
+</div></body></html>
