@@ -59,7 +59,7 @@
 
   <!-- 뷰 A: 환자 목록 -->
   <div id="view-list">
-    <div id="regBar" style="margin-bottom:12px;display:none"><button id="regBtn" style="font:inherit;padding:8px 16px;border:none;border-radius:8px;background:#4A90C2;color:#fff;cursor:pointer;font-weight:700">+ <span class="en-text">Register patient</span><span class="ko-text">환자 등록</span></button></div>
+    <div id="regBar" style="margin-bottom:12px;display:none"><button id="regBtn" style="font:inherit;padding:8px 16px;border:none;border-radius:8px;background:#4A90C2;color:#fff;cursor:pointer;font-weight:700">+ <span class="en-text">Register patient</span><span class="ko-text">환자 등록</span></button><button id="acctLinkBtn" onclick="if(window.AdhdClients)AdhdClients.open()" style="font:inherit;padding:8px 16px;border:none;border-radius:8px;background:#2E5A7A;color:#fff;cursor:pointer;font-weight:700;margin-left:8px">🔗 <span class="en-text">Account &amp; login link</span><span class="ko-text">계정·로그인 링크</span></button></div>
     <table>
       <thead><tr>
         <th>#</th>
@@ -140,6 +140,9 @@
 <script src="/adhd-training/shared/adhd-db.js"></script>
 <script src="/adhd-training/shared/adhd-auth.js"></script>
 <script src="/adhd-training/shared/adhd-session.js"></script>
+<script src="/adhd-training/shared/adhd-board.js"></script>
+<script src="/adhd-training/shared/adhd-consent.js"></script>
+<script src="/adhd-training/shared/adhd-clients.js"></script>
 <script>
 (function () {
   'use strict';
