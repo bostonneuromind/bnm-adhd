@@ -155,7 +155,7 @@
 
   <!-- ════ 알고리즘 엔진 (독립 카드) ════ -->
   <div class="sec-body" data-sec="algo">
-    <div class="panel"><h2><span class="ko-text">알고리즘 엔진</span><span class="en-text">Algorithm Engine</span></h2><div class="sub"><span class="ko-text">판별 · 처방 알고리즘 — 다음 단계.</span><span class="en-text">Discrimination & prescription — next step.</span></div></div>
+    <div id="eng-mod-algo"></div>
   </div>
 
   <!-- ════ Vault 관리 ════ -->
@@ -380,7 +380,7 @@
   function $(id){return document.getElementById(id);}
   var dash = $('dashboard');
   if(!dash) return;
-  var engineLoaded=false, vaultLoaded=false, accessLoaded=false, gameLoaded=false;
+  var engineLoaded=false, vaultLoaded=false, accessLoaded=false, gameLoaded=false, algoLoaded=false;
   function openSection(sec){
     dash.style.display='none';
     var bk=$('dash-back'); if(bk) bk.style.display='inline-flex';
@@ -389,6 +389,7 @@
     if(sec==='vault' && !vaultLoaded){ vaultLoaded=true; loadVault(); }
     if(sec==='access' && !accessLoaded){ accessLoaded=true; if(window.TCAdmin) window.TCAdmin.init({ botKey:'adhd', mount:document.getElementById('adminMount') }); }
     if(sec==='game' && !gameLoaded){ gameLoaded=true; if(window.AdhdHeartGame) window.AdhdHeartGame.render(document.getElementById('eng-mod-game')); }  // 🎮 심장1
+    if(sec==='algo' && !algoLoaded){ algoLoaded=true; if(window.AdhdHeartAlgo) window.AdhdHeartAlgo.render(document.getElementById('eng-mod-algo')); }  // 📊 심장2
   }
   function showDashboard(){
     [].forEach.call(document.querySelectorAll('.sec-body'), function(b){ b.setAttribute('data-on','0'); });
@@ -586,6 +587,132 @@
   function panel(title, sub, inner){ return '<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:18px 20px;margin-bottom:14px"><div style="font-weight:800;color:'+C.dark+';font-size:1.05rem">'+title+'</div><div style="font-size:12px;color:'+C.dim+';margin:2px 0 12px">'+sub+'</div>'+inner+'</div>'; }
 
   window.AdhdHeartGame={ render:render };
+})();
+</script>
+<script>
+/* ===== 심장2: 알고리즘 엔진 관리 모듈 (슈퍼) — 9개 증상 풀다운 중앙 관리 ===== */
+(function(){
+  function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function KE(k,e){ return '<span class="ko-text">'+esc(k)+'</span><span class="en-text">'+esc(e)+'</span>'; }
+  var C={dark:'#2E5A7A',main:'#4A90C2',mid:'#7BAFD0',soft:'#BDD7E7',bg:'#E8F1F8',ink:'#374151',dim:'#8FA9BC'};
+
+  var CONDITIONS=[
+    {key:'depression', ko:'우울', en:'Depression', ready:false},
+    {key:'anxiety', ko:'불안', en:'Anxiety', ready:false},
+    {key:'sleep', ko:'수면', en:'Sleep', ready:false},
+    {key:'burnout', ko:'번아웃', en:'Burnout', ready:false},
+    {key:'ptsd', ko:'PTSD', en:'PTSD', ready:false},
+    {key:'ocd', ko:'강박(OCD)', en:'OCD', ready:false},
+    {key:'bipolar', ko:'양극성', en:'Bipolar', ready:false},
+    {key:'autism', ko:'자폐', en:'Autism', ready:false},
+    {key:'adhd', ko:'ADHD', en:'ADHD', ready:true, rules:'adhd-engine/rules/adhd_rules.json'}
+  ];
+  var _cache={};
+
+  function render(host){
+    var h='<div style="margin-bottom:16px">';
+    h+='<div style="font-size:1.3rem;font-weight:900;color:'+C.dark+'">📊 '+KE('알고리즘 엔진 관리','Algorithm Engine Manager')+'</div>';
+    h+='<div style="font-size:13px;color:'+C.dim+';margin-top:2px">'+KE('설문·QEEG 분석 알고리즘을 증상별로 중앙 관리·생산합니다. 판단·교차판별·진화 로직.','Central management of survey/QEEG analysis algorithms per condition.')+'</div></div>';
+    h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">';
+    h+='<label style="font-weight:700;color:'+C.dark+';font-size:14px">'+KE('증상 선택','Condition')+'</label>';
+    h+='<select id="h2-cond" style="padding:10px 14px;border:2px solid '+C.main+';border-radius:10px;font-size:14px;font-family:inherit;color:'+C.dark+';font-weight:700;background:#fff;cursor:pointer">';
+    CONDITIONS.forEach(function(c){ h+='<option value="'+c.key+'">'+(ko()?c.ko:c.en)+(c.ready?'':' — '+(ko()?'미생성':'not created'))+'</option>'; });
+    h+='</select><span id="h2-status" style="font-size:12px;color:'+C.dim+'"></span></div>';
+    h+='<div id="h2-body"></div>';
+    host.innerHTML=h;
+    var sel=host.querySelector('#h2-cond');
+    sel.value='adhd';
+    sel.onchange=function(){ loadCond(sel.value, host); };
+    loadCond('adhd', host);
+  }
+
+  function loadCond(key, host){
+    var cond=CONDITIONS.filter(function(c){return c.key===key;})[0];
+    var body=host.querySelector('#h2-body');
+    var status=host.querySelector('#h2-status');
+    if(!cond.ready){
+      status.textContent='';
+      body.innerHTML='<div style="background:'+C.bg+';border:1px dashed '+C.mid+';border-radius:14px;padding:32px;text-align:center">'+
+        '<div style="font-size:2.5rem;margin-bottom:8px">🌱</div>'+
+        '<div style="font-size:1.1rem;font-weight:800;color:'+C.dark+';margin-bottom:6px">'+KE((ko()?cond.ko:cond.en)+' 알고리즘 미생성',(ko()?cond.ko:cond.en)+' algorithm not created')+'</div>'+
+        '<div style="font-size:13.5px;color:'+C.ink+';line-height:1.7;max-width:440px;margin:0 auto 16px">'+KE('이 증상의 분석 알고리즘은 아직 생성되지 않았습니다. ADHD 알고리즘을 템플릿으로, 이 증상의 norm·교차판별·QEEG 지표를 생성할 수 있습니다.','Not yet created. Generate from the ADHD template with condition-specific norms and QEEG markers.')+'</div>'+
+        '<button disabled style="padding:10px 20px;border:0;border-radius:10px;background:'+C.mid+';color:#fff;font-weight:700;font-family:inherit;opacity:.6;cursor:not-allowed">＋ '+KE('알고리즘 생성 (다음 단계)','Generate (soon)')+'</button></div>';
+      return;
+    }
+    if(_cache[key]){ renderModule(_cache[key], body); return; }
+    status.textContent=ko()?'불러오는 중…':'loading…';
+    fetch(cond.rules, {cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+      var gm=d.game_module; _cache[key]=gm; status.textContent=''; renderModule(gm, body);
+    }).catch(function(e){ body.innerHTML='<div style="color:#c0392b">'+esc(String(e))+'</div>'; status.textContent=''; });
+  }
+
+  function renderModule(gm, body){
+    var h='';
+    // 요약
+    var norms=gm.norms||{}, nm=norms.metrics||{}, qn=(gm.qeeg_norms||{}).metrics||{}, cr=norms.cross_rules||[], ad=gm.adaptation||{};
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">';
+    h+=stat(Object.keys(nm).length, KE('행동 norm','Behavior norms'));
+    h+=stat(Object.keys(qn).length, KE('QEEG norm','QEEG norms'));
+    h+=stat(cr.length, KE('교차판별','Cross-rules'));
+    h+=stat((ad.rules||[]).length, KE('적응규칙','Adapt rules'));
+    h+='</div>';
+
+    // ① 3부 보고서 구조
+    h+=panel('📋 '+KE('3부 분석 보고서','3-Part Report'), KE('사용자가 받는 분석 보고서 구조. 설문·QEEG를 융합해 판단.','Report structure combining survey and QEEG.'),
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+      reportTab('①', KE('설문 분석','Survey'), KE('5축 프로파일 + 진단 + 레이더','5-axis + diagnosis'))+
+      reportTab('②', KE('설문+QEEG 통합','Survey+QEEG'), KE('두 소스 교차 + 수렴 판정','cross + convergence'))+
+      reportTab('③', KE('QEEG 분석','QEEG'), KE('theta/beta 등 뇌파 지표','brainwave markers'))+'</div>');
+
+    // ② 행동 norm (블렌딩)
+    var bp=(norms._meta&&norms._meta.blend_policy)||{};
+    h+=panel('📐 '+KE('행동 지표 norm (문헌 → 실측 진화)','Behavior Norms (evolving)'),
+      KE('논문 기반 norm으로 시작, 실측 쌓이면 자동 블렌딩. w=n/(n+'+(bp.K||50)+'), 캡 '+Math.round((bp.cap||0.95)*100)+'%.','Literature norms, auto-blend with real data.'),
+      '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr>'+
+      ['지표/Metric','정상/Healthy','증상/Condition','근거/Basis'].map(function(th){return '<th style="background:'+C.bg+';color:'+C.dark+';text-align:left;padding:8px;font-weight:700;white-space:nowrap">'+th+'</th>';}).join('')+'</tr>'+
+      Object.keys(nm).map(function(k){ var m=nm[k]; return '<tr><td style="border-bottom:1px solid #EEF2F4;padding:7px 8px;font-weight:700;color:'+C.dark+'">'+esc(k)+'</td>'+
+        '<td style="border-bottom:1px solid #EEF2F4;padding:7px 8px">'+m.healthy.mean+'±'+m.healthy.sd+'</td>'+
+        '<td style="border-bottom:1px solid #EEF2F4;padding:7px 8px">'+m.condition.mean+'±'+m.condition.sd+'</td>'+
+        '<td style="border-bottom:1px solid #EEF2F4;padding:7px 8px;font-size:11px;color:'+C.dim+'">'+esc((m.basis||'').slice(0,40))+'</td></tr>'; }).join('')+'</table></div>');
+
+    // ③ QEEG norm
+    if(Object.keys(qn).length){
+      h+=panel('🧠 '+KE('QEEG 지표 (증상 vs 정상)','QEEG Markers'), KE('ADHD에서 특히 의미 큰 뇌파 지표. FDA NEBA 근거.','Brainwave markers; FDA NEBA basis.'),
+        Object.keys(qn).map(function(k){ var m=qn[k]; var cond=m.adhd||m.condition||{};
+          return '<div style="border:1px solid '+C.soft+';border-radius:10px;padding:10px 14px;margin-bottom:8px">'+
+            '<div style="display:flex;justify-content:space-between;flex-wrap:wrap"><b style="color:'+C.dark+'">'+KE(m.ko||k,m.en||k)+' <span style="font-size:11px;color:'+C.dim+'">@'+esc(m.site||'')+'</span></b>'+
+            '<span style="font-size:12px;color:'+C.main+'">'+KE('정상','H')+' '+m.healthy.mean+' → '+KE('증상','C')+' '+cond.mean+'</span></div>'+
+            '<div style="font-size:12px;color:'+C.ink+';margin-top:4px;line-height:1.6">'+KE(m.interpret_ko||'',m.interpret_en||'')+'</div></div>';
+        }).join(''));
+    }
+
+    // ④ 교차판별
+    h+=panel('🔀 '+KE('교차 판별 규칙','Cross-Source Rules'), KE('설문(주관)과 행동/QEEG(객관)의 일치·불일치를 판별. 사람이 못 잇는 교차.','Survey vs objective cross-judgment.'),
+      cr.map(function(r){ return '<div style="background:#F0F6FB;border-left:4px solid '+C.main+';border-radius:0 10px 10px 0;padding:10px 14px;margin-bottom:8px">'+
+        '<div style="font-size:11px;color:'+C.main+';font-weight:700;margin-bottom:3px">'+esc(r.id)+'</div>'+
+        '<div style="font-size:12.5px;color:'+C.ink+';line-height:1.6">'+KE(r.ko||'',r.en||'')+'</div></div>'; }).join(''));
+
+    // ⑤ 적응 엔진
+    if(ad.rules){
+      h+=panel('🚀 '+KE('적응 처방 규칙','Adaptive Rules'), KE('반응 곡선 대비 판정 → 난이도·게임 조정. 세션당 기대 향상 '+(ad.expected_gain_per_session_pct||1.5)+'%.','Trajectory vs expected → adjust.'),
+        ad.rules.map(function(r){ var ic={fast:'🚀',on_track:'✅',plateau:'🔄',slow:'🐢',goal_reached:'🏆'}[r.id]||'•';
+          return '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #EEF2F4"><span style="font-size:1.1rem">'+ic+'</span><div style="flex:1"><b style="color:'+C.dark+';font-size:12.5px">'+esc(r.id)+'</b> <span style="font-size:11px;color:'+C.dim+'">→ '+esc(r.action||'')+'</span><div style="font-size:12px;color:'+C.ink+';margin-top:2px">'+KE(r.ko||'',r.en||'')+'</div></div></div>'; }).join(''));
+    }
+
+    // 판단 파이프라인 요약
+    h+='<div style="background:'+C.bg+';border-radius:10px;padding:14px 16px;font-size:12.5px;color:'+C.ink+';line-height:1.8;margin-bottom:8px">🔬 '+
+      KE('판단 파이프라인: 측정값 → z지문(norm 대비) → 5-lens sigmoid → Bayesian posterior → 교차판별 → 적응 처방. 실측 쌓이면 norm 자동 진화.',
+         'Pipeline: measures → z-fingerprint → sigmoid → Bayesian → cross-judge → adapt. Norms auto-evolve.')+'</div>';
+    h+='<div style="background:'+C.bg+';border-radius:10px;padding:12px 16px;font-size:12.5px;color:'+C.dim+';margin-top:8px">📝 '+KE('현재는 읽기 전용 뷰입니다. 편집(norm 수치·규칙 수정 후 저장)은 다음 단계.','Read-only view. Editing is next.')+'</div>';
+    body.innerHTML=h;
+  }
+
+  function stat(n, label){ return '<div style="flex:1;min-width:90px;background:#fff;border:1px solid '+C.soft+';border-radius:12px;padding:14px;text-align:center"><div style="font-size:1.8rem;font-weight:900;color:'+C.main+'">'+n+'</div><div style="font-size:12px;color:'+C.dim+'">'+label+'</div></div>'; }
+  function panel(title, sub, inner){ return '<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:18px 20px;margin-bottom:14px"><div style="font-weight:800;color:'+C.dark+';font-size:1.05rem">'+title+'</div><div style="font-size:12px;color:'+C.dim+';margin:2px 0 12px">'+sub+'</div>'+inner+'</div>'; }
+  function reportTab(n, title, sub){ return '<div style="flex:1;min-width:130px;border:1px solid '+C.soft+';border-radius:10px;padding:12px 14px"><div style="font-weight:800;color:'+C.main+'">'+n+' '+title+'</div><div style="font-size:11.5px;color:'+C.dim+';margin-top:3px">'+sub+'</div></div>'; }
+
+  window.AdhdHeartAlgo={ render:render };
 })();
 </script>
 </body>
