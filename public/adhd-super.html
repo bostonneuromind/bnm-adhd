@@ -89,6 +89,7 @@
     <button class="sec-tab" data-sec="members" data-on="1"><span class="ko-text">회원 · 동의</span><span class="en-text">Members · Consent</span></button>
     <button class="sec-tab" data-sec="engine"><span class="ko-text">엔진 관리</span><span class="en-text">Engine</span></button>
     <button class="sec-tab" data-sec="vault"><span class="ko-text">Vault 관리</span><span class="en-text">Vault</span></button>
+    <button class="sec-tab" data-sec="access"><span class="ko-text">이용권</span><span class="en-text">Access</span></button>
   </div>
 
   <div class="sec-body" data-sec="members" data-on="1">
@@ -142,6 +143,15 @@
       <div id="vault-cells" style="margin-top:12px"></div>
     </div>
   </div><!-- /sec-body vault -->
+
+  <!-- ════ 접근 관리 (무료 이용권·가입자·구독자 — TCAdmin, service-admin.js) ════ -->
+  <div class="sec-body" data-sec="access">
+    <div class="panel">
+      <h2>🛠️ <span class="ko-text">접근 관리</span><span class="en-text">Access Management</span></h2>
+      <div class="sub"><span class="ko-text">결제 우회(무료 이용권) · 가입자 · 구독자.</span><span class="en-text">Free-access bypass · users · subscribers.</span></div>
+      <div id="adminMount"></div>
+    </div>
+  </div><!-- /sec-body access -->
 </div>
 
 <!-- 수정 모달 -->
@@ -344,13 +354,14 @@
   function $(id){return document.getElementById(id);}
   var tabs = $('sec-tabs');
   if(!tabs) return;
-  var engineLoaded=false, vaultLoaded=false;
+  var engineLoaded=false, vaultLoaded=false, accessLoaded=false;
   function activate(sec){
     [].forEach.call(document.querySelectorAll('.sec-tab'), function(b){ b.setAttribute('data-on', b.getAttribute('data-sec')===sec?'1':'0'); });
     [].forEach.call(document.querySelectorAll('.sec-body'), function(b){ b.setAttribute('data-on', b.getAttribute('data-sec')===sec?'1':'0'); });
     var cc=$('consent-card'); if(cc) cc.style.display=(sec==='members')?'block':'none';
     if(sec==='engine' && !engineLoaded){ engineLoaded=true; loadEngine(); }
     if(sec==='vault' && !vaultLoaded){ vaultLoaded=true; loadVault(); }
+    if(sec==='access' && !accessLoaded){ accessLoaded=true; if(window.TCAdmin) window.TCAdmin.init({ botKey:'adhd', mount:document.getElementById('adminMount') }); }
   }
   tabs.addEventListener('click', function(e){ var b=e.target.closest?e.target.closest('.sec-tab'):null; if(b) activate(b.getAttribute('data-sec')); });
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -406,5 +417,8 @@
   }
 })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="tc-auth.js?v=1"></script>
+<script src="service-admin.js?v=2"></script>
 </body>
 </html>
