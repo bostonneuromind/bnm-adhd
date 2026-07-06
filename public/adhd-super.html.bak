@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boston Neuromind · ADHDCatcher 회원관리</title>
+<script src="../bnm-lang-sync.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard','Inter',system-ui,'Noto Sans KR',sans-serif;background:#F5F3EF;color:#1F2225;font-size:16px;line-height:1.6;min-height:100vh;padding:32px 20px 80px}
+  .ko-text{display:none}.en-text{display:none}
+  body[data-lang=ko] .ko-text{display:inline}
+  body[data-lang=en] .en-text{display:inline}
+  .wrap{max-width:980px;margin:0 auto}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+  header h1{font-size:22px;font-weight:800;color:#7C3AED;flex:1}
+  .langbtn{border:1px solid #D9DDE1;background:#fff;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer;color:#5C6166;font-family:inherit}
+  .home{font-size:13px;font-weight:700;color:#7C3AED;text-decoration:none}
+  .panel{background:#fff;border:1px solid #E3E6EA;border-radius:16px;padding:22px 24px;box-shadow:0 4px 14px rgba(0,0,0,.04)}
+  .panel h2{font-size:17px;font-weight:800;color:#7C3AED;margin-bottom:4px}
+  .panel .sub{font-size:13px;color:#6B7280;margin-bottom:16px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead tr{text-align:left;border-bottom:2px solid #eee}
+  th,td{padding:7px 6px}
+  #mu-rows td{border-bottom:1px solid #f0f0f0}
+  .mu-tab{font:inherit;font-size:12px;padding:6px 12px;border:1px solid #E3E6EA;border-radius:999px;background:#fff;color:#2A2D34;cursor:pointer}
+  .mu-tab[data-on="1"]{background:#7C3AED;color:#fff;border-color:#7C3AED}
+  .mu-super{font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;background:#EDE7F6;color:#5E35B1;margin-left:4px}
+  .rowbtn{font:inherit;font-size:12px;border:1px solid #E3E6EA;background:#fff;border-radius:6px;padding:3px 8px;cursor:pointer}
+  .rowbtn.del{border-color:#d99;color:#b00}
+</style>
+</head>
+<body data-lang="ko">
+
+<!-- BNM super gate (bnm123#) — 렌더 전용 관문, 데이터 로직 무관 (symptom-super 표준) -->
+<div id="bnmGate" style="position:fixed;inset:0;z-index:2147483647;background:linear-gradient(135deg,#9B7BD4,#5E35B1);display:flex;align-items:center;justify-content:center;padding:20px;font-family:system-ui,'Noto Sans KR',sans-serif">
+  <div style="background:#fff;border-radius:20px;padding:36px 40px;max-width:380px;width:100%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,0.3)">
+    <div style="font-size:2.4em;margin-bottom:8px">🔒</div>
+    <h2 style="font-size:1.4em;color:#5E35B1;margin:0 0 6px">Super Access · ADHDCatcher</h2>
+    <p style="font-size:0.9em;color:#6B7280;margin:0 0 18px">관리자 비밀번호 입력 / Enter admin password</p>
+    <input id="bnmGatePw" type="password" placeholder="Password" style="width:100%;padding:13px 15px;border:2px solid #D9C9F0;border-radius:10px;font-size:1em;margin-bottom:12px;font-family:inherit;outline:none;box-sizing:border-box">
+    <button id="bnmGateBtn" style="width:100%;padding:13px;background:linear-gradient(135deg,#7C3AED,#5E35B1);color:#fff;border:none;border-radius:10px;font-size:1em;font-weight:700;cursor:pointer;font-family:inherit">입력 / Enter</button>
+    <div id="bnmGateErr" style="color:#B91C1C;font-size:0.85em;margin-top:10px;font-weight:600;min-height:1em"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var PW='bnm123#', KEY='bnmSuperOK';
+  function unlock(){ var g=document.getElementById('bnmGate'); if(g&&g.parentNode) g.parentNode.removeChild(g); }
+  try { if(sessionStorage.getItem(KEY)==='1'){ unlock(); return; } } catch(e){}
+  function go(){
+    var i=document.getElementById('bnmGatePw');
+    if(i && i.value===PW){ try{sessionStorage.setItem(KEY,'1');}catch(e){} unlock(); }
+    else { var er=document.getElementById('bnmGateErr'); if(er) er.textContent='비밀번호 틀림 / Wrong password'; }
+  }
+  function wire(){
+    var b=document.getElementById('bnmGateBtn'), i=document.getElementById('bnmGatePw');
+    if(b) b.addEventListener('click', go);
+    if(i) i.addEventListener('keypress', function(e){ if(e.key==='Enter') go(); });
+  }
+  if(document.readyState!=='loading') wire(); else document.addEventListener('DOMContentLoaded', wire);
+})();
+</script>
+
+<div class="wrap">
+  <header>
+    <h1><span class="ko-text">Boston Neuromind · ADHDCatcher 슈퍼</span><span class="en-text">Boston Neuromind · ADHDCatcher Super</span></h1>
+    <a class="home" href="adhd-art.html">← <span class="ko-text">랜딩</span><span class="en-text">Landing</span></a>
+    <button class="langbtn" onclick="var n=document.body.getAttribute('data-lang')==='ko'?'en':'ko';if(window.bnmSetLang)window.bnmSetLang(n);else document.body.setAttribute('data-lang',n);">KO / EN</button>
+  </header>
+
+  <!-- ════ 회원 관리 (sepiera adhd_users, source_site=adhd) — 범용 edge adhd-users-admin 재사용, 격리 ════ -->
+  <div class="panel">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+      <h2 style="flex:1"><span class="ko-text">회원 관리 — ADHDCatcher</span><span class="en-text">Members — ADHDCatcher</span></h2>
+      <span id="mu-stats" style="font-size:12px;color:#6B7280"></span>
+    </div>
+    <div class="sub"><span class="ko-text">일반고객 · 임상가 · 관리자 — 수정 · 삭제 · 역할변경. (가입은 사인업으로)</span><span class="en-text">Consumer · Clinician · Admin — edit / delete / role. (members added via sign-up)</span></div>
+    <div id="mu-tabs" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="mu-tab" data-tab="all" data-on="1"><span class="ko-text">전체</span><span class="en-text">All</span></button>
+      <button class="mu-tab" data-tab="consumer"><span class="ko-text">일반고객</span><span class="en-text">Consumer</span></button>
+      <button class="mu-tab" data-tab="clinician"><span class="ko-text">임상가</span><span class="en-text">Clinician</span></button>
+      <button class="mu-tab" data-tab="admin"><span class="ko-text">관리자</span><span class="en-text">Admin</span></button>
+    </div>
+    <div id="mu-msg" style="font-size:13px;color:#B91C1C;min-height:16px;margin-bottom:8px"></div>
+    <table>
+      <thead><tr>
+        <th>#</th><th>Email</th><th><span class="ko-text">이름</span><span class="en-text">Name</span></th><th><span class="ko-text">유형</span><span class="en-text">Role</span></th><th></th>
+      </tr></thead>
+      <tbody id="mu-rows"></tbody>
+    </table>
+    <p id="mu-empty" style="display:none;color:#9b9b9b;font-size:13px;padding:14px 0"><span class="ko-text">회원이 없습니다.</span><span class="en-text">No members.</span></p>
+  </div>
+</div>
+
+<!-- 수정 모달 -->
+<div id="mu-edit" style="display:none;position:fixed;inset:0;z-index:9002;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:20px;font-family:system-ui,'Noto Sans KR',sans-serif">
+  <div style="background:#fff;border-radius:14px;max-width:380px;width:100%;padding:24px">
+    <h3 id="mu-edit-title" style="margin:0 0 14px;font-size:17px;color:#5E35B1"></h3>
+    <label style="font-size:12px;display:block;margin-bottom:8px">Email<input id="mu-email" type="email" style="width:100%;padding:8px;border:1px solid #E3E6EA;border-radius:8px;box-sizing:border-box;font-family:inherit"></label>
+    <label style="font-size:12px;display:block;margin-bottom:8px"><span class="ko-text">이름</span><span class="en-text">Name</span><input id="mu-name" type="text" style="width:100%;padding:8px;border:1px solid #E3E6EA;border-radius:8px;box-sizing:border-box;font-family:inherit"></label>
+    <label style="font-size:12px;display:block;margin-bottom:14px"><span class="ko-text">유형</span><span class="en-text">Role</span>
+      <select id="mu-role" style="width:100%;padding:8px;border:1px solid #E3E6EA;border-radius:8px;box-sizing:border-box;font-family:inherit"><option value="consumer">consumer (일반)</option><option value="clinician">clinician (임상가)</option><option value="admin">admin (관리자)</option><option value="owner">owner (최고관리자)</option></select></label>
+    <div id="mu-edit-msg" style="font-size:12px;color:#B91C1C;min-height:14px;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id="mu-cancel" style="padding:8px 14px;border:1px solid #E3E6EA;border-radius:8px;background:#fff;cursor:pointer;font-family:inherit"><span class="ko-text">취소</span><span class="en-text">Cancel</span></button>
+      <button id="mu-save" style="padding:8px 16px;border:0;border-radius:8px;background:#7C3AED;color:#fff;font-weight:700;cursor:pointer;font-family:inherit"><span class="ko-text">저장</span><span class="en-text">Save</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ [B-①] 동의서 관리 (법적 근거 열람·인쇄) — sepiera adhd_consent, edge service_role(super 비인증) ════ -->
+<div style="max-width:980px;margin:18px auto 0;background:#fff;border:1px solid #E3E6EA;border-radius:14px;padding:18px 20px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <h2 style="flex:1;font-size:1.1em;color:#5E35B1"><span class="ko-text">동의서 관리</span><span class="en-text">Consents</span></h2>
+    <span id="cs-stats" style="font-size:12px;color:#6B7280"></span>
+  </div>
+  <div id="cs-msg" style="font-size:13px;color:#B91C1C;min-height:16px;margin-bottom:8px"></div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="text-align:left;color:#6B7280;border-bottom:1px solid #E3E6EA">
+      <th style="padding:8px 6px"><span class="ko-text">서명자</span><span class="en-text">Signer</span></th>
+      <th style="padding:8px 6px"><span class="ko-text">회원유형</span><span class="en-text">Role</span></th>
+      <th style="padding:8px 6px"><span class="ko-text">동의유형</span><span class="en-text">Type</span></th>
+      <th style="padding:8px 6px"><span class="ko-text">서명일시</span><span class="en-text">Signed</span></th>
+      <th style="padding:8px 6px"><span class="ko-text">상태</span><span class="en-text">Status</span></th>
+      <th style="padding:8px 6px"></th>
+    </tr></thead>
+    <tbody id="cs-rows"></tbody>
+  </table>
+  <p id="cs-empty" style="display:none;color:#9b9b9b;font-size:13px;padding:14px 0"><span class="ko-text">저장된 동의서가 없습니다.</span><span class="en-text">No consents.</span></p>
+</div>
+<!-- 동의서 상세 모달 (서명 이미지 + 내용 — 법적 제출/인쇄) -->
+<div id="cs-detail" style="display:none;position:fixed;inset:0;z-index:9003;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:20px">
+  <div id="cs-card" style="background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:22px 24px;font-family:system-ui,'Noto Sans KR',sans-serif">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <h3 style="flex:1;margin:0;font-size:16px;color:#5E35B1">Boston Neuromind LLC · <span class="ko-text">동의서</span><span class="en-text">Consent Record</span></h3>
+      <button id="cs-print" style="padding:6px 12px;border:1px solid #7C3AED;border-radius:8px;background:#fff;color:#7C3AED;font-weight:700;cursor:pointer"><span class="ko-text">인쇄/저장</span><span class="en-text">Print/Save</span></button>
+      <button id="cs-close" style="padding:6px 10px;border:1px solid #E3E6EA;border-radius:8px;background:#fff;cursor:pointer">×</button>
+    </div>
+    <div id="cs-body" style="font-size:13px;color:#1F2937;line-height:1.7"></div>
+  </div>
+</div>
+
+<script>
+// [B-①] 동의서 관리 — edge adhd-users-admin?consents=1 (service_role). super 비인증(bnm123#)이라 RLS 대신 edge.
+(function () {
+  var EDGE = 'https://sepierapapsansprurpr.supabase.co/functions/v1/adhd-users-admin';
+  var SITE = 'adhd', H = { 'x-admin-password': 'bnm123#' };
+  var _cons = [];
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fmt(d) { try { return d ? new Date(d).toLocaleString() : '—'; } catch (e) { return d || '—'; } }
+  function expired(c) { return c.expires_at && new Date(c.expires_at) < new Date(); }
+  function roleKo(r) { return r === 'consumer' ? '일반' : (r === 'clinician' || r === 'owner') ? '임상가' : (r === 'admin' ? '관리자' : (r || '—')); }
+  function show(el, on) { el.style.display = on ? 'flex' : 'none'; }
+
+  async function load() {
+    try {
+      var r = await fetch(EDGE + '?source_site=' + SITE + '&consents=1', { headers: H });
+      var j = await r.json();
+      if (!j.ok) { $('cs-msg').textContent = 'Error: ' + (j.error || r.status); return; }
+      _cons = j.consents || [];
+      $('cs-stats').textContent = _cons.length + ' ' + (document.body.dataset.lang === 'en' ? 'records' : '건');
+      render();
+    } catch (e) { $('cs-msg').textContent = 'Network error: ' + (e && e.message || e); }
+  }
+  function render() {
+    var tb = $('cs-rows'); tb.innerHTML = '';
+    $('cs-empty').style.display = _cons.length ? 'none' : 'block';
+    _cons.forEach(function (c, i) {
+      var st = expired(c) ? '<span style="color:#B91C1C">만료/Expired</span>' : '<span style="color:#15803D">유효/Valid</span>';
+      var tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid #F1F2F4';
+      tr.innerHTML = '<td style="padding:8px 6px">' + esc(c.signer_name) + (c.is_self ? ' <span style="color:#9CA3AF">(' + (document.body.dataset.lang === 'en' ? 'self' : '본인') + ')</span>' : '') + '</td>'
+        + '<td style="padding:8px 6px">' + esc(roleKo(c.member_role)) + '</td>'
+        + '<td style="padding:8px 6px">' + esc(c.consent_type) + '</td>'
+        + '<td style="padding:8px 6px">' + fmt(c.signed_at) + '</td>'
+        + '<td style="padding:8px 6px">' + st + '</td>'
+        + '<td style="padding:8px 6px"><button data-i="' + i + '" style="padding:5px 10px;border:1px solid #7C3AED;border-radius:7px;background:#fff;color:#7C3AED;font-weight:700;cursor:pointer">' + (document.body.dataset.lang === 'en' ? 'View' : '열람') + '</button></td>';
+      tb.appendChild(tr);
+    });
+  }
+  function detail(c) {
+    var img = c.signature ? '<img src="' + esc(c.signature) + '" alt="signature" style="max-width:100%;border:1px solid #E3E6EA;border-radius:8px;margin-top:6px">' : '<i style="color:#9CA3AF">no signature</i>';
+    $('cs-body').innerHTML =
+      '<p><b>' + (document.body.dataset.lang === 'en' ? 'Signer' : '서명자') + ':</b> ' + esc(c.signer_name) + ' · ' + esc(roleKo(c.member_role)) + (c.member_email ? ' · ' + esc(c.member_email) : '') + '</p>'
+      + '<p><b>' + (document.body.dataset.lang === 'en' ? 'Type' : '동의유형') + ':</b> ' + esc(c.consent_type) + ' · ' + esc(c.sign_method) + ' · ' + esc(c.consent_version) + '</p>'
+      + '<p><b>' + (document.body.dataset.lang === 'en' ? 'Scope' : '범위') + ':</b> ' + esc(c.scope) + (c.data_types ? ' · ' + esc(JSON.stringify(c.data_types)) : '') + '</p>'
+      + '<p><b>' + (document.body.dataset.lang === 'en' ? 'Signed' : '서명일시') + ':</b> ' + fmt(c.signed_at) + ' · <b>' + (document.body.dataset.lang === 'en' ? 'Expires' : '만료') + ':</b> ' + fmt(c.expires_at) + (expired(c) ? ' <span style="color:#B91C1C">(만료/Expired)</span>' : '') + '</p>'
+      + '<p style="margin-top:10px"><b>' + (document.body.dataset.lang === 'en' ? 'Signature' : '서명') + ':</b><br>' + img + '</p>';
+    show($('cs-detail'), true);
+  }
+  $('cs-rows').addEventListener('click', function (e) { var i = e.target.getAttribute('data-i'); if (i != null) detail(_cons[+i]); });
+  $('cs-close').addEventListener('click', function () { show($('cs-detail'), false); });
+  $('cs-detail').addEventListener('click', function (e) { if (e.target === $('cs-detail')) show($('cs-detail'), false); });
+  $('cs-print').addEventListener('click', function () {
+    var w = window.open('', '_blank'); if (!w) return;
+    w.document.write('<html><head><title>Consent Record · Boston Neuromind</title></head><body style="font-family:system-ui,sans-serif;padding:30px">' + $('cs-body').innerHTML + '</body></html>');
+    w.document.close(); w.focus(); w.print();
+  });
+  load();
+})();
+</script>
+
+<script>
+// 회원 관리 — sepiera adhd_users, ★ source_site=adhd 항상 강제(격리). edge=adhd-users-admin(범용). 추가(POST) 없음.
+(function () {
+  var EDGE = 'https://sepierapapsansprurpr.supabase.co/functions/v1/adhd-users-admin';
+  var SITE = 'adhd';
+  var H = { 'x-admin-password': 'bnm123#' };
+  var _all = [], _tab = 'all', _editId = null;
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function show(el, on) { el.style.display = on ? 'flex' : 'none'; }
+  async function load() {
+    $('mu-msg').textContent = '';
+    try {
+      var r = await fetch(EDGE + '?source_site=' + encodeURIComponent(SITE), { headers: H });
+      var j = await r.json();
+      if (!r.ok || !j.ok) { $('mu-msg').textContent = '로드 실패 / Load failed: ' + ((j && j.error) || r.status); return; }
+      _all = j.users || [];
+      var s = j.stats || {};
+      $('mu-stats').textContent = '전체 ' + (s.total || 0) + ' · 일반 ' + (s.consumer || 0) + ' · 임상가 ' + (s.clinician || 0) + ' · 관리자 ' + (s.admin || 0);
+      render();
+    } catch (e) { $('mu-msg').textContent = '오류 / Error: ' + (e.message || e); }
+  }
+  function filtered() {
+    if (_tab === 'all') return _all;
+    if (_tab === 'admin') return _all.filter(function (u) { return u.role === 'owner' || u.role === 'admin'; });
+    return _all.filter(function (u) { return u.role === _tab; });
+  }
+  function render() {
+    var rows = filtered();
+    $('mu-empty').style.display = rows.length ? 'none' : 'block';
+    $('mu-rows').innerHTML = rows.map(function (u, i) {
+      var badge = (u.role === 'owner' || u.role === 'admin') ? '<span class="mu-super">SUPER</span>' : '';
+      return '<tr><td>' + (i + 1) + '</td><td>' + esc(u.email) + '</td><td>' + esc(u.full_name || '—') + '</td><td>' + esc(u.role || '—') + badge + '</td>' +
+        '<td><button class="rowbtn" data-edit="' + esc(u.id) + '">Edit</button> ' +
+        '<button class="rowbtn del" data-del="' + esc(u.id) + '">Del</button></td></tr>';
+    }).join('');
+  }
+  function openEdit(u) {
+    if (!u) return;
+    _editId = u.id;
+    $('mu-edit-title').textContent = '회원 수정 / Edit';
+    $('mu-email').value = u.email || '';
+    $('mu-name').value = u.full_name || '';
+    $('mu-role').value = u.role || 'consumer';
+    $('mu-edit-msg').textContent = '';
+    show($('mu-edit'), true);
+  }
+  async function save() {
+    if (!_editId) return;
+    var body = { id: _editId, source_site: SITE, email: $('mu-email').value.trim(), full_name: $('mu-name').value.trim() || null, role: $('mu-role').value };
+    if (!body.email) { $('mu-edit-msg').textContent = '이메일 필수 / email required'; return; }
+    try {
+      var r = await fetch(EDGE, { method: 'PATCH', headers: Object.assign({ 'content-type': 'application/json' }, H), body: JSON.stringify(body) });
+      var j = await r.json();
+      if (!r.ok || !j.ok) { $('mu-edit-msg').textContent = '실패 / Failed: ' + ((j && j.error) || r.status); return; }
+      show($('mu-edit'), false); load();
+    } catch (e) { $('mu-edit-msg').textContent = '오류 / Error: ' + (e.message || e); }
+  }
+  async function del(id) {
+    if (!confirm('삭제? / Delete?')) return;
+    try {
+      var r = await fetch(EDGE + '?id=' + encodeURIComponent(id) + '&source_site=' + encodeURIComponent(SITE), { method: 'DELETE', headers: H });
+      var j = await r.json();
+      if (!r.ok || !j.ok) { alert('삭제 실패 / Delete failed: ' + ((j && j.error) || r.status)); return; }
+      load();
+    } catch (e) { alert('오류 / Error: ' + (e.message || e)); }
+  }
+  $('mu-cancel').addEventListener('click', function () { show($('mu-edit'), false); });
+  $('mu-save').addEventListener('click', save);
+  $('mu-tabs').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.mu-tab') : null; if (!b) return;
+    _tab = b.getAttribute('data-tab');
+    [].forEach.call($('mu-tabs').querySelectorAll('.mu-tab'), function (x) { x.setAttribute('data-on', x === b ? '1' : '0'); });
+    render();
+  });
+  $('mu-rows').addEventListener('click', function (e) {
+    var ed = e.target.getAttribute('data-edit'), dl = e.target.getAttribute('data-del');
+    if (ed) { var u = _all.filter(function (x) { return x.id === ed; })[0]; if (u) openEdit(u); }
+    else if (dl) { del(dl); }
+  });
+  $('mu-edit').addEventListener('click', function (e) { if (e.target === $('mu-edit')) show($('mu-edit'), false); });
+  // 게이트 통과 후 로드 (bnmSuperOK). 게이트 미통과면 빈 화면(게이트가 덮음).
+  load();
+})();
+</script>
+</body>
+</html>
