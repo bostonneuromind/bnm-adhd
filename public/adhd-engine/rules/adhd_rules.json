@@ -2155,6 +2155,14 @@
             "kind": "square",
             "color": "#EF4444"
           }
+        },
+        "probe": {
+          "primary": "inhibition",
+          "measures": [
+            "inhibition",
+            "commission",
+            "meanRt"
+          ]
         }
       },
       "gonogo_letter": {
@@ -2180,6 +2188,14 @@
           },
           "instrKo": "O는 클릭, Q는 참기!",
           "instrEn": "Click O, hold on Q!"
+        },
+        "probe": {
+          "primary": "inhibition",
+          "measures": [
+            "inhibition",
+            "commission",
+            "omission"
+          ]
         }
       },
       "stroop": {
@@ -2193,6 +2209,13 @@
           "trials": 24,
           "incongruentRate": 0.6,
           "variant": "stroop"
+        },
+        "probe": {
+          "primary": "conflictEffect",
+          "measures": [
+            "conflictEffect",
+            "meanRt"
+          ]
         }
       },
       "simon_arrow": {
@@ -2206,6 +2229,13 @@
           "trials": 24,
           "incongruentRate": 0.55,
           "variant": "flanker"
+        },
+        "probe": {
+          "primary": "conflictEffect",
+          "measures": [
+            "conflictEffect",
+            "meanRt"
+          ]
         }
       },
       "cpt": {
@@ -2221,6 +2251,15 @@
           "targetRate": 0.2,
           "mode": "X",
           "target": "X"
+        },
+        "probe": {
+          "primary": "detection",
+          "measures": [
+            "detection",
+            "rtVariability",
+            "commission",
+            "omission"
+          ]
         }
       },
       "cpt_ax": {
@@ -2236,6 +2275,14 @@
           "targetRate": 0.25,
           "mode": "AX",
           "target": "X"
+        },
+        "probe": {
+          "primary": "detection",
+          "measures": [
+            "detection",
+            "rtVariability",
+            "omission"
+          ]
         }
       },
       "flanker": {
@@ -2249,6 +2296,13 @@
           "trials": 24,
           "incongruentRate": 0.5,
           "variant": "flanker"
+        },
+        "probe": {
+          "primary": "conflictEffect",
+          "measures": [
+            "conflictEffect",
+            "meanRt"
+          ]
         }
       },
       "nback1": {
@@ -2262,6 +2316,14 @@
           "n": 1,
           "trials": 20,
           "speed": 2500
+        },
+        "probe": {
+          "primary": "matchAccuracy",
+          "measures": [
+            "matchAccuracy",
+            "commission",
+            "omission"
+          ]
         }
       },
       "nback2": {
@@ -2275,6 +2337,14 @@
           "n": 2,
           "trials": 22,
           "speed": 2600
+        },
+        "probe": {
+          "primary": "matchAccuracy",
+          "measures": [
+            "matchAccuracy",
+            "commission",
+            "omission"
+          ]
         }
       },
       "breath": {
@@ -2288,6 +2358,12 @@
           "inhale": 5,
           "exhale": 5,
           "cycles": 6
+        },
+        "probe": {
+          "primary": "cycles",
+          "measures": [
+            "cycles"
+          ]
         }
       },
       "breath_478": {
@@ -2302,6 +2378,12 @@
           "holdIn": 7,
           "exhale": 8,
           "cycles": 4
+        },
+        "probe": {
+          "primary": "cycles",
+          "measures": [
+            "cycles"
+          ]
         }
       }
     },
@@ -3543,6 +3625,122 @@
           "holdOut",
           "cycles"
         ]
+      }
+    },
+    "behavioral_markers": {
+      "rtVariability": {
+        "ko": "반응시간 변동성",
+        "en": "RT variability",
+        "axis": "attention",
+        "ref": "sergeant",
+        "meaning_ko": "반응속도의 출렁임. ADHD의 가장 견고한 행동 마커 — 높을수록 주의 지속의 불안정.",
+        "meaning_en": "Trial-to-trial RT fluctuation. One of the most robust ADHD markers — higher = less stable sustained attention.",
+        "direction": "lower",
+        "note": "Sergeant CEM: state-regulation instability"
+      },
+      "commission": {
+        "ko": "오반응 (충동)",
+        "en": "Commission errors",
+        "axis": "impulseControl",
+        "ref": "barkley",
+        "meaning_ko": "참아야 할 때 반응한 횟수. 반응 억제 실패 = 충동성의 직접 지표.",
+        "meaning_en": "Responding when should withhold. Failure of response inhibition = direct impulsivity index.",
+        "direction": "lower",
+        "note": "Barkley: inhibition deficit"
+      },
+      "omission": {
+        "ko": "누락 (부주의)",
+        "en": "Omission errors",
+        "axis": "attention",
+        "ref": "sergeant",
+        "meaning_ko": "목표를 놓친 횟수. 부주의·주의 지속 실패의 지표.",
+        "meaning_en": "Missed targets. Index of inattention / sustained-attention lapse.",
+        "direction": "lower"
+      },
+      "inhibition": {
+        "ko": "억제 성공률",
+        "en": "Inhibition rate",
+        "axis": "impulseControl",
+        "ref": "barkley",
+        "meaning_ko": "금지 자극을 성공적으로 참은 비율. 전전두 no-go 회로의 힘.",
+        "meaning_en": "Rate of successfully withholding on no-go. Strength of prefrontal no-go circuit.",
+        "direction": "higher"
+      },
+      "detection": {
+        "ko": "목표 탐지율",
+        "en": "Detection rate",
+        "axis": "attention",
+        "ref": "sergeant",
+        "meaning_ko": "드문 목표를 잡아낸 비율. 지속주의·각성 유지의 지표.",
+        "meaning_en": "Rate of catching rare targets. Sustained attention / vigilance.",
+        "direction": "higher"
+      },
+      "conflictEffect": {
+        "ko": "갈등 간섭",
+        "en": "Conflict effect",
+        "axis": "impulseControl",
+        "ref": "barkley",
+        "meaning_ko": "불일치 조건에서 느려지는 정도. 자동반응 억제·인지통제의 지표.",
+        "meaning_en": "Slowing on incongruent trials. Cognitive control against automatic responses.",
+        "direction": "lower"
+      },
+      "matchAccuracy": {
+        "ko": "작업기억 정확도",
+        "en": "Working-memory accuracy",
+        "axis": "attention",
+        "ref": "sergeant",
+        "meaning_ko": "N개 전 자극을 유지·대조하는 정확도. 작업기억 용량.",
+        "meaning_en": "Accuracy holding/matching N-back items. Working-memory capacity.",
+        "direction": "higher"
+      },
+      "meanRt": {
+        "ko": "평균 반응속도",
+        "en": "Mean RT",
+        "axis": "arousal",
+        "ref": "sergeant",
+        "meaning_ko": "전반적 처리 속도. 매우 느리면 저각성, 매우 빠르고 부정확하면 충동.",
+        "meaning_en": "Overall processing speed. Very slow = under-arousal; fast+inaccurate = impulsive.",
+        "direction": "context"
+      }
+    },
+    "probe_interpretation": {
+      "note_ko": "게임 측정값을 조절축 상태로 변환. 이 값이 프로파일에 반영되어 설문 없이도(behavioral probe) 추천을 갱신.",
+      "thresholds": {
+        "inhibition": {
+          "weak_below": 70,
+          "strong_above": 85,
+          "axis": "impulseControl"
+        },
+        "commission": {
+          "weak_above": 5,
+          "strong_below": 2,
+          "axis": "impulseControl"
+        },
+        "detection": {
+          "weak_below": 75,
+          "strong_above": 90,
+          "axis": "attention"
+        },
+        "rtVariability": {
+          "weak_above": 120,
+          "strong_below": 70,
+          "axis": "attention"
+        },
+        "omission": {
+          "weak_above": 4,
+          "strong_below": 1,
+          "axis": "attention"
+        },
+        "matchAccuracy": {
+          "weak_below": 70,
+          "strong_above": 85,
+          "axis": "attention"
+        },
+        "conflictEffect": {
+          "weak_above": 180,
+          "strong_below": 100,
+          "axis": "impulseControl"
+        }
       }
     }
   },

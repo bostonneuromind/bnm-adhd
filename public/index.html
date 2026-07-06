@@ -376,8 +376,8 @@ body[data-lang="en"] .ko-text{display:none}body[data-lang="en"] .en-text{display
       <button data-t="s-meas"><span class="ko-text">QEEG</span><span class="en-text">QEEG</span></button>
       <button data-t="s-algo"><span class="ko-text">📊 알고리즘 리포트</span><span class="en-text">📊 Algorithm Report</span></button>
       <button data-t="s-ai"><span class="ko-text">🤖 AI 심층분석</span><span class="en-text">🤖 AI Deep Analysis</span></button>
-      <button data-t="s-trt"><span class="ko-text">🎮 AI 치료훈련</span><span class="en-text">🎮 AI Treatment</span></button>
       <button data-t="s-nf"><span class="ko-text">뉴로피드백</span><span class="en-text">Neurofeedback</span></button>
+      <button data-t="s-trt"><span class="ko-text">🎮 AI 치료훈련</span><span class="en-text">🎮 AI Treatment</span></button>
       <!-- [제거] 추적 탭 — 통합결과는 알고리즘 리포트가 담당 -->
     </div>
 
@@ -2193,13 +2193,113 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 
 </script>
 <script>
-/* ===== AI Treatment UI — 연령→3레이어→QEEG→처방→게임→진전 (rules 주도) — AdhdTreatment ===== */
+/* ===== Behavioral Probe — 게임을 측정기로 전시 (rules 주도) — AdhdProbe ===== */
 (function(){
   function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
-  function T(k,e){ return ko()?k:e; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function KE(k,e){ return '<span class="ko-text">'+esc(k)+'</span><span class="en-text">'+esc(e)+'</span>'; }
+  function getGM(){ return (window._ADHD_RULES&&window._ADHD_RULES.game_module)||null; }
+
+  // ── 게임 전: "이 게임은 무엇을 재고 훈련하는가" ──
+  function preBanner(game){
+    var GM=getGM(); if(!GM) return '';
+    var g=GM.games[game]; if(!g||!g.probe) return '';
+    var A=GM.axes, BM=GM.behavioral_markers||{};
+    var axisName=A[g.axis]?KE(A[g.axis].ko,A[g.axis].en):g.axis;
+    var measures=(g.probe.measures||[]).map(function(mk){ var m=BM[mk]; return m?KE(m.ko,m.en):mk; });
+    return '<div style="background:linear-gradient(135deg,#1E3A5F,#2E5A7A);color:#fff;border-radius:12px;padding:14px 16px;margin-bottom:10px">'+
+      '<div style="font-size:12px;opacity:.85;font-weight:700">🔬 '+KE('이 게임은 측정하며 훈련합니다','THIS GAME MEASURES WHILE TRAINING')+'</div>'+
+      '<div style="font-size:13.5px;margin-top:6px;line-height:1.6">'+
+      KE('조절축 ','Axis: ')+'<b>'+axisName+'</b>'+KE('을(를) 훈련하고, 동시에 다음 행동지표를 측정합니다: ',' — trained, while measuring: ')+
+      measures.map(function(m){return '<span style="background:rgba(255,255,255,.15);padding:1px 8px;border-radius:99px;font-size:12px;margin:0 2px">'+m+'</span>';}).join('')+
+      '</div></div>';
+  }
+
+  // ── 게임 후: 측정값 → 축 상태 판단 전시 ("왜 이 판단인가") ──
+  function interpret(game, metrics){
+    var GM=getGM(); if(!GM) return null;
+    var g=GM.games[game]; if(!g||!g.probe) return null;
+    var BM=GM.behavioral_markers||{}, TH=(GM.probe_interpretation&&GM.probe_interpretation.thresholds)||{};
+    var findings=[];
+    (g.probe.measures||[]).forEach(function(mk){
+      var val=metrics[mk]; if(val==null) return;
+      var m=BM[mk]||{}, th=TH[mk]||{};
+      var state='normal', stateKo='보통', stateEn='typical';
+      if(th.weak_below!=null && val<th.weak_below){ state='weak'; }
+      else if(th.weak_above!=null && val>th.weak_above){ state='weak'; }
+      else if(th.strong_above!=null && val>=th.strong_above){ state='strong'; }
+      else if(th.strong_below!=null && val<=th.strong_below){ state='strong'; }
+      if(state==='weak'){ stateKo='약함 · 훈련 필요'; stateEn='weak · needs training'; }
+      else if(state==='strong'){ stateKo='강함 · 강점'; stateEn='strong'; }
+      findings.push({ marker:mk, ko:m.ko, en:m.en, val:val, state:state, stateKo:stateKo, stateEn:stateEn,
+                      axis:m.axis||g.axis, meaningKo:m.meaning_ko, meaningEn:m.meaning_en, ref:m.ref });
+    });
+    return { game:game, axis:g.axis, findings:findings };
+  }
+
+  // ── 판단 전시 HTML ──
+  function renderInterpretation(game, metrics){
+    var GM=getGM(); var res=interpret(game, metrics); if(!res) return '';
+    var A=GM.axes, g=GM.games[game];
+    var axisName=A[res.axis]?KE(A[res.axis].ko,A[res.axis].en):res.axis;
+    var color = {weak:'#EF4444', strong:'#22C55E', normal:'#8FA9BC'};
+    var h='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:18px;margin-top:12px">'+
+      '<div style="font-weight:800;color:#2E5A7A;font-size:1.05em;margin-bottom:4px">🔬 '+KE('행동 측정 판단','Behavioral Measurement')+'</div>'+
+      '<div style="font-size:12.5px;color:#8FA9BC;margin-bottom:12px">'+KE('이 게임은 채점이 아니라, 당신의 행동을 지표로 측정해 조절축 상태를 판단합니다.','Not a score — your behavior is measured as markers to judge axis state.')+'</div>';
+    res.findings.forEach(function(f){
+      var c=color[f.state];
+      h+='<div style="border-left:4px solid '+c+';padding:8px 12px;margin-bottom:8px;background:#FAFBFC;border-radius:0 8px 8px 0">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center"><b style="color:#3A5566;font-size:13.5px">'+KE(f.ko,f.en)+'</b>'+
+        '<span style="font-size:13px"><b style="color:#3A5566">'+f.val+'</b> <span style="color:'+c+';font-weight:700;font-size:11px">'+KE(f.stateKo,f.stateEn)+'</span></span></div>'+
+        '<div style="font-size:12px;color:#8FA9BC;margin-top:3px;line-height:1.5">'+KE(f.meaningKo,f.meaningEn)+'</div></div>';
+    });
+    // 종합 판단
+    var weak=res.findings.filter(function(f){return f.state==='weak';});
+    var judgeKo, judgeEn;
+    if(weak.length){ judgeKo='측정 결과, <b>'+A[res.axis].ko+'</b> 축에서 '+weak.map(function(f){return f.ko;}).join('·')+'이(가) 약하게 나타났습니다. 이 축을 훈련 대상으로 판단한 근거입니다.';
+      judgeEn='Measurement shows weakness in '+weak.map(function(f){return f.en;}).join(', ')+' on the <b>'+A[res.axis].en+'</b> axis — the basis for targeting it.'; }
+    else { judgeKo='이번 측정에서 <b>'+A[res.axis].ko+'</b> 축의 지표가 양호했습니다. 계속 훈련하며 강점을 유지하세요.';
+      judgeEn='Markers on the <b>'+A[res.axis].en+'</b> axis looked healthy this round. Keep training to maintain.'; }
+    h+='<div style="background:#F0F6FB;border:1px solid #BDD7E7;border-radius:10px;padding:12px 14px;margin-top:6px;font-size:13px;line-height:1.6;color:#2E5A7A">💡 '+KE(judgeKo,judgeEn)+'</div>';
+    // 프로파일 반영 (behavioral probe → 축 상태 저장)
+    try{ updateBehavioralProfile(res); }catch(e){}
+    h+='</div>';
+    return h;
+  }
+
+  // ── behavioral probe → 프로파일 갱신 (설문 없이도 추천 조정) ──
+  function updateBehavioralProfile(res){
+    var prof=window._ADHD_BEHAVIORAL||{};
+    res.findings.forEach(function(f){
+      if(f.state==='weak'){ prof[f.axis]=(prof[f.axis]||0)+10; }
+      else if(f.state==='strong'){ prof[f.axis]=Math.max(0,(prof[f.axis]||0)-5); }
+    });
+    window._ADHD_BEHAVIORAL=prof;
+  }
+
+  window.AdhdProbe = { preBanner:preBanner, interpret:interpret, renderInterpretation:renderInterpretation, updateBehavioralProfile:updateBehavioralProfile };
+})();
+
+</script>
+<script>
+/* ===== AI Treatment UI v2 — 영한토글·네비·처방select·보고서·게임설명 (rules 주도) — AdhdTreatment ===== */
+(function(){
+  function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function $(id){ return document.getElementById(id); }
-  var GM=null, STATE={ age:null, L1:null, L2:null, L3:null, match:null, prescription:null };
+  // 영한 span 쌍 생성 (토글 표준 준수)
+  function KE(k,e){ return '<span class="ko-text">'+esc(k)+'</span><span class="en-text">'+esc(e)+'</span>'; }
+  var GM=null, STATE={ age:null, L1:null, L2:null, L3:null, match:null, prescription:null, step:0 };
+  // 게임 아이콘 (엔진별)
+  var GAME_ICON={ react_inhibit:'🟢', detect_target:'🎯', match_memory:'🧠', choice_conflict:'🎨', pace_regulate:'🫁' };
+  // 게임 하는 법 (엔진별 상세 설명)
+  var HOWTO={
+    react_inhibit:{ ko:['목표 자극(초록/O)이 나오면 <b>최대한 빠르게</b> 화면을 클릭','금지 자극(빨강/Q)이 나오면 <b>클릭하지 말고 참으세요</b>','참는 것이 핵심 — 충동을 억제하는 뇌 회로를 훈련합니다'], en:['Click <b>as fast as possible</b> when the go stimulus (green/O) appears','<b>Do NOT click</b> when the no-go stimulus (red/Q) appears','Holding back is the point — it trains impulse-inhibition circuits'] },
+    detect_target:{ ko:['글자가 하나씩 빠르게 나타납니다','오직 <b>목표 글자(X)</b>가 나올 때만 클릭','드물게 나오는 목표를 놓치지 않는 지속주의를 훈련합니다'], en:['Letters appear one by one, quickly','Click <b>only</b> when the target letter (X) appears','Trains sustained attention to catch rare targets'] },
+    match_memory:{ ko:['글자가 순서대로 나타납니다','<b>N개 전</b>의 글자와 같으면 클릭','머릿속에 최근 글자를 유지하는 작업기억을 훈련합니다'], en:['Letters appear in sequence','Click if it matches the one <b>N steps back</b>','Trains working memory by holding recent items in mind'] },
+    choice_conflict:{ ko:['글자의 <b>색깔</b> 또는 <b>가운데 방향</b>에 반응','뜻·주변 자극의 간섭을 무시해야 합니다','자동 반응을 억제하는 인지 통제를 훈련합니다'], en:['Respond to the <b>ink color</b> or <b>center direction</b>','Ignore the interfering meaning or flankers','Trains cognitive control against automatic responses'] },
+    pace_regulate:{ ko:['커지는 원에 맞춰 천천히 <b>들이쉬고</b>','작아지는 원에 맞춰 <b>내쉬세요</b>','느린 호흡으로 자율신경을 안정시키고 HRV를 높입니다'], en:['<b>Inhale</b> slowly as the circle grows','<b>Exhale</b> as the circle shrinks','Slow breathing calms autonomic system and raises HRV'] }
+  };
 
   async function loadGM(){
     if(GM) return GM;
@@ -2207,217 +2307,296 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
     if(!R){ try{ if(window.AdhdEngine&&AdhdEngine.load) R=await AdhdEngine.load(); else { var r=await fetch('adhd-engine/rules/adhd_rules.json'); R=await r.json(); window._ADHD_RULES=R; } }catch(e){} }
     GM=(R&&R.game_module)||null; return GM;
   }
-
   function surveyKey(layer, age){
     if(layer==='L1') return age==='child'?'diagnostic_child':'diagnostic_adult';
     if(layer==='L2') return age==='child'?'matching_child':'matching_adult';
     if(layer==='L3') return age==='child'?'engagement_child':'engagement_adult';
   }
 
-  // ── 연령 선택 화면 ──
-  function renderAgeSelect(){
-    var host=$('trt-survey'); if(!host) return;
-    host.innerHTML='<div style="font-size:14px;color:#4A6472;margin-bottom:16px">'+T('먼저 연령을 선택하세요. 아동과 성인은 설문 문항과 표현이 다릅니다.','Select age first. Child and adult use different survey wording.')+'</div>'+
-      '<div style="display:flex;gap:12px;flex-wrap:wrap">'+
-      '<button data-age="child" class="trt-age" style="flex:1;min-width:140px;padding:22px;border:2px solid #CAD6DE;border-radius:14px;background:#fff;cursor:pointer;font-family:inherit"><div style="font-size:2rem">🧒</div><div style="font-weight:800;color:#3A5566;margin-top:6px">'+T('아동 6–12세','Child 6–12')+'</div><div style="font-size:12px;color:#8FA9BC">'+T('보호자가 응답','Caregiver reports')+'</div></button>'+
-      '<button data-age="adult" class="trt-age" style="flex:1;min-width:140px;padding:22px;border:2px solid #CAD6DE;border-radius:14px;background:#fff;cursor:pointer;font-family:inherit"><div style="font-size:2rem">🧑</div><div style="font-weight:800;color:#3A5566;margin-top:6px">'+T('청소년·성인 12+','Adol./Adult 12+')+'</div><div style="font-size:12px;color:#8FA9BC">'+T('본인이 응답','Self report')+'</div></button>'+
-      '</div>';
-    host.querySelectorAll('.trt-age').forEach(function(b){ b.onclick=function(){ STATE.age=b.getAttribute('data-age'); renderLayer('L1'); }; });
-    $('trt-result').innerHTML='';
-  }
-
-  // ── 레이어 설문 렌더 (진행 표시) ──
-  function renderLayer(layer){
-    var host=$('trt-survey'); var sv=GM.surveys[surveyKey(layer,STATE.age)];
-    var titles={ L1:T('1단계 · 진단','Step 1 · Diagnostic'), L2:T('2단계 · 게임 매칭','Step 2 · Game Matching'), L3:T('3단계 · 참여 스타일','Step 3 · Engagement') };
-    var stepNum={L1:1,L2:2,L3:3}[layer];
-    var h='<div style="display:flex;gap:6px;margin-bottom:14px">'+[1,2,3].map(function(n){ return '<div style="flex:1;height:6px;border-radius:3px;background:'+(n<=stepNum?'#5E35B1':'#EEF2F4')+'"></div>'; }).join('')+'</div>';
-    h+='<div style="font-weight:800;color:#5E35B1;font-size:1.05em;margin-bottom:4px">'+titles[layer]+'</div>';
-    h+='<div style="font-size:13px;color:#8FA9BC;margin-bottom:14px">'+esc(ko()?sv.title_ko:sv.title_en)+'</div>';
-    var labels=sv.scale.labels_ko, labelsEn=sv.scale.labels_en, maxv=sv.scale.max;
-    sv.items.forEach(function(q){
-      h+='<div style="padding:10px 0;border-bottom:1px solid #F1F2F4"><div style="font-size:14px;color:#3A5566;margin-bottom:6px">'+esc(ko()?q.ko:q.en)+'</div><div style="display:flex;gap:5px">';
-      for(var v=0;v<=maxv;v++){ h+='<label style="flex:1;text-align:center;cursor:pointer"><input type="radio" name="'+esc(q.id)+'" value="'+v+'" style="display:none"><span class="trt-opt" style="display:block;padding:7px 2px;border:1px solid #CAD6DE;border-radius:8px;font-weight:700;color:#5C6166;font-size:12px">'+v+'</span></label>'; }
-      h+='</div></div>';
-    });
-    h+='<button id="trt-next" style="margin-top:14px;padding:12px 22px;border:0;border-radius:10px;background:#5E35B1;color:#fff;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit">'+
-      (layer==='L3'?T('QEEG 옵션으로 →','To QEEG option →'):T('다음 단계 →','Next step →'))+'</button>';
-    host.innerHTML=h;
-    host.querySelectorAll('input[type=radio]').forEach(function(r){ r.addEventListener('change', function(){ host.querySelectorAll('input[name="'+r.name+'"]').forEach(function(x){ var sp=x.nextElementSibling; sp.style.background=x.checked?'#5E35B1':'#fff'; sp.style.color=x.checked?'#fff':'#5C6166'; sp.style.borderColor=x.checked?'#5E35B1':'#CAD6DE'; }); }); });
-    $('trt-next').onclick=function(){ scoreLayer(layer, sv); };
-  }
-
-  // ── 레이어 채점 ──
-  function scoreLayer(layer, sv){
-    var host=$('trt-survey');
-    if(layer==='L1'){
-      var ia=0,hi=0,cnt=0;
-      sv.items.forEach(function(q){ var s=host.querySelector('input[name="'+q.id+'"]:checked'); if(s){ cnt++; var v=+s.value; var pos=v>=sv.scale.positive_threshold; if(pos){ if(q.subscale==='inattention')ia++; else hi++; } } });
-      if(cnt<Math.ceil(sv.items.length*0.7)){ alert(T('문항 대부분에 응답해 주세요.','Please answer most items.')); return; }
-      var positive = ia>=sv.scoring.inattention_threshold || hi>=sv.scoring.hyperactivity_threshold;
-      STATE.L1={ positive:positive, inattention:ia, hyperactivity:hi, symptomCount:ia+hi };
-      renderLayer('L2');
-    } else if(layer==='L2'){
-      var scores={}, counts={};
-      Object.keys(GM.axes).forEach(function(a){ scores[a]=0; counts[a]=0; });
-      var ans=0;
-      sv.items.forEach(function(q){ var s=host.querySelector('input[name="'+q.id+'"]:checked'); if(s){ ans++; var v=+s.value; if(q.reverse)v=sv.scale.max-v; scores[q.axis]=(scores[q.axis]||0)+v; counts[q.axis]=(counts[q.axis]||0)+1; } });
-      if(ans<Math.ceil(sv.items.length*0.7)){ alert(T('문항 대부분에 응답해 주세요.','Please answer most items.')); return; }
-      var norm={}; Object.keys(scores).forEach(function(a){ norm[a]=counts[a]?Math.round(scores[a]/(counts[a]*sv.scale.max)*100):0; });
-      STATE.L2=norm; renderLayer('L3');
-    } else if(layer==='L3'){
-      var dims={}, dcnt={};
-      sv.items.forEach(function(q){ var s=host.querySelector('input[name="'+q.id+'"]:checked'); if(s){ var v=+s.value; var dim=q.dimension;
-        // reward_style는 compete/calm 분리
-        if(dim==='reward_style'){ var sub=q.id==='e_calm'?'reward_style_calm':'reward_style_compete'; dims[sub]=v; }
-        else { dims[dim]=(dims[dim]||0)+v; dcnt[dim]=(dcnt[dim]||0)+1; }
-      } });
-      Object.keys(dcnt).forEach(function(d){ dims[d]=Math.round(dims[d]/dcnt[d]); });
-      STATE.L3=dims; renderQeegOption();
-    }
-  }
-
-  // ── QEEG 옵션 ──
-  function renderQeegOption(){
-    var host=$('trt-survey');
-    var hasQeeg = window.state && state.objectiveData && Object.keys(state.objectiveData).length;
-    host.innerHTML='<div style="display:flex;gap:6px;margin-bottom:14px">'+[1,2,3].map(function(){return '<div style="flex:1;height:6px;border-radius:3px;background:#5E35B1"></div>';}).join('')+'</div>'+
-      '<div style="font-weight:800;color:#5E35B1;font-size:1.05em;margin-bottom:10px">🧠 '+T('QEEG 옵션 (선택)','QEEG Option')+'</div>'+
-      '<div style="background:'+(hasQeeg?'#F0FDF4':'#F5FAFE')+';border:1px '+(hasQeeg?'solid #86EFAC':'dashed #8AA5B5')+';border-radius:12px;padding:16px;font-size:13px;color:#4A6472;margin-bottom:14px">'+
-      (hasQeeg? '✅ '+T('QEEG 측정값이 있습니다. 매칭에 반영됩니다 (theta/beta @ Cz → 주의·각성 축 보정).','QEEG measures found. Will be applied (theta/beta @ Cz → attention/arousal).')
-              : '💡 '+T('QEEG 없이 설문만으로 매칭합니다. QEEG 탭에서 측정하면 정밀도가 높아집니다. FDA/AAN 근거상 보조 지표로만 사용됩니다.','Matching from survey only. Measure in QEEG tab for higher precision. Used adjunctively per FDA/AAN.'))+'</div>'+
-      '<button id="trt-tomatch" style="padding:12px 22px;border:0;border-radius:10px;background:#5E35B1;color:#fff;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit">'+T('매칭 결과 보기 →','See matching →')+'</button>'+
-      (!hasQeeg?' <button id="trt-goqeeg" style="padding:12px 18px;border:1px solid #CAD6DE;border-radius:10px;background:#fff;color:#5B7B94;font-weight:700;cursor:pointer;font-family:inherit">'+T('QEEG 측정하러 가기','Go measure QEEG')+'</button>':'');
-    $('trt-tomatch').onclick=runMatch;
-    var gq=$('trt-goqeeg'); if(gq) gq.onclick=function(){ if(typeof switchSymptomTab==='function') switchSymptomTab('s-meas'); };
-  }
-
-  // ── 매칭 실행 → 보고서 + 처방 + 게임 ──
-  function runMatch(){
-    var qeeg = (window.state&&state.objectiveData)||{};
-    var m = window.AdhdMatcher.run({ L1:STATE.L1, L2:STATE.L2, L3:STATE.L3, qeeg:qeeg });
-    STATE.match=m;
-    var rx = window.AdhdProgram.prescribe(m.intensity);
-    STATE.prescription=rx;
-    var host=$('trt-result');
-    host.innerHTML = renderReport(m, rx) + renderPrescription(rx) + renderGames(m) + '<div id="trt-game-area" style="margin-top:16px"></div><div id="trt-dash"></div>';
-    wireGameButtons(m);
-    $('trt-survey').innerHTML='<button id="trt-restart" style="padding:10px 18px;border:1px solid #CAD6DE;border-radius:9px;background:#fff;color:#5B7B94;font-weight:700;cursor:pointer;font-family:inherit">↻ '+T('다시 평가 (재설문/재측정)','Reassess (redo survey)')+'</button>';
-    $('trt-restart').onclick=function(){ STATE={age:null,L1:null,L2:null,L3:null,match:null,prescription:null}; renderAgeSelect(); };
-  }
-
-  function renderReport(m, rx){
-    var A=GM.axes, top=m.ranked[0];
-    var h='<div id="trt-report">';
-    h+='<div style="background:linear-gradient(135deg,#5E35B1,#7C3AED);color:#fff;border-radius:16px;padding:20px 22px;margin-bottom:16px">'+
-      '<div style="font-size:12px;opacity:.85;font-weight:700">🎯 '+T('AI 게임 매칭 · 3레이어 분석','AI GAME MATCHING · 3-layer')+'</div>'+
-      '<div style="font-size:1.35rem;font-weight:900;margin-top:4px">'+T('주요 훈련 타겟: ','Primary target: ')+esc(ko()?A[top].ko:A[top].en)+'</div>'+
-      '<div style="font-size:13px;opacity:.92;margin-top:4px">'+T('진단·조절축·참여 스타일'+(m.qeegApplied.length?'·QEEG':'')+'을 종합해 매칭했습니다.','Matched across diagnostic, axis, engagement'+(m.qeegApplied.length?', QEEG':'')+'.')+'</div></div>';
-    // 진단 요약
-    if(STATE.L1) h+='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:12px;padding:14px 16px;margin-bottom:12px;font-size:13px;color:#4A6472"><b style="color:#3A5566">'+T('진단 스크리닝','Diagnostic')+':</b> '+
-      (STATE.L1.positive?('<span style="color:#C2410C;font-weight:700">'+T('양성 스크린','Positive screen')+'</span>'):('<span style="color:#059669;font-weight:700">'+T('역치 미만','Below threshold')+'</span>'))+
-      ' · '+T('부주의','Inatt')+' '+STATE.L1.inattention+'/9, '+T('과잉/충동','Hyper/Imp')+' '+STATE.L1.hyperactivity+'/9</div>';
-    // 축 바
-    h+='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px 18px;margin-bottom:12px"><div style="font-weight:800;color:#3A5566;margin-bottom:10px">'+T('조절축 훈련 필요도','Training need by axis')+(m.qeegApplied.length?' <span style="font-size:11px;color:#10B981">(QEEG '+T('반영','adj')+': '+esc(m.qeegApplied.join(','))+')</span>':'')+'</div>'+
-      m.ranked.map(function(ax){ var v=m.axisScores[ax], c=A[ax].color; return '<div style="margin:8px 0"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><b style="color:#3A5566">'+esc(ko()?A[ax].ko:A[ax].en)+'</b><b style="color:'+c+'">'+v+'</b></div><div style="height:14px;background:#EEF2F4;border-radius:6px;overflow:hidden"><div style="height:100%;width:'+v+'%;background:'+c+';border-radius:6px"></div></div></div>'; }).join('')+'</div>';
-    // 참여 스타일
-    if(m.gamify) h+='<div style="background:#F5FAFE;border:1px solid #BDD7E7;border-radius:12px;padding:12px 16px;margin-bottom:12px;font-size:13px;color:#4A6472"><b style="color:#3A5566">'+T('참여 스타일','Engagement')+':</b> '+
-      (m.gamify.gamified==='competitive'?T('경쟁형 (점수·순위)','Competitive (score/rank)'):m.gamify.gamified==='calm'?T('차분형 (조용한 훈련)','Calm (quiet)'):T('균형형','Balanced'))+
-      (m.gamify.allowChoice?' · '+T('선택 자유','free choice'):'')+(m.gamify.adaptiveDifficulty?' · '+T('적응 난이도','adaptive'):'')+'</div>';
+  // 상단 네비게이션 (이전/이후) — 모든 화면 공통
+  function navBar(step, total, canNext){
+    var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">';
+    h+='<button id="trt-back" '+(step<=0?'disabled':'')+' style="padding:8px 16px;border:1px solid #CAD6DE;border-radius:9px;background:'+(step<=0?'#F1F2F4':'#fff')+';color:'+(step<=0?'#BDC5CC':'#5B7B94')+';font-weight:700;cursor:'+(step<=0?'default':'pointer')+';font-family:inherit">← '+KE('이전','Back')+'</button>';
+    if(total){ h+='<div style="display:flex;gap:6px">'; for(var i=1;i<=total;i++){ h+='<div style="width:26px;height:6px;border-radius:3px;background:'+(i<=step?'#5E35B1':'#EEF2F4')+'"></div>'; } h+='</div>'; }
+    h+='<button id="trt-fwd" '+(canNext?'':'disabled')+' style="padding:8px 16px;border:0;border-radius:9px;background:'+(canNext?'#5E35B1':'#DCD4EC')+';color:#fff;font-weight:700;cursor:'+(canNext?'pointer':'default')+';font-family:inherit">'+KE('다음','Next')+' →</button>';
     h+='</div>';
     return h;
   }
+  var _steps=['age','L1','L2','L3','qeeg','result'];
+  function goStep(name){ STATE.step=_steps.indexOf(name); render(); }
+  function stepBack(){ var i=STATE.step-1; if(i<0)i=0; STATE.step=i; render(); }
+  function stepFwd(){ var name=_steps[STATE.step]; if(name==='age'){ if(!STATE.age)return; } render(true); }
 
-  function renderPrescription(rx){
-    if(!rx) return '';
-    return '<div style="background:#fff;border:2px solid #5E35B1;border-radius:14px;padding:18px;margin-bottom:14px">'+
-      '<div style="font-weight:800;color:#5E35B1;font-size:1.05em;margin-bottom:10px">💊 '+T('훈련 처방','Training Prescription')+'</div>'+
-      '<div style="display:flex;gap:14px;flex-wrap:wrap;text-align:center">'+
-      [[rx.minutesPerDay, T('분/일','min/day')],[rx.daysPerWeek, T('일/주','days/wk')],[rx.weeks, T('주','weeks')],[rx.totalSessions, T('총 세션','sessions')]].map(function(p){
-        return '<div style="flex:1;min-width:70px;background:#F5F3FB;border-radius:10px;padding:12px 6px"><div style="font-size:1.5rem;font-weight:900;color:#5E35B1">'+p[0]+'</div><div style="font-size:11px;color:#8FA9BC">'+p[1]+'</div></div>';
-      }).join('')+'</div>'+
-      '<div style="font-size:12.5px;color:#8FA9BC;margin-top:10px">'+esc(rx.goalNote)+'. '+T('기간을 조절하면 총 세션이 재계산됩니다:','Adjust duration to recalc:')+'</div>'+
-      '<div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><label style="font-size:13px;color:#4A6472">'+T('기간(주)','Weeks')+': </label><input id="rx-weeks" type="number" min="1" max="24" value="'+rx.weeks+'" style="width:64px;padding:6px;border:1px solid #CAD6DE;border-radius:8px;font-family:inherit"> <button id="rx-apply" style="padding:6px 14px;border:0;border-radius:8px;background:#5B7B94;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">'+T('재계산','Recalc')+'</button> <span id="rx-out" style="font-size:13px;color:#5E35B1;font-weight:700"></span></div></div>';
+  function render(forward){
+    var name=_steps[STATE.step];
+    if(name==='age') renderAge();
+    else if(name==='L1'||name==='L2'||name==='L3') renderLayer(name);
+    else if(name==='qeeg') renderQeeg();
+    else if(name==='result') renderResult();
   }
 
-  function renderGames(m){
+  // ── 연령 선택 ──
+  function renderAge(){
+    var host=$('trt-survey'); if(!host) return;
+    var h=navBar(0, 5, !!STATE.age);
+    h+='<div style="font-size:14px;color:#4A6472;margin-bottom:16px">'+KE('먼저 연령을 선택하세요. 아동과 성인은 설문 문항과 표현이 다릅니다.','Select age first. Child and adult use different survey wording.')+'</div>';
+    h+='<div style="display:flex;gap:12px;flex-wrap:wrap">';
+    [['child','🧒','아동 6–12세','Child 6–12','보호자가 응답','Caregiver reports'],['adult','🧑','청소년·성인 12+','Adol./Adult 12+','본인이 응답','Self report']].forEach(function(a){
+      var sel=STATE.age===a[0];
+      h+='<button data-age="'+a[0]+'" class="trt-age" style="flex:1;min-width:140px;padding:22px;border:2px solid '+(sel?'#5E35B1':'#CAD6DE')+';border-radius:14px;background:'+(sel?'#F5F3FB':'#fff')+';cursor:pointer;font-family:inherit"><div style="font-size:2rem">'+a[1]+'</div><div style="font-weight:800;color:#3A5566;margin-top:6px">'+KE(a[2],a[3])+'</div><div style="font-size:12px;color:#8FA9BC">'+KE(a[4],a[5])+'</div></button>';
+    });
+    h+='</div>';
+    host.innerHTML=h; $('trt-result').innerHTML='';
+    host.querySelectorAll('.trt-age').forEach(function(b){ b.onclick=function(){ STATE.age=b.getAttribute('data-age'); renderAge(); }; });
+    wireNav();
+  }
+
+  // ── 레이어 설문 ──
+  function renderLayer(layer){
+    var host=$('trt-survey'); var sv=GM.surveys[surveyKey(layer,STATE.age)];
+    var stepNum={L1:2,L2:3,L3:4}[layer];
+    var titles={ L1:['1단계 · 진단','Step 1 · Diagnostic'], L2:['2단계 · 게임 매칭','Step 2 · Game Matching'], L3:['3단계 · 참여 스타일','Step 3 · Engagement'] };
+    var answered=layerAnswered(layer, sv);
+    var h=navBar(stepNum, 5, answered>=Math.ceil(sv.items.length*0.7));
+    h+='<div style="font-weight:800;color:#5E35B1;font-size:1.05em;margin-bottom:4px">'+KE(titles[layer][0],titles[layer][1])+'</div>';
+    h+='<div style="font-size:13px;color:#8FA9BC;margin-bottom:14px">'+KE(sv.title_ko,sv.title_en)+'</div>';
+    var maxv=sv.scale.max, lk=sv.scale.labels_ko, le=sv.scale.labels_en;
+    sv.items.forEach(function(q){
+      h+='<div style="padding:10px 0;border-bottom:1px solid #F1F2F4"><div style="font-size:14px;color:#3A5566;margin-bottom:6px">'+KE(q.ko,q.en)+'</div><div style="display:flex;gap:5px">';
+      for(var v=0;v<=maxv;v++){ var lab=lk&&lk[v]?('<span class="ko-text">'+esc(lk[v])+'</span><span class="en-text">'+esc(le[v])+'</span>'):v; h+='<label style="flex:1;text-align:center;cursor:pointer" title="'+v+'"><input type="radio" name="'+esc(q.id)+'" value="'+v+'" style="display:none"><span class="trt-opt" style="display:block;padding:7px 2px;border:1px solid #CAD6DE;border-radius:8px;font-weight:700;color:#5C6166;font-size:11px">'+v+'</span></label>'; }
+      h+='</div></div>';
+    });
+    host.innerHTML=h;
+    // 이전 응답 복원
+    var saved=STATE['answers_'+layer]||{};
+    host.querySelectorAll('input[type=radio]').forEach(function(r){
+      if(saved[r.name]===r.value){ r.checked=true; var sp=r.nextElementSibling; sp.style.background='#5E35B1'; sp.style.color='#fff'; sp.style.borderColor='#5E35B1'; }
+      r.addEventListener('change', function(){ host.querySelectorAll('input[name="'+r.name+'"]').forEach(function(x){ var sp=x.nextElementSibling; sp.style.background=x.checked?'#5E35B1':'#fff'; sp.style.color=x.checked?'#fff':'#5C6166'; sp.style.borderColor=x.checked?'#5E35B1':'#CAD6DE'; }); STATE['answers_'+layer]=STATE['answers_'+layer]||{}; STATE['answers_'+layer][r.name]=r.value; refreshNav(layer,sv); });
+    });
+    wireNav();
+  }
+  function layerAnswered(layer, sv){ var a=STATE['answers_'+layer]||{}; var c=0; sv.items.forEach(function(q){ if(a[q.id]!=null)c++; }); return c; }
+  function refreshNav(layer, sv){ var fwd=$('trt-fwd'); if(!fwd)return; var ok=layerAnswered(layer,sv)>=Math.ceil(sv.items.length*0.7); fwd.disabled=!ok; fwd.style.background=ok?'#5E35B1':'#DCD4EC'; fwd.style.cursor=ok?'pointer':'default'; }
+
+  // ── QEEG 옵션 (측정 / Skip) ──
+  function renderQeeg(){
+    var host=$('trt-survey');
+    var hasQeeg = window.state && state.objectiveData && Object.keys(state.objectiveData).length;
+    var h=navBar(5, 5, true);
+    h+='<div style="font-weight:800;color:#5E35B1;font-size:1.05em;margin-bottom:10px">🧠 '+KE('QEEG 옵션','QEEG Option')+'</div>';
+    h+='<div style="background:'+(hasQeeg?'#F0FDF4':'#F5FAFE')+';border:1px '+(hasQeeg?'solid #86EFAC':'dashed #8AA5B5')+';border-radius:12px;padding:16px;font-size:13px;color:#4A6472;margin-bottom:16px">';
+    if(hasQeeg) h+='✅ '+KE('QEEG 측정값이 있습니다. 매칭에 반영됩니다 (theta/beta @ Cz → 주의·각성 축 보정).','QEEG measures found. Will be applied (theta/beta @ Cz → attention/arousal).');
+    else h+='💡 '+KE('QEEG는 선택입니다. 측정하면 뇌파로 조절축을 객관적으로 보정해 정밀도가 높아집니다. FDA/AAN 근거상 진단 단독이 아닌 보조 지표로 사용됩니다.','QEEG is optional. Measuring adds an objective brain-based adjustment. Used adjunctively (not standalone) per FDA/AAN.');
+    h+='</div>';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap">';
+    h+='<button id="trt-qeeg-measure" style="flex:1;min-width:150px;padding:14px;border:0;border-radius:10px;background:#5B7B94;color:#fff;font-weight:800;cursor:pointer;font-family:inherit">🧠 '+KE('QEEG 측정하기','Measure QEEG')+'</button>';
+    h+='<button id="trt-qeeg-skip" style="flex:1;min-width:150px;padding:14px;border:1px solid #CAD6DE;border-radius:10px;background:#fff;color:#5B7B94;font-weight:800;cursor:pointer;font-family:inherit">'+KE('건너뛰고 결과 보기','Skip to results')+' →</button>';
+    h+='</div>';
+    host.innerHTML=h;
+    $('trt-qeeg-measure').onclick=function(){ if(typeof switchSymptomTab==='function') switchSymptomTab('s-meas'); };
+    $('trt-qeeg-skip').onclick=function(){ goStep('result'); };
+    wireNav();
+  }
+
+  // ── 채점 (result 진입 시) ──
+  function scoreAll(){
+    // L1 진단
+    var sv1=GM.surveys[surveyKey('L1',STATE.age)], a1=STATE.answers_L1||{}, ia=0,hi=0;
+    sv1.items.forEach(function(q){ var v=a1[q.id]; if(v!=null){ if((+v)>=sv1.scale.positive_threshold){ if(q.subscale==='inattention')ia++; else hi++; } } });
+    var positive = ia>=sv1.scoring.inattention_threshold || hi>=sv1.scoring.hyperactivity_threshold;
+    STATE.L1={ positive:positive, inattention:ia, hyperactivity:hi, symptomCount:ia+hi };
+    // L2 조절축
+    var sv2=GM.surveys[surveyKey('L2',STATE.age)], a2=STATE.answers_L2||{}, sc={},cnt={};
+    Object.keys(GM.axes).forEach(function(x){sc[x]=0;cnt[x]=0;});
+    sv2.items.forEach(function(q){ var v=a2[q.id]; if(v!=null){ v=+v; if(q.reverse)v=sv2.scale.max-v; sc[q.axis]=(sc[q.axis]||0)+v; cnt[q.axis]=(cnt[q.axis]||0)+1; } });
+    var norm={}; Object.keys(sc).forEach(function(x){ norm[x]=cnt[x]?Math.round(sc[x]/(cnt[x]*sv2.scale.max)*100):0; });
+    STATE.L2=norm;
+    // L3 참여
+    var sv3=GM.surveys[surveyKey('L3',STATE.age)], a3=STATE.answers_L3||{}, dims={},dc={};
+    sv3.items.forEach(function(q){ var v=a3[q.id]; if(v!=null){ v=+v; var dim=q.dimension; if(dim==='reward_style'){ var sub=q.id==='e_calm'?'reward_style_calm':'reward_style_compete'; dims[sub]=v; } else { dims[dim]=(dims[dim]||0)+v; dc[dim]=(dc[dim]||0)+1; } } });
+    Object.keys(dc).forEach(function(x){ dims[x]=Math.round(dims[x]/dc[x]); });
+    STATE.L3=dims;
+  }
+
+  // ── 결과 화면: 보고서 + 처방(select) + 게임(아이콘+설명) + 전체리스트 ──
+  function renderResult(){
+    scoreAll();
+    var qeeg=(window.state&&state.objectiveData)||{};
+    var m=window.AdhdMatcher.run({ L1:STATE.L1, L2:STATE.L2, L3:STATE.L3, qeeg:qeeg });
+    STATE.match=m;
+    var rx=window.AdhdProgram.prescribe(m.intensity); STATE.prescription=rx;
+
+    var host=$('trt-survey');
+    host.innerHTML=navBar(5,5,false).replace('id="trt-fwd"','id="trt-fwd-hidden" style="display:none" data-x'); // 결과에선 다음 숨김
+    // 다음 버튼 숨기고 재평가 버튼
+    var nav=host.querySelector('#trt-fwd-hidden'); if(nav){ nav.style.display='none'; }
+    var restart=document.createElement('button');
+
+    var out=$('trt-result');
+    out.innerHTML = reportNarrative(m) + prescriptionBox(rx) + gamesSection(m) + '<div id="trt-game-area" style="margin-top:16px"></div><div id="trt-dash"></div>';
+    wireResult(m, rx);
+    wireNav();
+    // 결과 화면 다음버튼 자리에 재평가
+    var fwd=$('trt-fwd'); if(fwd){ fwd.textContent=''; fwd.innerHTML='↻ '+KE('다시 평가','Reassess'); fwd.disabled=false; fwd.style.background='#5B7B94'; fwd.style.cursor='pointer'; fwd.onclick=function(){ STATE={age:null,L1:null,L2:null,L3:null,match:null,prescription:null,step:0}; render(); }; }
+  }
+
+  // ★ 보고서 — 표·그림·문장으로 "왜 이 훈련인가" 설득
+  function reportNarrative(m){
+    var A=GM.axes, top=m.ranked[0], topName=[A[top].ko,A[top].en];
+    var L1=STATE.L1, L2=STATE.L2, L3=STATE.L3;
+    var h='<div id="trt-report">';
+    // 히어로
+    h+='<div style="background:linear-gradient(135deg,#5E35B1,#7C3AED);color:#fff;border-radius:16px;padding:22px 24px;margin-bottom:16px">'+
+      '<div style="font-size:12px;opacity:.85;font-weight:700">📋 '+KE('개인 분석 보고서','PERSONAL ANALYSIS REPORT')+'</div>'+
+      '<div style="font-size:1.4rem;font-weight:900;margin-top:6px">'+KE('주요 훈련 타겟: ','Primary target: ')+KE(topName[0],topName[1])+'</div></div>';
+
+    // 1) 진단 요약 — 문장 + 표
+    var dxKo, dxEn;
+    if(L1.positive){ dxKo='설문 결과 ADHD 스크리닝에서 <b>양성</b>으로 나타났습니다. 부주의 '+L1.inattention+'/9, 과잉행동·충동 '+L1.hyperactivity+'/9 항목이 임상 역치에 해당합니다. 이는 확정 진단이 아니라, 전문가의 종합 평가가 필요하다는 신호입니다.';
+      dxEn='The screening is <b>positive</b>: inattention '+L1.inattention+'/9, hyperactivity/impulsivity '+L1.hyperactivity+'/9 meet the clinical threshold. This is a screen, not a diagnosis — a full clinical evaluation is advised.'; }
+    else { dxKo='설문 결과는 임상 역치 <b>미만</b>입니다 (부주의 '+L1.inattention+'/9, 과잉/충동 '+L1.hyperactivity+'/9). 증상이 경미하거나 특정 영역에 국한될 수 있으며, 조절축 훈련으로 강점을 더 키울 수 있습니다.';
+      dxEn='The screen is <b>below threshold</b> (inattention '+L1.inattention+'/9, hyper/imp '+L1.hyperactivity+'/9). Symptoms may be mild or domain-specific; axis training can still strengthen self-regulation.'; }
+    h+=card('① '+KE('진단 스크리닝','Diagnostic Screening'),
+      '<div style="font-size:13.5px;line-height:1.7;color:#374151">'+KE(dxKo,dxEn)+'</div>'+
+      miniTable([[KE('부주의','Inattention'), L1.inattention+' / 9'],[KE('과잉행동·충동','Hyper/Impulsive'), L1.hyperactivity+' / 9'],[KE('판정','Result'), L1.positive?'<b style="color:#C2410C">'+KE('양성 스크린','Positive')+'</b>':'<b style="color:#059669">'+KE('역치 미만','Below threshold')+'</b>']])+
+      '<div style="font-size:11px;color:#8FA9BC;margin-top:8px">'+KE('근거: DSM-5-TR Criterion A · ','Basis: DSM-5-TR Criterion A · ')+(STATE.age==='child'?'Vanderbilt (Wolraich 2003)':'ASRS v1.1 (Kessler 2005)')+'</div>');
+
+    // 2) 조절축 프로파일 — 문장 + 바차트 캔버스
+    var axisKo='다섯 개 조절축 중 <b>'+A[top].ko+'</b>의 훈련 필요도가 가장 높습니다'+(m.qeegApplied.length?' (QEEG 측정으로 '+m.qeegApplied.join(', ')+' 보정 반영)':'')+'. 아래 그래프는 각 축의 상대적 필요도를 보여줍니다 — 높을수록 우선 훈련 대상입니다.';
+    var axisEn='Among the five regulation axes, <b>'+A[top].en+'</b> shows the highest training need'+(m.qeegApplied.length?' (QEEG-adjusted: '+m.qeegApplied.join(', ')+')':'')+'. The chart shows relative need per axis — higher means higher priority.';
+    h+=card('② '+KE('조절축 프로파일','Regulation-Axis Profile'),
+      '<div style="font-size:13.5px;line-height:1.7;color:#374151;margin-bottom:10px">'+KE(axisKo,axisEn)+'</div>'+
+      m.ranked.map(function(ax){ var v=L2[ax], c=A[ax].color; return '<div style="margin:7px 0"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><b style="color:#3A5566">'+KE(A[ax].ko,A[ax].en)+'</b><b style="color:'+c+'">'+v+'</b></div><div style="height:14px;background:#EEF2F4;border-radius:6px;overflow:hidden"><div style="height:100%;width:'+v+'%;background:'+c+';border-radius:6px"></div></div></div>'; }).join('')+
+      '<div style="font-size:11px;color:#8FA9BC;margin-top:8px">'+KE('근거: Sergeant 인지-에너지 모델 · Barkley 억제 모델','Basis: Sergeant Cognitive-Energetic · Barkley inhibition')+'</div>');
+
+    // 3) 참여 스타일 — 문장
+    var styleKo, styleEn;
+    if(m.gamify.gamified==='competitive'){ styleKo='당신은 <b>점수·순위 같은 경쟁 요소</b>에서 동기를 얻는 유형입니다. 훈련 게임에 점수와 순위를 표시해 몰입을 높입니다.'; styleEn='You are motivated by <b>competitive elements</b> (scores, ranks). Games will show scores/ranks to boost engagement.'; }
+    else if(m.gamify.gamified==='calm'){ styleKo='당신은 <b>차분하고 조용한 방식</b>을 선호합니다. 경쟁 요소 없이 자기 페이스로 진행하도록 구성합니다.'; styleEn='You prefer a <b>calm, quiet</b> approach. Training runs self-paced without competitive pressure.'; }
+    else { styleKo='당신은 <b>균형 잡힌</b> 참여 스타일입니다. 적절한 피드백과 도전으로 구성합니다.'; styleEn='You have a <b>balanced</b> engagement style. Training uses moderate feedback and challenge.'; }
+    if(m.gamify.allowChoice){ styleKo+=' 스스로 게임을 고르는 <b>자율성</b>도 중요하게 반영됩니다.'; styleEn+=' Your <b>autonomy</b> to choose games is also honored.'; }
+    h+=card('③ '+KE('참여 스타일','Engagement Style'),
+      '<div style="font-size:13.5px;line-height:1.7;color:#374151">'+KE(styleKo,styleEn)+'</div>'+
+      '<div style="font-size:11px;color:#8FA9BC;margin-top:8px">'+KE('근거: 자기결정이론 (Deci & Ryan) · Flow (Csikszentmihalyi)','Basis: Self-Determination Theory (Deci & Ryan) · Flow')+'</div>');
+
+    // 4) 종합 — 왜 이 훈련인가
+    var whyKo='이상을 종합하면, <b>'+A[top].ko+'</b>을 중심으로 '+(m.gamify.gamified==='competitive'?'경쟁형':m.gamify.gamified==='calm'?'차분형':'균형형')+' 방식의 인지훈련이 가장 적합합니다. 아래 추천 게임은 이 분석에 근거해 개인화된 것입니다.';
+    var whyEn='Taken together, cognitive training centered on <b>'+A[top].en+'</b> in a '+(m.gamify.gamified||'balanced')+' style fits you best. The recommended games below are personalized from this analysis.';
+    h+='<div style="background:#F5F3FB;border:1px solid #D4C5EC;border-radius:12px;padding:16px;margin-bottom:8px;font-size:13.5px;line-height:1.7;color:#4A3A6B">💡 '+KE(whyKo,whyEn)+'</div>';
+    h+='</div>';
+    // 축 바 캔버스는 인라인 바로 대체 (Chart.js 대신 CSS바 — 이미 위에 있음)
+    return h;
+  }
+  function card(title, inner){ return '<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px 18px;margin-bottom:14px"><div style="font-weight:800;color:#5E35B1;font-size:1.02em;margin-bottom:10px">'+title+'</div>'+inner+'</div>'; }
+  function miniTable(rows){ return '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:10px">'+rows.map(function(r){ return '<tr style="border-bottom:1px solid #F1F2F4"><td style="padding:7px 4px;color:#4A6472">'+r[0]+'</td><td style="padding:7px 4px;text-align:right;font-weight:700;color:#3A5566">'+r[1]+'</td></tr>'; }).join('')+'</table>'; }
+
+  // ── 처방 박스 (select로 조절 가능) ──
+  function prescriptionBox(rx){
+    function opts(vals, cur){ return vals.map(function(v){ return '<option value="'+v+'"'+(v==cur?' selected':'')+'>'+v+'</option>'; }).join(''); }
+    return '<div style="background:#fff;border:2px solid #5E35B1;border-radius:14px;padding:18px;margin-bottom:14px">'+
+      '<div style="font-weight:800;color:#5E35B1;font-size:1.05em;margin-bottom:6px">💊 '+KE('훈련 처방 (제안 — 조절 가능)','Training Prescription (suggested — adjustable)')+'</div>'+
+      '<div style="font-size:12.5px;color:#8FA9BC;margin-bottom:12px">'+KE(rx.goalNote,rx.goalNote)+'. '+KE('아래 값을 바꾸면 총 세션이 재계산됩니다.','Change values to recalc total sessions.')+'</div>'+
+      '<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end">'+
+      selBox('rx-min', KE('분/일','min/day'), opts([5,10,15,20,25,30], rx.minutesPerDay))+
+      selBox('rx-days', KE('일/주','days/wk'), opts([2,3,4,5,6,7], rx.daysPerWeek))+
+      selBox('rx-weeks', KE('기간(주)','weeks'), opts([2,3,4,5,6,7,8,10,12], rx.weeks))+
+      '</div>'+
+      '<div style="display:flex;gap:12px;margin-top:14px;text-align:center">'+
+      '<div style="flex:1;background:#F5F3FB;border-radius:10px;padding:12px 6px"><div id="rx-total" style="font-size:1.6rem;font-weight:900;color:#5E35B1">'+rx.totalSessions+'</div><div style="font-size:11px;color:#8FA9BC">'+KE('총 세션','total sessions')+'</div></div>'+
+      '<div style="flex:1;background:#F5F3FB;border-radius:10px;padding:12px 6px"><div id="rx-mins" style="font-size:1.6rem;font-weight:900;color:#5E35B1">'+rx.totalMinutes+'</div><div style="font-size:11px;color:#8FA9BC">'+KE('총 분','total min')+'</div></div>'+
+      '</div></div>';
+  }
+  function selBox(id, label, opts){ return '<div style="flex:1;min-width:90px"><label style="display:block;font-size:12px;color:#8FA9BC;margin-bottom:4px">'+label+'</label><select id="'+id+'" style="width:100%;padding:8px;border:1px solid #CAD6DE;border-radius:8px;font-family:inherit;font-size:14px">'+opts+'</select></div>'; }
+
+  // ── 게임 섹션: 추천 3개 (아이콘+설명) + 전체 리스트 항상 표시 ──
+  function gamesSection(m){
     var A=GM.axes;
-    var h='<div style="font-weight:800;color:#3A5566;font-size:1.1em;margin:18px 0 10px">🎮 '+T('추천 게임 (순서대로 하거나 자유 선택)','Recommended (in order or free choice)')+'</div>';
-    // 우선 3개
-    m.picks.forEach(function(pk,i){
-      var g=GM.games[pk.game], c=A[pk.axis].color;
-      h+='<div style="border:1px solid #CAD6DE;border-left:5px solid '+c+';border-radius:12px;padding:14px 16px;margin-bottom:10px;background:#fff">'+
-        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div style="font-weight:800;color:#3A5566">'+(i+1)+'. '+esc(ko()?g.ko:g.en)+'</div>'+
-        '<span style="background:'+c+'22;color:'+c+';padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700">'+esc(ko()?A[pk.axis].ko:A[pk.axis].en)+'</span></div>'+
-        '<div style="font-size:12.5px;color:#4A6472;line-height:1.5;margin:5px 0">'+esc(ko()?g.descKo:g.descEn)+'</div>'+
-        '<div style="font-size:11px;color:#8FA9BC;margin-bottom:8px">'+esc(pk.why)+'</div>'+
-        '<button class="trt-play" data-engine="'+esc(pk.engine)+'" data-game="'+esc(pk.game)+'" data-params=\''+JSON.stringify(pk.tuned).replace(/'/g,"&#39;")+'\' style="padding:8px 16px;border:0;border-radius:9px;background:'+c+';color:#fff;font-weight:700;cursor:pointer;font-family:inherit">▶ '+T('시작','Start')+'</button></div>';
+    var h='<div style="font-weight:800;color:#3A5566;font-size:1.15em;margin:18px 0 12px">🎮 '+KE('추천 훈련 게임','Recommended Training Games')+'</div>';
+    h+='<div style="font-size:13px;color:#8FA9BC;margin-bottom:12px">'+KE('아래 3개를 순서대로 하거나, 그 아래 전체 목록에서 자유롭게 선택하세요.','Do the top 3 in order, or pick freely from the full list below.')+'</div>';
+    // 추천 3개 — 상세 카드
+    m.picks.forEach(function(pk,i){ h+=gameCard(pk, i+1, true); });
+    // 전체 리스트 (항상 표시)
+    h+='<div style="font-weight:800;color:#3A5566;font-size:1.05em;margin:20px 0 10px">📚 '+KE('전체 게임 목록','All Games')+' ('+m.all.length+')</div>';
+    m.all.forEach(function(x){
+      var g=GM.games[x.game], c=A[x.axis]?A[x.axis].color:'#5E35B1', icon=GAME_ICON[g.engine]||'🎮';
+      var isRec=m.picks.some(function(p){return p.game===x.game;});
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #EEF2F4;border-radius:10px;margin-bottom:6px;background:'+(isRec?'#F9F7FD':'#fff')+'">'+
+        '<div style="font-size:1.5rem">'+icon+'</div>'+
+        '<div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:#3A5566">'+KE(g.ko,g.en)+(isRec?' <span style="font-size:10px;color:#5E35B1">★'+KE('추천','rec')+'</span>':'')+'</div>'+
+        '<div style="font-size:11.5px;color:#8FA9BC">'+KE(g.descKo,g.descEn)+'</div></div>'+
+        '<button class="trt-play" data-game="'+esc(x.game)+'" data-params=\''+JSON.stringify(x.tuned).replace(/'/g,"&#39;")+'\' style="padding:7px 14px;border:1px solid '+c+';border-radius:8px;background:#fff;color:'+c+';font-weight:700;cursor:pointer;font-size:12px;font-family:inherit">▶ '+KE('시작','Start')+'</button></div>';
     });
-    // 전체 리스트 (자유 선택)
-    h+='<details style="margin-top:10px"><summary style="cursor:pointer;color:#5B7B94;font-weight:700;font-size:13px">'+T('전체 게임 목록 (자유 선택)','All games (free choice)')+'</summary><div style="margin-top:8px">';
-    m.all.forEach(function(x){ var g=GM.games[x.game], c=A[x.axis]?A[x.axis].color:'#5E35B1';
-      h+='<div style="display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid #F1F2F4"><span style="flex:1;font-size:13px;color:#3A5566">'+esc(ko()?g.ko:g.en)+'</span><button class="trt-play" data-engine="'+esc(x.engine)+'" data-game="'+esc(x.game)+'" data-params=\''+JSON.stringify(x.tuned).replace(/'/g,"&#39;")+'\' style="padding:5px 12px;border:1px solid '+c+';border-radius:7px;background:#fff;color:'+c+';font-weight:700;cursor:pointer;font-size:12px;font-family:inherit">▶ '+T('시작','Start')+'</button></div>';
-    });
-    h+='</div></details>';
+    return h;
+  }
+  function gameCard(pk, num, detailed){
+    var A=GM.axes, g=GM.games[pk.game], c=A[pk.axis].color, icon=GAME_ICON[g.engine]||'🎮';
+    var how=HOWTO[g.engine]||{ko:[],en:[]};
+    var h='<div style="border:1px solid #CAD6DE;border-left:5px solid '+c+';border-radius:12px;padding:16px 18px;margin-bottom:12px;background:#fff">'+
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+      '<div style="font-size:2rem">'+icon+'</div>'+
+      '<div style="flex:1"><div style="font-weight:800;color:#3A5566;font-size:1.05em">'+num+'. '+KE(g.ko,g.en)+'</div>'+
+      '<span style="background:'+c+'22;color:'+c+';padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700">'+KE(A[pk.axis].ko,A[pk.axis].en)+'</span></div></div>'+
+      '<div style="font-size:13px;color:#4A6472;line-height:1.6;margin:8px 0">'+KE(g.descKo,g.descEn)+'</div>';
+    // 하는 법
+    if(how.ko.length){ h+='<div style="background:#F5FAFE;border-radius:10px;padding:12px 14px;margin:8px 0"><div style="font-size:12px;font-weight:700;color:#5B7B94;margin-bottom:6px">📖 '+KE('하는 방법','How to play')+'</div><ol style="margin:0;padding-left:18px;font-size:12.5px;color:#4A6472;line-height:1.7">'+
+      how.ko.map(function(_,i){ return '<li>'+KE(how.ko[i],how.en[i])+'</li>'; }).join('')+'</ol></div>'; }
+    h+='<div style="font-size:11px;color:#8FA9BC;margin-bottom:10px">'+esc(pk.why)+'</div>'+
+      '<button class="trt-play" data-game="'+esc(pk.game)+'" data-params=\''+JSON.stringify(pk.tuned).replace(/'/g,"&#39;")+'\' style="padding:9px 20px;border:0;border-radius:9px;background:'+c+';color:#fff;font-weight:800;cursor:pointer;font-family:inherit">▶ '+KE('게임 시작','Start Game')+'</button></div>';
     return h;
   }
 
+  // ── 이벤트 배선 ──
   var _sessionCounts={};
-  function wireGameButtons(m){
+  function wireNav(){
+    var back=$('trt-back'); if(back&&!back.disabled) back.onclick=stepBack;
+    var fwd=$('trt-fwd'); if(fwd&&!fwd.disabled&&_steps[STATE.step]!=='result'){ fwd.onclick=function(){
+      var name=_steps[STATE.step];
+      if(name==='age'){ if(!STATE.age)return; }
+      STATE.step++; render();
+    }; }
+  }
+  function wireResult(m, rx){
     // 처방 재계산
-    var applyBtn=$('rx-apply');
-    if(applyBtn) applyBtn.onclick=function(){ var w=parseInt($('rx-weeks').value,10)||STATE.prescription.weeks; var rx2=window.AdhdProgram.recalc(STATE.prescription,{weeks:w}); STATE.prescription=rx2; $('rx-out').textContent='→ '+T('총 ','')+rx2.totalSessions+T(' 세션',' sessions'); };
+    ['rx-min','rx-days','rx-weeks'].forEach(function(id){ var el=$(id); if(el) el.onchange=function(){
+      var mn=parseInt($('rx-min').value,10), dy=parseInt($('rx-days').value,10), wk=parseInt($('rx-weeks').value,10);
+      var rx2=window.AdhdProgram.recalc(STATE.prescription,{minutesPerDay:mn,daysPerWeek:dy,weeks:wk});
+      STATE.prescription=rx2; $('rx-total').textContent=rx2.totalSessions; $('rx-mins').textContent=rx2.totalMinutes;
+    }; });
     // 게임 시작
     document.querySelectorAll('.trt-play').forEach(function(b){ b.addEventListener('click', function(){
-      var game=b.getAttribute('data-game'), pr={};
-      try{ pr=JSON.parse(b.getAttribute('data-params')); }catch(e){}
+      var game=b.getAttribute('data-game'), pr={}; try{ pr=JSON.parse(b.getAttribute('data-params')); }catch(e){}
       playGame(game, pr);
     }); });
   }
-
   function playGame(game, params){
     var host=$('trt-game-area'); if(!host) return;
+    var gameDef=GM.games[game];
+    if(!gameDef||!(window.AdhdGames&&window.AdhdGames.play)){ host.innerHTML='<div style="padding:20px;color:#C2410C">'+KE('게임 로딩 실패','Game load failed')+': '+esc(game)+'</div>'; return; }
     host.scrollIntoView({behavior:'smooth'});
-    var gameDef = GM.games[game];
-    if(!gameDef || !(window.AdhdGames&&window.AdhdGames.play)){ host.innerHTML='<div style="padding:20px;color:#C2410C">'+T('게임 로딩 실패','Game load failed')+': '+esc(game)+'</div>'; return; }
-    window.AdhdGames.play(game, host, gameDef, params||{});
-    // 게임 완료 감지: _ADHD_GAME_LAST 폴링
-    var before = window._ADHD_GAME_LAST && window._ADHD_GAME_LAST.ts;
-    var poll=setInterval(function(){
-      var last=window._ADHD_GAME_LAST;
-      if(last && last.ts!==before && last.game===game){
-        clearInterval(poll);
-        _sessionCounts[game]=(_sessionCounts[game]||0)+1;
+    // 게임 전: "이 게임은 무엇을 재고 훈련하는가" 배너
+    var pre = (window.AdhdProbe&&AdhdProbe.preBanner)?AdhdProbe.preBanner(game):'';
+    host.innerHTML = pre + '<div id="trt-game-inner"></div>';
+    var inner=$('trt-game-inner')||host;
+    window.AdhdGames.play(game, inner, gameDef, params||{});
+    var before=window._ADHD_GAME_LAST&&window._ADHD_GAME_LAST.ts;
+    var poll=setInterval(function(){ var last=window._ADHD_GAME_LAST;
+      if(last&&last.ts!==before&&last.game===game){ clearInterval(poll); _sessionCounts[game]=(_sessionCounts[game]||0)+1;
         window.AdhdProgram.saveSession(game, last.metrics, _sessionCounts[game]);
-        renderDashboard(game);
-      }
-    }, 500);
+        // 게임 후: 측정 → 축 상태 판단 전시
+        if(window.AdhdProbe&&AdhdProbe.renderInterpretation){ inner.insertAdjacentHTML('beforeend', AdhdProbe.renderInterpretation(game, last.metrics)); }
+        renderDash(); } }, 500);
     setTimeout(function(){ clearInterval(poll); }, 600000);
   }
-
-  function renderDashboard(lastGame){
-    var dash=$('trt-dash'); if(!dash) return;
-    dash.innerHTML='';
-    var playedGames=Object.keys(_sessionCounts);
-    // 영역별 성취
-    var achievements={};
-    playedGames.forEach(function(g){ var prog=window.AdhdProgram.progress(g); if(prog&&prog.last!=null){ var ax=GM.games[g].axis;
-      var pct = prog.direction==='higher'?Math.min(100,Math.round(prog.last/prog.target*100)):Math.min(100,Math.round(prog.target/Math.max(prog.last,1)*100)); achievements[ax]=Math.max(achievements[ax]||0,pct); } });
-    var totalDone=Object.keys(_sessionCounts).reduce(function(a,g){return a+_sessionCounts[g];},0);
-    window.AdhdViz.renderDashboard(dash, {
-      games: playedGames,
-      prescription: STATE.prescription?{ completed:totalDone, total:STATE.prescription.totalSessions }:null,
-      achievements: achievements
-    });
+  function renderDash(){
+    var dash=$('trt-dash'); if(!dash) return; dash.innerHTML='';
+    var played=Object.keys(_sessionCounts), ach={};
+    played.forEach(function(g){ var pr=window.AdhdProgram.progress(g); if(pr&&pr.last!=null){ var ax=GM.games[g].axis; var pct=pr.direction==='higher'?Math.min(100,Math.round(pr.last/pr.target*100)):Math.min(100,Math.round(pr.target/Math.max(pr.last,1)*100)); ach[ax]=Math.max(ach[ax]||0,pct); } });
+    var totalDone=played.reduce(function(a,g){return a+_sessionCounts[g];},0);
+    window.AdhdViz.renderDashboard(dash, { games:played, prescription:STATE.prescription?{completed:totalDone,total:STATE.prescription.totalSessions}:null, achievements:ach });
   }
 
-  window.AdhdTreatment = {
-    init: async function(){ await loadGM(); if(!GM){ var h=$('trt-survey'); if(h)h.innerHTML='<div style="color:#C2410C;padding:14px">game_module '+T('로드 실패','load failed')+'</div>'; return; } renderAgeSelect(); }
-  };
-
-  document.addEventListener('DOMContentLoaded', function(){
-    document.addEventListener('click', function(ev){ var b=ev.target&&ev.target.closest&&ev.target.closest('.rpt-tabbar button[data-t="s-trt"]'); if(b) setTimeout(function(){ var h=$('trt-survey'); if(h&&!h.getAttribute('data-init')){ h.setAttribute('data-init','1'); AdhdTreatment.init(); } },60); });
-  });
+  window.AdhdTreatment={ init: async function(){ await loadGM(); if(!GM){ var h=$('trt-survey'); if(h)h.innerHTML='<div style="color:#C2410C;padding:14px">'+KE('game_module 로드 실패','load failed')+'</div>'; return; } STATE.step=0; render(); } };
+  document.addEventListener('DOMContentLoaded', function(){ document.addEventListener('click', function(ev){ var b=ev.target&&ev.target.closest&&ev.target.closest('.rpt-tabbar button[data-t="s-trt"]'); if(b) setTimeout(function(){ var h=$('trt-survey'); if(h&&!h.getAttribute('data-init')){ h.setAttribute('data-init','1'); AdhdTreatment.init(); } },60); }); });
 })();
 
 </script>
