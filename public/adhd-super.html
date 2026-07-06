@@ -369,7 +369,7 @@
   function $(id){return document.getElementById(id);}
   var tabs = $('sec-tabs');
   if(!tabs) return;
-  var engineLoaded=false, vaultLoaded=false, accessLoaded=false;
+  var engineLoaded=false, vaultLoaded=false, accessLoaded=false, gameLoaded=false;
   function activate(sec){
     [].forEach.call(document.querySelectorAll('.sec-tab'), function(b){ b.setAttribute('data-on', b.getAttribute('data-sec')===sec?'1':'0'); });
     [].forEach.call(document.querySelectorAll('.sec-body'), function(b){ b.setAttribute('data-on', b.getAttribute('data-sec')===sec?'1':'0'); });
@@ -386,6 +386,7 @@
     [].forEach.call(document.querySelectorAll('.eng-mod-btn[data-mod]'), function(x){ x.setAttribute('data-on', x===b?'1':'0'); });
     [].forEach.call(document.querySelectorAll('.eng-mod-panel'), function(p){ p.style.display=(p.id==='eng-mod-'+mod)?'block':'none'; });
     if(mod==='nf' && !engineLoaded){ engineLoaded=true; loadEngine(); }  // 🧠 클릭 시 로드(가드 유지)
+    if(mod==='game' && !gameLoaded){ gameLoaded=true; if(window.AdhdHeartGame) window.AdhdHeartGame.render(document.getElementById('eng-mod-game')); }  // 🎮 심장1
   }); }
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function isEn(){return document.body.getAttribute('data-lang')==='en';}
@@ -443,5 +444,129 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="tc-auth.js?v=1"></script>
 <script src="service-admin.js?v=2"></script>
+<script>
+/* ===== 심장1: 게임 엔진 관리 모듈 (슈퍼) — 8개 증상 풀다운 중앙 관리 ===== */
+(function(){
+  function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function KE(k,e){ return '<span class="ko-text">'+esc(k)+'</span><span class="en-text">'+esc(e)+'</span>'; }
+  var C={dark:'#2E5A7A',main:'#4A90C2',mid:'#7BAFD0',soft:'#BDD7E7',bg:'#E8F1F8',ink:'#374151',dim:'#8FA9BC'};
+
+  // 8개 증상 (풀다운) — ADHD만 rules 있음, 나머지는 생성 대기
+  var CONDITIONS=[
+    {key:'adhd', ko:'ADHD', en:'ADHD', ready:true, rules:'adhd-engine/rules/adhd_rules.json'},
+    {key:'depression', ko:'우울', en:'Depression', ready:false},
+    {key:'anxiety', ko:'불안', en:'Anxiety', ready:false},
+    {key:'ocd', ko:'강박(OCD)', en:'OCD', ready:false},
+    {key:'sleep', ko:'수면', en:'Sleep', ready:false},
+    {key:'burnout', ko:'번아웃', en:'Burnout', ready:false},
+    {key:'ptsd', ko:'PTSD', en:'PTSD', ready:false},
+    {key:'autism', ko:'자폐', en:'Autism', ready:false}
+  ];
+  var ENGINE_LABEL={
+    react_inhibit:{ko:'반응 억제',en:'Response Inhibition'},
+    detect_target:{ko:'표적 탐지 (지속주의)',en:'Target Detection'},
+    match_memory:{ko:'작업기억 대조',en:'Working Memory'},
+    choice_conflict:{ko:'선택 갈등',en:'Choice Conflict'},
+    pace_regulate:{ko:'호흡 조절',en:'Pace Regulation'}
+  };
+
+  var _cache={}; // key -> game_module
+
+  function render(host){
+    var h='<div style="margin-bottom:16px">';
+    h+='<div style="font-size:1.3rem;font-weight:900;color:'+C.dark+'">🎮 '+KE('게임 엔진 관리','Game Engine Manager')+'</div>';
+    h+='<div style="font-size:13px;color:'+C.dim+';margin-top:2px">'+KE('증상별 게임 엔진을 여기서 중앙 관리·생산합니다. 코드는 공통, 데이터만 증상별.','Central management of per-condition game engines. Shared code, per-condition data.')+'</div></div>';
+    // 풀다운
+    h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">';
+    h+='<label style="font-weight:700;color:'+C.dark+';font-size:14px">'+KE('증상 선택','Condition')+'</label>';
+    h+='<select id="h1-cond" style="padding:10px 14px;border:2px solid '+C.main+';border-radius:10px;font-size:14px;font-family:inherit;color:'+C.dark+';font-weight:700;background:#fff;cursor:pointer">';
+    CONDITIONS.forEach(function(c){ h+='<option value="'+c.key+'">'+(ko()?c.ko:c.en)+(c.ready?'':' — '+(ko()?'미생성':'not created'))+'</option>'; });
+    h+='</select>';
+    h+='<span id="h1-status" style="font-size:12px;color:'+C.dim+'"></span></div>';
+    h+='<div id="h1-body"></div>';
+    host.innerHTML=h;
+    var sel=host.querySelector('#h1-cond');
+    sel.onchange=function(){ loadCond(sel.value, host); };
+    loadCond('adhd', host);
+  }
+
+  function loadCond(key, host){
+    var cond=CONDITIONS.filter(function(c){return c.key===key;})[0];
+    var body=host.querySelector('#h1-body');
+    var status=host.querySelector('#h1-status');
+    if(!cond.ready){
+      status.textContent='';
+      body.innerHTML='<div style="background:'+C.bg+';border:1px dashed '+C.mid+';border-radius:14px;padding:32px;text-align:center">'+
+        '<div style="font-size:2.5rem;margin-bottom:8px">🌱</div>'+
+        '<div style="font-size:1.1rem;font-weight:800;color:'+C.dark+';margin-bottom:6px">'+KE((ko()?cond.ko:cond.en)+' 엔진 미생성',(ko()?cond.ko:cond.en)+' engine not created')+'</div>'+
+        '<div style="font-size:13.5px;color:'+C.ink+';line-height:1.7;max-width:440px;margin:0 auto 16px">'+KE('이 증상의 게임 엔진은 아직 생성되지 않았습니다. ADHD 엔진을 템플릿으로, 이 증상의 게임·축·파라미터를 생성할 수 있습니다.','This condition game engine is not yet created. Generate from the ADHD template with condition-specific games, axes, and parameters.')+'</div>'+
+        '<button disabled style="padding:10px 20px;border:0;border-radius:10px;background:'+C.mid+';color:#fff;font-weight:700;font-family:inherit;opacity:.6;cursor:not-allowed">＋ '+KE('엔진 생성 (다음 단계)','Generate Engine (soon)')+'</button></div>';
+      return;
+    }
+    if(_cache[key]){ renderModule(_cache[key], body, cond); return; }
+    status.textContent=ko()?'불러오는 중…':'loading…';
+    fetch(cond.rules, {cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+      var gm=d.game_module; _cache[key]=gm; status.textContent='';
+      renderModule(gm, body, cond);
+    }).catch(function(e){ body.innerHTML='<div style="color:#c0392b">'+esc(String(e))+'</div>'; status.textContent=''; });
+  }
+
+  function renderModule(gm, body, cond){
+    var games=gm.games||{}, axes=gm.axes||{};
+    // 엔진 목록 (게임에서 추출)
+    var engines={}; Object.keys(games).forEach(function(gk){ var e=games[gk].engine; (engines[e]=engines[e]||[]).push(gk); });
+    var h='';
+    // 요약
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">';
+    h+=stat(Object.keys(engines).length, KE('범용 엔진','Engines'));
+    h+=stat(Object.keys(games).length, KE('게임','Games'));
+    h+=stat(Object.keys(axes).length, KE('조절축','Axes'));
+    h+='</div>';
+    // ① 범용 엔진
+    h+=panel('⚙️ '+KE('범용 게임 엔진','Universal Game Engines'), KE('5개 엔진이 모든 게임을 생성합니다. 증상이 바뀌어도 엔진 코드는 공통.','5 engines generate all games. Shared across conditions.'),
+      Object.keys(engines).map(function(ek){ var lb=ENGINE_LABEL[ek]||{ko:ek,en:ek};
+        return '<div style="border:1px solid '+C.soft+';border-radius:10px;padding:12px 14px;margin-bottom:8px">'+
+          '<div style="font-weight:800;color:'+C.dark+'">'+KE(lb.ko,lb.en)+' <code style="font-size:11px;background:'+C.bg+';padding:1px 6px;border-radius:4px;color:'+C.main+'">'+esc(ek)+'</code></div>'+
+          '<div style="font-size:12px;color:'+C.dim+';margin-top:3px">'+KE('게임: ','Games: ')+engines[ek].map(function(g){return ko()?games[g].ko:games[g].en;}).join(', ')+'</div></div>';
+      }).join(''));
+    // ② 게임 표
+    var rows=Object.keys(games).map(function(gk){ var g=games[gk]; var ax=axes[g.axis]||{};
+      return '<tr><td style="border-bottom:1px solid #EEF2F4;padding:8px 10px;font-weight:700;color:'+C.dark+'">'+KE(g.ko,g.en)+'</td>'+
+        '<td style="border-bottom:1px solid #EEF2F4;padding:8px 10px"><code style="font-size:11px;color:'+C.main+'">'+esc(g.engine)+'</code></td>'+
+        '<td style="border-bottom:1px solid #EEF2F4;padding:8px 10px;font-size:12.5px">'+KE(ax.ko||g.axis,ax.en||g.axis)+'</td>'+
+        '<td style="border-bottom:1px solid #EEF2F4;padding:8px 10px;font-size:11.5px;color:'+C.dim+'">'+esc(paramSummary(g.params))+'</td></tr>';
+    }).join('');
+    h+=panel('🎯 '+KE('게임 목록','Game Roster'), KE('각 게임 = 엔진 + 타겟 축 + 파라미터. 파라미터만 바꿔 난이도·변형 생성.','Each game = engine + target axis + params.'),
+      '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr>'+
+      ['게임/Game','엔진/Engine','타겟 축/Axis','파라미터/Params'].map(function(th){return '<th style="background:'+C.bg+';color:'+C.dark+';text-align:left;padding:9px 10px;font-weight:700;white-space:nowrap">'+th+'</th>';}).join('')+'</tr>'+rows+'</table></div>');
+    // ③ 축→게임 매핑
+    var map=gm.axis_game_map||{};
+    h+=panel('🧭 '+KE('축 → 게임 매핑','Axis → Game Map'), KE('각 조절축을 훈련하는 게임들. 매칭 알고리즘이 이 매핑으로 게임을 추천.','Games training each axis; used by the matcher.'),
+      Object.keys(map).map(function(ax){ var a=axes[ax]||{};
+        return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #EEF2F4;flex-wrap:wrap"><b style="color:'+C.main+';min-width:120px">'+KE(a.ko||ax,a.en||ax)+'</b>'+
+          '<span style="font-size:12.5px;color:'+C.ink+'">'+map[ax].map(function(g){return games[g]?(ko()?games[g].ko:games[g].en):g;}).join(' · ')+'</span></div>';
+      }).join(''));
+    // ④ 처방
+    var rx=gm.prescription||{};
+    if(rx.by_intensity){
+      h+=panel('💊 '+KE('처방 (강도별)','Prescription by Intensity'), KE('진단 심각도 → 훈련 강도·기간. 증상별로 용량 조정.','Diagnostic severity → training dose.'),
+        Object.keys(rx.by_intensity).map(function(lv){ var p=rx.by_intensity[lv];
+          return '<div style="border:1px solid '+C.soft+';border-radius:10px;padding:10px 14px;margin-bottom:8px"><b style="color:'+C.dark+';text-transform:uppercase">'+esc(lv)+'</b> '+
+            '<span style="font-size:12.5px;color:'+C.ink+'">'+esc(JSON.stringify(p).replace(/[{}"]/g,'').slice(0,120))+'</span></div>';
+        }).join(''));
+    }
+    // 편집 안내 (다음 단계)
+    h+='<div style="background:'+C.bg+';border-radius:10px;padding:12px 16px;font-size:12.5px;color:'+C.dim+';margin-top:8px">📝 '+KE('현재는 읽기 전용 뷰입니다. 편집(문항·파라미터·축 수정 후 저장)은 다음 단계.','Read-only view. Editing (save changes) is the next step.')+'</div>';
+    body.innerHTML=h;
+  }
+
+  function paramSummary(p){ if(!p) return ''; var out=[]; Object.keys(p).forEach(function(k){ var v=p[k]; if(typeof v==='object') return; out.push(k+'='+v); }); return out.slice(0,4).join(', '); }
+  function stat(n, label){ return '<div style="flex:1;min-width:90px;background:#fff;border:1px solid '+C.soft+';border-radius:12px;padding:14px;text-align:center"><div style="font-size:1.8rem;font-weight:900;color:'+C.main+'">'+n+'</div><div style="font-size:12px;color:'+C.dim+'">'+label+'</div></div>'; }
+  function panel(title, sub, inner){ return '<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:18px 20px;margin-bottom:14px"><div style="font-weight:800;color:'+C.dark+';font-size:1.05rem">'+title+'</div><div style="font-size:12px;color:'+C.dim+';margin:2px 0 12px">'+sub+'</div>'+inner+'</div>'; }
+
+  window.AdhdHeartGame={ render:render };
+})();
+</script>
 </body>
 </html>
