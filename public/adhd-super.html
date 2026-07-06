@@ -34,6 +34,9 @@
   .sec-body[data-on="1"]{display:block}
   .proto-card{border:1px solid #E3E6EA;border-radius:12px;padding:16px 18px;margin-bottom:12px;background:#fff}
   .proto-card h3{font-size:15px;font-weight:800;color:#5E35B1;margin-bottom:4px}
+  .eng-modbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .eng-mod-btn{font:inherit;font-size:14px;font-weight:700;padding:14px 20px;border:1px solid #BDD7E7;border-radius:12px;background:#E8F1F8;color:#2E5A7A;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .eng-mod-btn[data-on="1"]{background:#4A90C2;color:#fff;border-color:#4A90C2}
   .proto-meta{font-size:12px;color:#6B7280;margin-bottom:10px}
   .proto-rate{display:inline-block;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;background:#EDE7F6;color:#5E35B1;margin-left:6px}
   .proto-chg{font-size:12.5px;color:#374151;line-height:1.7}
@@ -119,16 +122,28 @@
 
   <!-- ════ 엔진 관리 ════ -->
   <div class="sec-body" data-sec="engine">
-    <div class="panel">
-      <h2><span class="ko-text">뉴로피드백 프로토콜</span><span class="en-text">Neurofeedback Protocols</span></h2>
-      <div class="sub"><span class="ko-text">adhd_rules.json 근거 프로토콜 (NF 세션·추천의 데이터 정본). 논문 기반 전극·주파수·반응률·기대변화.</span><span class="en-text">Protocols from adhd_rules.json — source of truth for NF sessions & recommendations. Evidence-based sites, bands, response rates, expected changes.</span></div>
-      <div id="eng-src" style="font-size:12px;color:#6B7280;margin-bottom:12px"></div>
-      <div id="eng-msg" style="font-size:13px;color:#B91C1C;min-height:16px;margin-bottom:8px"></div>
-      <div id="eng-protocols"></div>
+    <!-- 모듈 버튼 바 -->
+    <div class="eng-modbar">
+      <button class="eng-mod-btn" data-mod="game">🎮 <span class="ko-text">게임 엔진</span><span class="en-text">Game Engine</span></button>
+      <button class="eng-mod-btn" data-mod="algo">📊 <span class="ko-text">알고리즘 엔진</span><span class="en-text">Algorithm</span></button>
+      <button class="eng-mod-btn" data-mod="nf" data-on="1">🧠 <span class="ko-text">뉴로피드백</span><span class="en-text">Neurofeedback</span></button>
+      <a class="eng-mod-btn" href="adhd-engine/ENGINE_MANUAL.html" target="_blank" rel="noopener">📖 <span class="ko-text">엔진 매뉴얼</span><span class="en-text">Manual</span></a>
     </div>
-    <div class="panel" style="margin-top:14px">
-      <h2><span class="ko-text">설문 · Rules (예정)</span><span class="en-text">Surveys · Rules (soon)</span></h2>
-      <div class="sub"><span class="ko-text">설문 문항 관리 · 축 공식 · profile_matching 편집 — 다음 단계.</span><span class="en-text">Survey items · axis formulas · profile_matching editing — next step.</span></div>
+    <!-- 모듈 표시 영역 -->
+    <div id="eng-mod-game" class="eng-mod-panel" style="display:none">
+      <div class="panel"><h2><span class="ko-text">게임 엔진</span><span class="en-text">Game Engine</span></h2><div class="sub"><span class="ko-text">게임 모듈 관리 — 다음 단계.</span><span class="en-text">Game module management — next step.</span></div></div>
+    </div>
+    <div id="eng-mod-algo" class="eng-mod-panel" style="display:none">
+      <div class="panel"><h2><span class="ko-text">알고리즘 엔진</span><span class="en-text">Algorithm Engine</span></h2><div class="sub"><span class="ko-text">판별·처방 알고리즘 — 다음 단계.</span><span class="en-text">Discrimination & prescription — next step.</span></div></div>
+    </div>
+    <div id="eng-mod-nf" class="eng-mod-panel">
+      <div class="panel">
+        <h2><span class="ko-text">뉴로피드백 프로토콜</span><span class="en-text">Neurofeedback Protocols</span></h2>
+        <div class="sub"><span class="ko-text">adhd_rules.json 근거 프로토콜 (NF 세션·추천의 데이터 정본). 논문 기반 전극·주파수·반응률·기대변화.</span><span class="en-text">Protocols from adhd_rules.json — source of truth for NF sessions & recommendations. Evidence-based sites, bands, response rates, expected changes.</span></div>
+        <div id="eng-src" style="font-size:12px;color:#6B7280;margin-bottom:12px"></div>
+        <div id="eng-msg" style="font-size:13px;color:#B91C1C;min-height:16px;margin-bottom:8px"></div>
+        <div id="eng-protocols"></div>
+      </div>
     </div>
   </div><!-- /sec-body engine -->
 
@@ -364,6 +379,14 @@
     if(sec==='access' && !accessLoaded){ accessLoaded=true; if(window.TCAdmin) window.TCAdmin.init({ botKey:'adhd', mount:document.getElementById('adminMount') }); }
   }
   tabs.addEventListener('click', function(e){ var b=e.target.closest?e.target.closest('.sec-tab'):null; if(b) activate(b.getAttribute('data-sec')); });
+  // 엔진 모듈 버튼 바 (게임/알고리즘/NF 패널 전환; 매뉴얼은 data-mod 없는 <a>라 제외)
+  var mbar=document.querySelector('.eng-modbar');
+  if(mbar){ mbar.addEventListener('click', function(e){
+    var b=e.target.closest?e.target.closest('.eng-mod-btn[data-mod]'):null; if(!b) return;
+    var mod=b.getAttribute('data-mod');
+    [].forEach.call(document.querySelectorAll('.eng-mod-btn[data-mod]'), function(x){ x.setAttribute('data-on', x===b?'1':'0'); });
+    [].forEach.call(document.querySelectorAll('.eng-mod-panel'), function(p){ p.style.display=(p.id==='eng-mod-'+mod)?'block':'none'; });
+  }); }
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function isEn(){return document.body.getAttribute('data-lang')==='en';}
   function fmtChange(key, ch){
