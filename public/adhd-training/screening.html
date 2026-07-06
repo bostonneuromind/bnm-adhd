@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Screening — Boston Neuromind</title>
+<!-- ★ 영한토글 단일 진실원 (0순위, 처음부터) -->
+<script src="/bnm-lang-sync.js"></script>
+<!-- DB(waeh) 저장 — 미로그인 no-op -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/adhd-training/shared/adhd-config.js"></script>
+<script src="/adhd-training/shared/adhd-db.js"></script>
+<script src="/adhd-training/shared/adhd-auth.js"></script>
+<script src="/adhd-training/shared/adhd-session.js"></script>
+<style>
+  :root{--accent:#2E5A7A;--accent-600:#24496a;--bg:#F4F7FA;--card:#fff;--ink:#1F2225;--muted:#5C6166;--line:#D9DDE1;--soft:#E8F1F8;--mid:#7BAFD0;--warn:#B26A00;--neg:#4d7a40;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:'Noto Sans KR','Inter',-apple-system,sans-serif;font-size:16px;line-height:1.7;padding:30px 16px 80px}
+  /* ★ 기본 en — bnm-lang-sync가 body[data-lang] 세팅(CSS 스왑, 재렌더 불요) */
+  .ko-text{display:none}.en-text{display:inline}
+  body[data-lang="ko"] .ko-text{display:inline}
+  body[data-lang="ko"] .en-text{display:none}
+  .langfix{position:fixed;top:10px;right:10px;display:flex;gap:6px;z-index:50;background:#fff;padding:6px 8px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+  .langfix button{font:inherit;font-size:12px;padding:5px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--muted);cursor:pointer}
+  .langfix button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .wrap{max-width:640px;margin:0 auto}
+  h1{font-size:24px;font-weight:800;color:var(--accent);margin-bottom:10px}
+  .intro{color:var(--muted);font-size:15px;margin-bottom:22px}
+  .item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+  .item .q{font-weight:600;margin-bottom:10px}
+  .item .q b{color:var(--accent)}
+  .dom{font-size:12px;font-weight:700;color:var(--accent);background:var(--soft);padding:2px 8px;border-radius:999px;margin-left:6px;white-space:nowrap}
+  .likert{display:flex;gap:6px;flex-wrap:wrap}
+  .opt{flex:1 1 18%;min-width:84px;text-align:center;border:1px solid var(--line);border-radius:9px;padding:8px 4px;font-size:13px;cursor:pointer;background:#fafbfc}
+  .opt input{display:none}
+  .opt.checked{background:var(--accent-600);border-color:var(--accent-600);color:#fff}
+  .ref{font-size:12px;color:var(--muted);margin-top:9px;border-top:1px dashed var(--line);padding-top:7px;line-height:1.5}
+  .disc{font-size:12.5px;color:var(--muted);background:#FFF6E9;border-radius:10px;padding:10px 12px;margin:16px 0 8px}
+  .src{font-size:12px;color:var(--muted);margin-bottom:18px}
+  #submit{width:100%;min-height:48px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit}
+  #submit:hover{background:var(--accent-600)}
+  .rcard{background:#fff;border:2px solid var(--accent);border-radius:18px;padding:24px;margin-top:22px;text-align:center}
+  .rcard.neg{border-color:#6B9B5C}
+  .rh{font-size:20px;font-weight:900;color:var(--accent);margin-bottom:8px}
+  .rcard.neg .rh{color:#4d7a40}
+  .rstat{font-size:14px;font-weight:700;color:var(--muted);margin-bottom:14px}
+  .rmsg{font-size:15px;line-height:1.75;margin-bottom:16px}
+  .cta{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-weight:800}
+  /* 멋진 결과 엔진 — Calm Blue */
+  .gauge{margin:18px 0}
+  .gauge .ghead{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px}
+  .gauge .gscore b{font-size:30px;font-weight:900;color:var(--accent);line-height:1}
+  .gauge .gscore span{font-size:14px;color:var(--muted);margin-left:5px}
+  .gauge.neg .gscore b{color:#4d7a40}
+  .gbadge{font-size:12px;font-weight:800;padding:5px 13px;border-radius:999px}
+  .gbadge.pos{background:var(--soft);color:var(--accent)}
+  .gbadge.neg{background:#EAF3E6;color:#4d7a40}
+  .gauge .track{position:relative;height:24px;background:#E8EDF2;border-radius:12px;overflow:visible}
+  .gauge .mlbl{position:absolute;top:-19px;transform:translateX(-50%);font-size:11px;font-weight:700;color:#C9444F;background:#fff;padding:0 4px;white-space:nowrap}
+  .gauge .zone{position:absolute;top:0;bottom:0;background:rgba(201,68,79,.10)}
+  .gauge .fill{position:absolute;top:0;bottom:0;left:0;border-radius:12px;background:linear-gradient(90deg,var(--mid),var(--accent));transition:width .5s}
+  .gauge.neg .fill{background:linear-gradient(90deg,#9CCB8E,#6B9B5C)}
+  .gauge .mark{position:absolute;top:-5px;bottom:-5px;width:0;border-left:2px dashed #C9444F;z-index:2}
+  .gauge .glbl{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+  .gauge .glbl b{color:var(--accent);font-size:14px}
+  .dchart{margin:16px 0;text-align:left}.drow .dbadge{font-size:10px;color:#854F0B;background:#FAEEDA;padding:2px 7px;border-radius:6px;font-weight:500;margin-left:4px}.drow .dnote{font-size:11px;color:var(--muted);margin-top:4px}.drow .dnote.warn{color:#854F0B}.drow.prov .db span{background:repeating-linear-gradient(90deg,#BDD7E7,#BDD7E7 6px,#E8EDF2 6px,#E8EDF2 8px)}
+  .drow{margin:9px 0}
+  .drow .dl{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;margin-bottom:4px;color:var(--ink)}
+  .drow .dn{color:var(--muted);font-weight:400;font-size:11px}
+  .drow .dp{font-weight:700;color:var(--muted)}
+  .drow .db{height:13px;background:#E8EDF2;border-radius:7px;overflow:hidden}
+  .drow .db span{display:block;height:100%;background:var(--mid);border-radius:7px;transition:width .5s}
+  .drow.top .dlbl{font-weight:800;color:var(--accent)}
+  .drow.top .dp{color:var(--accent)}
+  .drow.top .db span{background:var(--accent)}
+  .interp{background:var(--soft);border-radius:12px;padding:14px 16px;margin:14px 0;font-size:14px;line-height:1.75;text-align:left}
+  .interp b{color:var(--accent)}
+  .interp .refs{font-size:12px;color:var(--muted);margin-top:9px;border-top:1px dashed var(--line);padding-top:8px;line-height:1.55}
+  .ractions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+  .cta2{background:#fff;color:var(--accent);border:1.5px solid var(--accent);border-radius:12px;padding:11px 20px;font-weight:700;cursor:pointer;font:inherit}
+  .leadbox{background:#fff;border:1px dashed var(--accent);border-radius:12px;padding:14px 16px;margin:14px 0 4px;text-align:left}
+  .leadbox .lh{font-size:13.5px;font-weight:700;color:var(--accent);margin-bottom:8px}
+  .leadrow{display:flex;gap:8px;flex-wrap:wrap}
+  .leadbox input{flex:1 1 200px;min-width:160px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font:inherit;font-size:14px}
+  .leadbox .lbtn{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:10px 18px;font-weight:700;cursor:pointer;font:inherit}
+  .leadbox .lbtn:disabled{opacity:.6;cursor:default}
+  .leadmsg{font-size:12.5px;margin-top:8px;color:var(--muted);min-height:1em}
+  @media(max-width:480px){ .opt{min-width:60px;flex:1 1 30%} }
+</style>
+</head>
+<body data-lang="en">
+<div class="langfix"><button id="g-ko">KO</button><button id="g-en" class="on">EN</button></div>
+<div class="wrap">
+  <h1 id="title"></h1>
+  <p id="intro" class="intro"></p>
+  <form id="items"></form>
+  <p id="disclaimer" class="disc"></p>
+  <p id="source" class="src"></p>
+  <button id="submit"><span class="ko-text">결과 보기</span><span class="en-text">See result</span></button>
+  <div id="result" style="display:none"></div>
+</div>
+<script>
+(function(){
+  'use strict';
+  var DEPT = (new URLSearchParams(location.search).get('dept')) || 'attention';
+  var SCOPE = DEPT + ':screenquiz';   // 리드 점검 설문 전용 scope (측정 프로토콜 <dept>:screen 와 분리)
+  var CFG = null, answers = {};
+  function kr(){ try{ return (typeof window.bnmGetLang==='function' ? window.bnmGetLang() : 'en') === 'ko'; }catch(e){ return false; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function bi(ko,en){ return '<span class="ko-text">'+esc(ko)+'</span><span class="en-text">'+esc(en)+'</span>'; }
+  function isSurvey(c){ return c && (c.type==='survey'||c.type==='screening') && Array.isArray(c.items) && c.items.length>0; }
+
+  // ★ 언어 토글 — bnm-lang-sync 단일 진실원(body[data-lang]는 bnm-lang-sync가 세팅 → CSS 스왑)
+  function setLangBtns(){ var k=kr(); document.getElementById('g-ko').classList.toggle('on',k); document.getElementById('g-en').classList.toggle('on',!k); }
+  document.getElementById('g-ko').addEventListener('click',function(){ if(typeof window.bnmSetLang==='function') window.bnmSetLang('ko'); setLangBtns(); });
+  document.getElementById('g-en').addEventListener('click',function(){ if(typeof window.bnmSetLang==='function') window.bnmSetLang('en'); setLangBtns(); });
+  window.addEventListener('bnm-lang-change', function(){ setTimeout(function(){ setLangBtns(); if(_last) renderResult(); }, 0); });   // ★ 결과 차트/해석도 현재 lang으로 재렌더
+
+  async function load(){
+    try{
+      var r = await fetch('/api/v1/content/config?scope='+encodeURIComponent(SCOPE));
+      if(r.ok){ var d = await r.json(); if(d && isSurvey(d.config)) CFG = d.config; }
+    }catch(e){}
+    // DB행(screenquiz) 없으면 분과별 seed 폴백 — 파일 있는 dept만 라이브(attention/LD/LE), 없으면 404→null→"준비 중"
+    if(!CFG){ try{ var r2 = await fetch('/adhd-training/screening_'+DEPT+'_seed.json'); if(r2.ok){ var sj = await r2.json(); if(isSurvey(sj)) CFG = sj; } }catch(e){} }
+    if(!isSurvey(CFG)){ document.getElementById('items').innerHTML = '<p class="intro" style="text-align:center;padding:24px 0">'+bi('이 점검 설문은 아직 준비 중입니다.','This screening is being prepared.')+'</p>'; var sb=document.getElementById('submit'); if(sb) sb.style.display='none'; ['title','intro','disclaimer','source'].forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; }); return; }
+    render();
+  }
+
+  function render(){
+    document.getElementById('title').innerHTML = bi(CFG.title.ko, CFG.title.en);
+    document.getElementById('intro').innerHTML = bi(CFG.intro.ko, CFG.intro.en);
+    document.getElementById('disclaimer').innerHTML = '⚠ '+bi(CFG.disclaimer.ko, CFG.disclaimer.en);
+    document.getElementById('source').innerHTML = '📖 '+bi(CFG.source_basis.ko, CFG.source_basis.en);
+    var lk = CFG.scale.labels_ko||[], le = CFG.scale.labels_en||[], vals = CFG.scale.values||[0,1,2,3,4];
+    document.getElementById('items').innerHTML = CFG.items.map(function(it,idx){
+      var opts = vals.map(function(v,j){ return '<label class="opt"><input type="radio" name="q'+idx+'" value="'+v+'"><span>'+bi(lk[j]||String(v),le[j]||String(v))+'</span></label>'; }).join('');
+      var refCite = '';
+      if(it.reference){ var rc=String(it.reference); var di=rc.indexOf('—'); refCite='<div class="ref">📚 '+esc((di>=0?rc.slice(0,di):rc).trim().replace(/[\s.;,]+$/,''))+'</div>'; }
+      var domBadge = it.domain ? ' <span class="dom">'+dBi(it.domain)+'</span>' : '';
+      return '<div class="item"><div class="q"><b>'+(it.no||idx+1)+'.</b> '+bi(it.q_ko,it.q_en)+domBadge+'</div><div class="likert">'+opts+'</div>'+refCite+'</div>';
+    }).join('');
+    document.getElementById('items').addEventListener('change',function(e){
+      if(e.target && e.target.type==='radio'){ var idx=e.target.name.slice(1); answers[idx]=parseInt(e.target.value,10);
+        var box=e.target.closest('.item'); box.querySelectorAll('.opt').forEach(function(o){o.classList.remove('checked');}); e.target.closest('.opt').classList.add('checked'); }
+    });
+  }
+
+  // ── 멋진 결과 엔진 (범용: CFG.items domain + config만으로 생성, 설문 무관) ──
+  var _last = null;   // {positive, sum, maxSum, dom, domCount}
+  function dKo(d){ var m=CFG.domain_labels&&CFG.domain_labels[d]; return esc(m&&m.ko?m.ko:d); }
+  function dEn(d){ var m=CFG.domain_labels&&CFG.domain_labels[d]; return esc(m&&m.en?m.en:d); }
+  function dBi(d){ return '<span class="ko-text">'+dKo(d)+'</span><span class="en-text">'+dEn(d)+'</span>'; }
+  function rankDomains(){
+    var vals=CFG.scale.values||[0,1,2,3,4], mx=vals[vals.length-1];
+    return Object.keys(_last.dom).map(function(d){ var dm=(_last.domCount[d]||1)*mx; return { d:d, pct: dm?Math.round(_last.dom[d]/dm*100):0, n:(_last.domCount[d]||0) }; }).sort(function(a,b){ return b.pct-a.pct; });
+  }
+  function refsFor(d){ return (CFG.items||[]).filter(function(it){ return (it.domain||'')===d && it.reference; }).map(function(it){ var r=String(it.reference); var i=r.indexOf('\u2014'); var c=(i>=0?r.slice(0,i):r).trim(); return c.replace(/[\s.;,]+$/,''); }).filter(function(v,i,a){ return v && a.indexOf(v)===i; }).slice(0,2); }
+  function renderResult(){
+  if(!_last) return;
+  var positive=_last.positive, sum=_last.sum, maxSum=_last.maxSum, cutoff=CFG.cutoff||17;
+  var pct=maxSum?Math.round(sum/maxSum*100):0, cutPct=maxSum?Math.round(cutoff/maxSum*100):0;
+  var ranked=rankDomains();
+  // A. 총점 게이지
+  var badge=positive
+    ? '<span class="gbadge pos">'+bi('선별 기준 이상','Above threshold')+'</span>'
+    : '<span class="gbadge neg">'+bi('선별 기준 이하','Below threshold')+'</span>';
+  var gauge='<div class="gauge '+(positive?'pos':'neg')+'">'
+    +'<div class="ghead"><div class="gscore"><b>'+sum+'</b><span>/ '+maxSum+'</span></div>'+badge+'</div>'
+    +'<div class="track">'
+    +'<div class="zone" style="left:'+cutPct+'%;right:0"></div>'
+    +'<div class="fill" style="width:'+pct+'%"></div>'
+    +'<div class="mark" style="left:'+cutPct+'%"></div>'
+    +'<div class="mlbl" style="left:'+cutPct+'%">'+bi('기준 ','cutoff ')+cutoff+'</div></div>'
+    +'<div class="glbl"><span>0</span><span>'+pct+'%</span><span>'+maxSum+'</span></div></div>';
+  // B. 영역별 차트 (문항수 표기 + 단일문항 신뢰도)
+  var chart='<div class="dchart">'+ranked.map(function(r,i){
+    var low=(r.n<=1);
+    var nlbl='<span class="dn">('+r.n+bi('문항',' item'+(r.n>1?'s':''))+')</span>';
+    var bdg=low?'<span class="dbadge">'+bi('참고','provisional')+'</span>':'';
+    var note=low?'<div class="dnote warn">'+bi('단일 문항이라 변동이 큽니다 — 단독 해석은 주의','Single item, high variance — interpret with caution')+'</div>':'';
+    return '<div class="drow'+(i===0&&!low?' top':'')+(low?' prov':'')+'">'
+      +'<div class="dl"><span class="dlbl">'+dBi(r.d)+' '+nlbl+bdg+'</span><span class="dp">'+r.pct+'%</span></div>'
+      +'<div class="db"><span style="width:'+r.pct+'%"></span></div>'+note+'</div>';
+  }).join('')+'</div>';
+  // C. 전문 해석 (attention 아형 패턴 + 범용 폴백)
+  var interp='';
+  if(ranked.length){
+    var t=ranked[0], se=ranked[1];
+    // 영역 점수 룩업(이름 기반, 범용 폴백 안전)
+    var P={}; ranked.forEach(function(r){ P[r.d]=r.pct; });
+    var HI=55, LO=35;
+    var inat=P['부주의']!=null?P['부주의']:null, hyp=P['과활동']!=null?P['과활동']:null, imp=P['충동']!=null?P['충동']:null;
+    var isAttn=(inat!=null && hyp!=null); // attention config면 아형 해석, 아니면 폴백
+    var ko, en;
+    if(positive && isAttn){
+      if(inat>=HI && hyp<LO){
+        ko='<b>부주의 우세형</b> 패턴입니다. 겉으로는 차분해 보여도 내적 주의 유지가 어려운 유형으로, 성인기에 흔히 간과됩니다 (부주의 '+inat+'%).';
+        en='<b>Predominantly inattentive</b> pattern. Often appears calm outwardly while sustaining attention is difficult — frequently overlooked in adults (inattention '+inat+'%).';
+      } else if(inat>=HI && hyp>=HI){
+        ko='<b>복합형</b> 패턴입니다. 부주의('+inat+'%)와 과활동('+hyp+'%)이 함께 두드러져 일상 전반에 영향을 줄 수 있습니다.';
+        en='<b>Combined</b> pattern. Both inattention ('+inat+'%) and hyperactivity ('+hyp+'%) stand out, which may affect daily life broadly.';
+      } else if(hyp>=HI && inat<LO){
+        ko='<b>과활동 우세형</b> 패턴입니다. 안절부절·과활동이 두드러집니다 (과활동 '+hyp+'%). 성인기에는 상대적으로 드문 양상입니다.';
+        en='<b>Predominantly hyperactive</b> pattern. Restlessness and overactivity stand out (hyperactivity '+hyp+'%) — relatively uncommon in adults.';
+      } else {
+        ko='<b>'+dKo(t.d)+'</b> 영역이 가장 두드러집니다 ('+t.pct+'%). 이 패턴은 일상 기능에 영향을 줄 수 있어 정밀 평가로 확인해 볼 가치가 있습니다.';
+        en='<b>'+dEn(t.d)+'</b> stands out most ('+t.pct+'%). This pattern may affect daily functioning and is worth confirming with a detailed assessment.';
+      }
+      if(imp!=null && imp>=75){
+        ko+=' 충동 항목도 높게 나타나, 안전·즉흥 의사결정 측면을 함께 살펴보면 좋겠습니다.';
+        en+=' The impulsivity item is also elevated; aspects of safety and impulsive decision-making may be worth reviewing.';
+      }
+    } else if(positive){
+      ko='<b>'+dKo(t.d)+'</b> 영역이 가장 두드러집니다 ('+t.pct+'%)';
+      en='<b>'+dEn(t.d)+'</b> stands out most ('+t.pct+'%)';
+      if(se && se.pct>=40){ ko+=' — <b>'+dKo(se.d)+'</b> ('+se.pct+'%)도 함께 관찰됩니다.'; en+=' — <b>'+dEn(se.d)+'</b> ('+se.pct+'%) is also notable.'; }
+      else { ko+='. 이 패턴은 일상 기능에 영향을 줄 수 있어, 정밀 평가로 확인해 볼 가치가 있습니다.'; en+='. This pattern may affect daily functioning and is worth confirming with a detailed assessment.'; }
+    } else {
+      ko='영역 점수가 전반적으로 낮은 편입니다. 가장 높은 곳은 <b>'+dKo(t.d)+'</b> ('+t.pct+'%) 정도로, 현재로선 두드러진 어려움은 보이지 않습니다.';
+      en='Domain scores are generally low. The highest is <b>'+dEn(t.d)+'</b> ('+t.pct+'%); no prominent difficulty is evident for now.';
+    }
+    var refs=refsFor(t.d); var refHtml=refs.length?'<div class="refs">📚 '+refs.map(esc).join(' · ')+'</div>':'';
+    interp='<div class="interp"><span class="ko-text">'+ko+'</span><span class="en-text">'+en+'</span>'+refHtml+'</div>';
+  }
+  // D. 판정+공감 / E. CTA
+  var rmsg=positive?CFG.result_positive:CFG.result_negative;
+  var cta=positive?'<a class="cta" href="/adhd-training/assessment.html?dept='+encodeURIComponent(DEPT)+'">'+bi('정밀 진단으로 →','Continue to assessment →')+'</a>':'';
+  var res=document.getElementById('result');
+  res.className='';
+  res.innerHTML='<div class="rcard '+(positive?'pos':'neg')+'">'
+    +'<div class="rh">'+(positive?'📈 ':'🌿 ')+bi(positive?'추가 평가 권장':'경과 관찰', positive?'Further evaluation suggested':'Monitoring')+'</div>'
+    +gauge+chart+interp
+    +'<p class="rmsg">'+bi(rmsg.ko, rmsg.en)+'</p>'
+    +'<div class="ractions">'+cta+'<button class="cta2" id="scr-retry">'+bi('다시 하기','Retake')+'</button></div>'
+    +'<div class="leadbox"><div class="lh">'+bi('결과·BNM 소식을 이메일로 받기','Get your result & BNM updates by email')+'</div>'
+    +'<div class="leadrow"><input type="email" id="lead-email" placeholder="you@email.com" autocomplete="email"><button class="lbtn" id="lead-submit">'+bi('받기','Send')+'</button></div>'
+    +'<div class="leadmsg" id="lead-msg"></div></div>'
+    +'<p class="disc" style="margin-top:16px">'+bi(CFG.disclaimer.ko, CFG.disclaimer.en)+'</p></div>';
+  res.style.display='block';
+  var rb=document.getElementById('scr-retry'); if(rb) rb.addEventListener('click',function(){ res.style.display='none'; _last=null; answers={}; document.querySelectorAll('#items input[type=radio]').forEach(function(x){x.checked=false;}); document.querySelectorAll('#items .opt.checked').forEach(function(o){o.classList.remove('checked');}); window.scrollTo({top:0,behavior:'smooth'}); });
+  // E2. 리드 캡처 (양성·음성 둘 다) — phtz lead_screening, 서버 service key
+  var lsub=document.getElementById('lead-submit');
+  if(lsub) lsub.addEventListener('click', async function(){
+    var em=document.getElementById('lead-email'), ms=document.getElementById('lead-msg');
+    var v=((em&&em.value)||'').trim();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){ ms.style.color='#C9444F'; ms.textContent=kr()?'올바른 이메일을 입력하세요.':'Enter a valid email.'; return; }
+    lsub.disabled=true; ms.style.color='var(--muted)'; ms.textContent=kr()?'전송 중…':'Sending…';
+    try{
+      var rr=await fetch('/api/v1/lead/screening',{ method:'POST', headers:{'content-type':'application/json'},
+        body:JSON.stringify({ email:v, dept:DEPT, lang:kr()?'ko':'en',
+          result:{ sum:sum, cutoff:cutoff, positive:positive, maxSum:maxSum, pct:pct, top_domain:(ranked[0]&&ranked[0].d)||null } }) });
+      if(rr.ok){ ms.style.color='var(--neg)'; ms.textContent=kr()?'✅ 등록됐습니다. 곧 연락드릴게요.':'✅ Thanks — we will be in touch.'; if(em) em.value=''; }
+      else { lsub.disabled=false; ms.style.color='#C9444F'; ms.textContent=kr()?'전송 실패 — 잠시 후 다시 시도하세요.':'Failed — please try again.'; }
+    }catch(e){ lsub.disabled=false; ms.style.color='#C9444F'; ms.textContent=kr()?'전송 실패 — 네트워크를 확인하세요.':'Failed — check your connection.'; }
+  });
+}
+
+  document.getElementById('submit').addEventListener('click', async function(){
+    if(!isSurvey(CFG)) return;
+    if(Object.keys(answers).length < CFG.items.length){ alert(kr()?'모든 문항에 답해주세요.':'Please answer all items.'); return; }
+    var vals=CFG.scale.values||[0,1,2,3,4]; var min=vals[0], max=vals[vals.length-1];
+    var sum=0, dom={}, domCount={};
+    CFG.items.forEach(function(it,idx){ var v=answers[idx]||0; if(it.reverse) v=(max+min-v); sum+=v; var d=it.domain||'기타'; dom[d]=(dom[d]||0)+v; domCount[d]=(domCount[d]||0)+1; });
+    var cutoff=CFG.cutoff||17, positive=sum>=cutoff, maxSum=CFG.items.length*max;
+    _last={ positive:positive, sum:sum, maxSum:maxSum, dom:dom, domCount:domCount };
+    renderResult();
+    document.getElementById('result').scrollIntoView({behavior:'smooth'});
+    // 저장 — symptom=dept:screenquiz (미로그인/무 client = no-op; 관문 eq('symptom',dept)와 무간섭)
+    try{
+      if(window.ADHD_DB && ADHD_DB.createAssessment){
+        var sess = window.ADHD_SESSION || {};
+        var cid = sess.self_client_id || (new URLSearchParams(location.search).get('cid'));
+        if(cid){
+          await ADHD_DB.createAssessment({ client_id: cid, symptom: SCOPE, assessment_id: CFG.assessment_id||'BNM_ATTN_SCREEN_v1',
+            total_score: maxSum? (sum/maxSum) : null, subtype: positive?'positive':'negative', criteria_met_count: sum,
+            raw: { kind:'screening', dept:DEPT, sum:sum, cutoff:cutoff, positive:positive, answers:answers, domains:dom } });
+        }
+      }
+    }catch(e){ if(window.console) console.warn('screening save', e); }
+  });
+
+  setLangBtns();
+  load();
+})();
+</script>
+</body>
+</html>

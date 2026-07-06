@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="../bnm-lang-sync.js"></script>
+  <title>ADHD Vault · TrackCatcher</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+  :root{ --accent:#f5a857; --ink:#eef2ff; --muted:#9aa6c8; --line:rgba(255,255,255,0.12);
+    --panel:rgba(255,255,255,0.05); --panel2:rgba(255,255,255,0.08); }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ min-height:100%; }
+  body{ font-family:'Pretendard','Inter',-apple-system,system-ui,sans-serif; color:var(--ink);
+    background:radial-gradient(ellipse at 50% 0%, #1a2347 0%, #0a0f24 55%, #050816 100%);
+    background-attachment:fixed; min-height:100vh; padding-bottom:60px; }
+  body[data-lang="ko"] .en-text{ display:none !important; }
+  body[data-lang="en"] .ko-text{ display:none !important; }
+  a{ color:inherit; text-decoration:none; }
+  .hdr{ display:flex; align-items:center; gap:18px; padding:22px 32px;
+    border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20;
+    background:rgba(5,8,22,0.65); backdrop-filter:blur(10px); }
+  .brand{ font-weight:800; font-size:15px; letter-spacing:-0.01em; display:flex; align-items:center; gap:9px; }
+  .brand .dot{ width:11px; height:11px; border-radius:50%; background:var(--accent); box-shadow:0 0 14px var(--accent); }
+  .hdr .spacer{ flex:1; }
+  .hdr a.link{ font-size:13px; font-weight:600; color:var(--muted); padding:6px 10px; border-radius:8px; }
+  .hdr a.link:hover{ color:var(--ink); background:var(--panel); }
+  .langtog{ display:flex; gap:3px; background:var(--panel); padding:3px; border-radius:999px; }
+  .langtog button{ padding:5px 13px; border:0; border-radius:999px; background:transparent;
+    color:var(--muted); font-weight:700; font-size:12px; cursor:pointer; font-family:inherit; }
+  body[data-lang="ko"] .langtog button[data-l="ko"],
+  body[data-lang="en"] .langtog button[data-l="en"]{ background:var(--accent); color:#0a0f24; }
+  .wrap{ max-width:880px; margin:0 auto; padding:38px 28px 0; }
+  .hero{ text-align:center; margin-bottom:8px; }
+  .hero .kor{ font-size:13px; font-weight:700; letter-spacing:0.14em; color:var(--accent); text-transform:uppercase; }
+  .hero h1{ font-size:30px; font-weight:800; letter-spacing:-0.02em; margin:8px 0 10px; }
+  .hero p{ font-size:14px; color:var(--muted); line-height:1.6; max-width:600px; margin:0 auto; }
+  .ro-note{ max-width:620px; margin:16px auto 0; background:rgba(245,168,87,0.10);
+    border:1px solid rgba(245,168,87,0.35); border-radius:12px; padding:11px 16px;
+    font-size:12.5px; color:#ffd9a8; text-align:center; line-height:1.5; }
+  .meta{ max-width:620px; margin:18px auto 0; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
+    font-size:12px; color:var(--muted); }
+  .meta b{ color:var(--ink); }
+  .cells{ max-width:760px; margin:22px auto 0; display:flex; flex-direction:column; gap:14px; }
+  .cell{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px 20px; }
+  .cell-top{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .cell-idx{ font-size:11px; font-weight:800; color:#0a0f24; background:var(--accent);
+    padding:3px 9px; border-radius:999px; }
+  .cell-id{ font-size:12px; color:var(--muted); font-family:ui-monospace,Menlo,Consolas,monospace; }
+  .kv{ margin-bottom:9px; }
+  .kv:last-child{ margin-bottom:0; }
+  .kv .k{ font-size:11px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); margin-bottom:3px; }
+  .kv .v{ font-size:13.5px; line-height:1.62; color:var(--ink); white-space:pre-wrap; word-break:break-word; }
+  .kv .v.mono{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12px; color:var(--muted); }
+  .empty,.err{ max-width:620px; margin:30px auto; text-align:center; color:var(--muted); font-size:13.5px; line-height:1.6; }
+  .err{ color:#ff9d9d; }
+  .ftr{ text-align:center; font-size:11.5px; color:var(--muted); margin-top:40px; }
+  </style>
+</head>
+<body data-lang="en">
+
+<div class="hdr">
+  <div class="brand"><span class="dot"></span>TrackCatcher · <span class="ko-text">반짝이 Vault</span><span class="en-text">ADHD Vault</span></div>
+  <div class="spacer"></div>
+  <a class="link" href="adhd-admin.html">← <span class="ko-text">ADHD 관리자</span><span class="en-text">ADHD Admin</span></a>
+  <div class="langtog">
+    <button data-l="ko" onclick="window.bnmSetLang&&window.bnmSetLang('ko')">KO</button>
+    <button data-l="en" onclick="window.bnmSetLang&&window.bnmSetLang('en')">EN</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="kor">Admin · ADHD · Vault</div>
+    <h1><span class="ko-text">마누라 Voice Vault</span><span class="en-text">Clinician Voice Vault</span></h1>
+    <p><span class="ko-text">ADHD 봇의 RAG Vault 셀(마누라 voice fragments). 임상 입력실(clinic_input)의 150 케이스와 별개인, 검색용 정수 셀입니다.</span><span class="en-text">RAG Vault cells (clinician voice fragments) for the ADHD bot — the curated retrieval set, distinct from the 150 cases in clinic_input.</span></p>
+  </div>
+  <div class="ro-note">
+    <span class="ko-text">🔒 읽기 전용 뷰입니다. 편집 에디터는 다음 작업입니다.</span>
+    <span class="en-text">🔒 Read-only view. The editing tool is the next task.</span>
+  </div>
+  <div class="meta" id="meta"></div>
+  <div class="cells" id="cells"></div>
+  <div class="ftr">© Boston Neuromind LLC · TrackCatcher Admin · Vault</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var cellsEl = document.getElementById('cells');
+  var metaEl = document.getElementById('meta');
+
+  function parseJsonl(text){
+    return text.split('\n').map(function(l){ return l.trim(); }).filter(Boolean).map(function(l){
+      try { return JSON.parse(l); } catch(e){ return { _raw: l, _parse_error: String(e) }; }
+    });
+  }
+  function render(en, ko){
+    var n = Math.max(en.length, ko.length);
+    metaEl.innerHTML =
+      '<span class="ko-text">셀 <b>'+en.length+'</b>개 (EN) · <b>'+ko.length+'</b>개 (KO)</span>' +
+      '<span class="en-text"><b>'+en.length+'</b> cells (EN) · <b>'+ko.length+'</b> cells (KO)</span>';
+    if(n===0){ cellsEl.innerHTML = '<div class="empty"><span class="ko-text">셀이 없습니다.</span><span class="en-text">No cells found.</span></div>'; return; }
+    var html = '';
+    for(var i=0;i<n;i++){
+      var rowEn = en[i]||{}, rowKo = ko[i]||{};
+      var id = rowEn.id || rowKo.id || rowEn.key || rowKo.key || ('cell '+(i+1));
+      html += '<div class="cell"><div class="cell-top"><span class="cell-idx">#'+(i+1)+'</span><span class="cell-id">'+esc(String(id))+'</span></div>';
+      html += kvBlock(rowEn, 'EN');
+      html += kvBlock(rowKo, 'KO');
+      html += '</div>';
+    }
+    cellsEl.innerHTML = html;
+  }
+  function kvBlock(row, label){
+    var keys = Object.keys(row);
+    if(keys.length===0) return '';
+    var out = '';
+    keys.forEach(function(k){
+      var v = row[k];
+      var isObj = (v!==null && typeof v==='object');
+      var disp = isObj ? JSON.stringify(v, null, 2) : String(v);
+      out += '<div class="kv"><div class="k">'+esc(label+' · '+k)+'</div><div class="v'+(isObj?' mono':'')+'">'+esc(disp)+'</div></div>';
+    });
+    return out;
+  }
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function load(url){ return fetch(url).then(function(r){ if(!r.ok) throw new Error(r.status+' '+url); return r.text(); }); }
+
+  Promise.all([ load('vault/adhd.jsonl'), load('vault/adhd_ko.jsonl').catch(function(){ return ''; }) ])
+    .then(function(res){ render(parseJsonl(res[0]), parseJsonl(res[1])); })
+    .catch(function(e){
+      cellsEl.innerHTML = '<div class="err"><span class="ko-text">Vault를 불러오지 못했습니다 ('+esc(String(e.message||e))+'). 파일 접근은 서버(https)에서 동작합니다.</span>'+
+        '<span class="en-text">Could not load the vault ('+esc(String(e.message||e))+'). File access works when served over https.</span></div>';
+    });
+})();
+</script>
+</body>
+</html>

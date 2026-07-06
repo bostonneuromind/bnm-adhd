@@ -1,0 +1,1149 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADHD Tracker — Boston Neuromind</title>
+<script>window.SYMPTOM_AI_URL="https://sepierapapsansprurpr.supabase.co/functions/v1/symptom-ai-deep";
+window.SEPIERA_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlcGllcmFwYXBzYW5zcHJ1cnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTkxMDksImV4cCI6MjA5NTgzNTEwOX0.U1dPGHz7g1TjwFS56GVdPjzbzH6Ryc87C28YM9GP1z8";</script>
+<!-- tv2 login gate: tool entry requires login. config=sepiera consumer. modules from domain-root /shared/ (live 200 verified). -->
+<!-- no ADHD_GATE_MANUAL -> adhd-gate.js auto-require() on load (not logged in = overlay). covers dropdown/START/direct-URL. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/adhd-config.js?v=1"></script>
+<script src="/shared/adhd-db.js?v=1"></script>
+<script src="/shared/adhd-board.js?v=1"></script>
+<script src="/shared/adhd-consent.js?v=1"></script>
+<script src="/shared/adhd-auth.js?v=1"></script>
+<script src="/shared/adhd-session.js?v=1"></script>
+<script src="/shared/adhd-gate.js?v=1"></script>
+<script src="bnm-lang-sync.js"></script>
+<script src="adhd-engine/nc-lang.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="adhd-engine/qeeg-engine.js"></script>
+<script src="adhd-engine/five-lens-engine.js"></script>
+<script src="adhd-engine/fusion-engine.js"></script>
+<script src="adhd-engine/fingerprint-engine.js"></script>
+<script src="adhd-engine/clinical_narratives.js"></script>
+<script>
+// ============================================================================
+// qeeg-viz.js — SymptomCatcher 무료 QEEG 시각화 (신규 저작, 진단 문구 없음)
+// Boston Neuromind LLC. 데이터 시각화 + 리터러시만. 임상 판단은 유료 AI(C-2) 자리.
+// 입력: window.state.eegQeegData / eegZScores (엔진 산출). state.lang 게터로 i18n.
+// ============================================================================
+(function(){
+  var C = { delta:'#3A5566', theta:'#5B7B94', alpha:'#5B7B94', beta:'#8AA5B5', gamma:'#CAD6DE' };
+  function ko(){ return document.body.getAttribute('data-lang')==='ko'; }
+  function esc(s){ return String(s); }
+
+  // 채널평균 5밴드 파워
+  function avgBands(qeegData){
+    var chs=Object.keys(qeegData||{}); if(!chs.length) return null;
+    var sum={delta:0,theta:0,alpha:0,beta:0,gamma:0}, apk=0, n=chs.length;
+    chs.forEach(function(ch){ var d=qeegData[ch];
+      sum.delta+=d.delta||0; sum.theta+=d.theta||0; sum.alpha+=d.alpha||0; sum.beta+=d.beta||0; sum.gamma+=d.gamma||0; apk+=d.alpha_peak||0; });
+    return { delta:sum.delta/n, theta:sum.theta/n, alpha:sum.alpha/n, beta:sum.beta/n, gamma:sum.gamma/n, alpha_peak:apk/n, nch:n };
+  }
+
+  // 1) 요약 배지 바
+  window.renderQEEGSummary = function(qeegData, zscores){
+    var a=avgBands(qeegData); if(!a) return '';
+    var K=ko();
+    var big=0; if(zscores){ Object.keys(zscores).forEach(function(ch){ var z=zscores[ch]; if(z&&Math.abs(z.theta)>2) big++; }); }
+    var cards=[
+      { v:a.nch+'/19', l:K?'분석 채널':'Channels' },
+      { v:a.alpha_peak.toFixed(1)+' Hz', l:K?'평균 α-peak':'Mean α-peak' },
+      { v:big, l:K?'큰 편차 채널 (|z|>2)':'High-deviation ch (|z|>2)' }
+    ];
+    return '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">'+
+      cards.map(function(c){ return '<div style="flex:1;min-width:120px;background:#EEF2F4;border-radius:10px;padding:12px 14px;text-align:center">'+
+        '<div style="font-size:1.5em;font-weight:800;color:#3A5566">'+esc(c.v)+'</div>'+
+        '<div style="font-size:.78em;color:#4A6472;margin-top:2px">'+esc(c.l)+'</div></div>'; }).join('')+
+      '</div>';
+  };
+
+  // 2) 5밴드 막대차트 (raw 파워, 채널평균) — SVG
+  window.renderBandBars = function(qeegData){
+    var a=avgBands(qeegData); if(!a) return '';
+    var K=ko();
+    var bands=[
+      { k:'delta', ko:'델타 δ', en:'Delta δ', hz:'1–4 Hz' },
+      { k:'theta', ko:'세타 θ', en:'Theta θ', hz:'4–8 Hz' },
+      { k:'alpha', ko:'알파 α', en:'Alpha α', hz:'8–13 Hz' },
+      { k:'beta',  ko:'베타 β', en:'Beta β',  hz:'13–30 Hz' },
+      { k:'gamma', ko:'감마 γ', en:'Gamma γ', hz:'30–45 Hz' }
+    ];
+    var max=Math.max(a.delta,a.theta,a.alpha,a.beta,a.gamma,1);
+    var W=520, rowH=42, padL=88, padR=64, top=8, h=top+bands.length*rowH+8;
+    var rows=bands.map(function(b,i){
+      var v=a[b.k], w=(v/max)*(W-padL-padR), y=top+i*rowH;
+      var label=K?b.ko:b.en;
+      return '<text x="0" y="'+(y+18)+'" font-size="13" font-weight="700" fill="#1F2D38">'+label+'</text>'+
+        '<text x="0" y="'+(y+32)+'" font-size="10" fill="#8FA9BC">'+b.hz+'</text>'+
+        '<rect x="'+padL+'" y="'+(y+6)+'" width="'+(W-padL-padR)+'" height="20" rx="5" fill="#EEF2F4"/>'+
+        '<rect x="'+padL+'" y="'+(y+6)+'" width="'+Math.max(w,2)+'" height="20" rx="5" fill="'+C[b.k]+'"/>'+
+        '<text x="'+(W-padR+8)+'" y="'+(y+21)+'" font-size="12" font-weight="600" fill="#4A6472">'+v.toFixed(0)+'</text>';
+    }).join('');
+    return '<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:18px 20px;margin-bottom:16px">'+
+      '<div style="font-weight:800;color:#3A5566;margin-bottom:4px;font-size:1.02em">'+(K?'🎵 밴드별 파워 (채널 평균)':'🎵 Band power (channel mean)')+'</div>'+
+      '<div style="font-size:.82em;color:#8FA9BC;margin-bottom:12px">'+(K?'각 주파수 대역의 상대적 세기입니다. µV² 단위.':'Relative strength of each frequency band. Units: µV².')+'</div>'+
+      '<svg viewBox="0 0 '+W+' '+h+'" style="width:100%;max-width:560px;height:auto">'+rows+'</svg></div>';
+  };
+
+  // 3) z-스코어 편차 게이지 (채널별 |z(θ/β)|, 신호등 색)
+  window.renderZGauge = function(zscores){
+    if(!zscores) return '';
+    var K=ko();
+    var chs=Object.keys(zscores).filter(function(ch){ return zscores[ch] && typeof zscores[ch].theta==='number'; });
+    if(!chs.length) return '';
+    chs.sort(function(x,y){ return Math.abs(zscores[y].theta)-Math.abs(zscores[x].theta); });
+    var rows=chs.slice(0,10).map(function(ch){
+      var z=zscores[ch].theta, az=Math.abs(z);
+      var col= az>2 ? '#DC2626' : az>1 ? '#D97706' : '#5C8A6B';
+      var w=Math.min(az/4,1)*100;
+      return '<div style="display:flex;align-items:center;gap:10px;margin:5px 0">'+
+        '<div style="width:38px;font-size:12px;font-weight:700;color:#1F2D38">'+ch+'</div>'+
+        '<div style="flex:1;height:14px;background:#EEF2F4;border-radius:5px;overflow:hidden"><div style="height:100%;width:'+w+'%;background:'+col+';border-radius:5px"></div></div>'+
+        '<div style="width:52px;text-align:right;font-size:12px;font-weight:700;color:'+col+'">'+z.toFixed(2)+'</div></div>';
+    }).join('');
+    return '<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:18px 20px;margin-bottom:16px">'+
+      '<div style="font-weight:800;color:#3A5566;margin-bottom:4px;font-size:1.02em">'+(K?'📏 채널별 편차 (z-스코어, θ/β)':'📏 Per-channel deviation (z-score, θ/β)')+'</div>'+
+      '<div style="font-size:.82em;color:#8FA9BC;margin-bottom:12px">'+(K?'정상 평균 대비 표준편차입니다. 편차가 큰 상위 채널을 보여줍니다.':'Standard deviations from the normative mean. Top channels by deviation.')+'</div>'+
+      rows+
+      '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid #D6E6F2;font-size:.78em;color:#4A6472">'+
+        '<span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#5C8A6B;vertical-align:-1px"></span> '+(K?'정상 범위 (|z|≤1)':'Typical (|z|≤1)')+'</span>'+
+        '<span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#D97706;vertical-align:-1px"></span> '+(K?'중간 편차 (1–2)':'Moderate (1–2)')+'</span>'+
+        '<span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#DC2626;vertical-align:-1px"></span> '+(K?'큰 편차 (>2)':'High (>2)')+'</span>'+
+      '</div></div>';
+  };
+
+  // 4) "읽는 법" 카드 (진단 아님 — 리터러시만)
+  window.renderQEEGGuide = function(){
+    var K=ko();
+    var items = K ? [
+      ['토포맵이란?','머리를 위에서 본 뇌 지도입니다. 각 밴드가 뇌의 어느 부위에서 얼마나 강한지 색으로 보여줍니다.'],
+      ['z-스코어란?','같은 나이대 정상 평균과 얼마나 다른지를 나타냅니다. 0에 가까울수록 평균적, 클수록 편차가 큽니다.'],
+      ['신호등 색은?','초록=정상 범위, 주황=중간 편차, 빨강=큰 편차. 색은 참고용이며 진단이 아닙니다.'],
+      ['EO/EC 감쇠는?','눈감고(EC)→눈뜨고(EO) 전환 시 알파파가 줄어드는 정도입니다. 뇌의 각성 조절과 관련됩니다.']
+    ] : [
+      ['What is the topomap?','A top-down brain map. Color shows how strong each band is across brain regions.'],
+      ['What is a z-score?','How far a value is from the age-matched normative mean. Near 0 = typical; larger = more deviation.'],
+      ['The traffic-light colors?','Green = typical, amber = moderate, red = high deviation. Colors are for reference, not a diagnosis.'],
+      ['What is EO/EC attenuation?','How much alpha drops from eyes-closed (EC) to eyes-open (EO). Relates to arousal regulation.']
+    ];
+    return '<details style="background:#F5FAFE;border:1px solid #D6E6F2;border-radius:12px;padding:14px 18px;margin-bottom:8px">'+
+      '<summary style="font-weight:700;color:#3A5566;cursor:pointer;font-size:.98em">'+(K?'❓ 결과 읽는 법':'❓ How to read these results')+'</summary>'+
+      '<div style="margin-top:12px">'+items.map(function(it){
+        return '<div style="margin-bottom:10px"><div style="font-weight:700;color:#4A6472;font-size:.92em">'+it[0]+'</div><div style="font-size:.9em;color:#4A6472;line-height:1.6">'+it[1]+'</div></div>';
+      }).join('')+
+      '<div style="margin-top:8px;padding-top:10px;border-top:1px solid #D6E6F2;font-size:.82em;color:#8FA9BC">'+(K?'※ 이 화면은 측정 데이터를 시각화한 것입니다. 임상 해석과 감별은 AI 분석에서 제공됩니다.':'※ This view visualizes measured data. Clinical interpretation and differential are provided in AI Analysis.')+'</div>'+
+      '</div></details>';
+  };
+
+  // 통합 렌더: 무료 QEEG 전체 (요약 + 밴드바 + z게이지 + 읽는법). 토포맵/표/비교는 셸이 별도 배치.
+  window.renderQEEGRich = function(){
+    if(!window.state || !state.eegQeegData) return '';
+    var qd = state.eegEC ? state.eegEC.qeegData : (state.eegEO ? state.eegEO.qeegData : state.eegQeegData);
+    var zs = state.eegEC ? state.eegEC.zscores  : (state.eegEO ? state.eegEO.zscores  : state.eegZScores);
+    return renderQEEGSummary(qd, zs) + renderBandBars(qd) + renderZGauge(zs) + renderQEEGGuide();
+  };
+})();
+</script>
+<style>
+:root{
+  --primary:#5B7B94;--primary-mid:#5B7B94;--primary-dark:#3A5566;--primary-deep:#3A5566;
+  --primary-bg:#EEF2F4;--primary-soft:#F5FAFE;--primary-light:#F5FAFE;
+  --border-med:#CAD6DE;--border-soft:#D6E6F2;--border-line:#CAD6DE;
+  --text-primary:#1F2D38;--text-secondary:#4A6472;--text-muted:#8FA9BC;
+  --tab-idle-bg:#EEF2F4;--tab-idle-fg:#5B7B94;--good:#5C8A6B;--warn:#D97706;
+}
+*{box-sizing:border-box}
+body{font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;font-size:17px;line-height:1.75;color:var(--text-primary);max-width:900px;margin:0 auto;padding:22px;background:#fff}
+.hd{background:var(--primary-mid);color:#fff;padding:18px 22px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.hd .t{font-size:23px;font-weight:700}.hd .s{font-size:13px;opacity:.88;margin-top:4px}
+.hd-right{display:flex;gap:8px;align-items:center}
+.admin-link{color:#fff;font-size:13px;border:1px solid rgba(255,255,255,.55);padding:7px 12px;border-radius:8px;text-decoration:none;white-space:nowrap}
+.langfix{display:flex;gap:3px;background:#fff;border-radius:8px;padding:3px}
+.langfix button{font:inherit;font-size:12px;padding:5px 10px;border:0;border-radius:6px;background:transparent;color:var(--primary-dark);cursor:pointer}
+.langfix button.on{background:var(--primary);color:#fff}
+.ctrl{background:var(--primary-bg);padding:11px 16px;border:1px solid var(--border-med);border-top:0;display:flex;gap:9px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--text-secondary)}
+.ctrl label{font-weight:600;color:var(--primary-dark)}
+.ctrl input,.ctrl select{font:inherit;font-size:13px;padding:6px 9px;border:1px solid var(--border-line);border-radius:8px;background:#fff;color:var(--text-secondary)}
+.edf-btn{border:1px solid #CAD6DE;border-radius:8px;padding:6px 13px;background:#fff;color:var(--primary-dark);cursor:pointer;font-size:13px}
+.edf-btn.picked{background:var(--good);color:#fff;border-color:var(--good)}
+.edf-btn.done{background:var(--primary);color:#fff;border-color:var(--primary)}
+.act-btn{border:1px solid #CAD6DE;border-radius:8px;padding:6px 12px;background:#fff;color:var(--primary-dark);cursor:pointer;font-size:13px}
+.divider{border-left:1px solid var(--border-line);height:18px;margin:0 2px}
+.body{border:1px solid var(--border-med);border-top:0;padding:20px 22px;border-radius:0 0 12px 12px}
+.area-label{font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:.04em;margin-bottom:7px;text-transform:uppercase}
+.area-bar{display:inline-flex;gap:0;background:var(--primary-bg);border:1px solid var(--border-med);border-radius:11px;padding:4px;margin-bottom:20px;flex-wrap:wrap}
+.area-bar button{font:inherit;font-size:14px;font-weight:600;padding:9px 18px;border:0;border-radius:8px;background:transparent;color:#4A6472;cursor:pointer}
+.area-bar button.on{background:var(--primary);color:#fff}
+.area{display:none}.area.show{display:block}
+.rpt-tabbar{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid var(--border-med);margin-bottom:14px}
+.rpt-tabbar button{font:inherit;font-size:13px;font-weight:600;padding:8px 15px;border:1px solid var(--border-med);border-bottom:none;border-radius:9px 9px 0 0;background:var(--tab-idle-bg);color:var(--tab-idle-fg);cursor:pointer;margin-bottom:-2px}
+.rpt-tabbar button.on{background:var(--area-accent,var(--primary));color:#fff;border-color:var(--area-accent,var(--primary))}
+.rtab{display:none}.rtab.show{display:block}
+.ai-lk-wrap{position:relative;min-height:300px}
+.ai-lk-blur{filter:blur(6px);pointer-events:none;user-select:none;opacity:.7}
+.ai-lk-over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(250,250,250,.72);border-radius:12px;padding:18px;overflow-y:auto}
+/* area별 색 구분 — 증상=밝은코랄, DSM=진한코랄 (같은 계통 진하기) */
+#area-symptom{--area-accent:#5B7B94}
+#area-dsm{--area-accent:#3A5566}
+#areabar button[data-a="symptom"].on{background:#5B7B94;border-color:#5B7B94}
+#areabar button[data-a="dsm"].on{background:#3A5566;border-color:#3A5566}
+#area-dsm .pat .h{color:#3A5566}
+#area-dsm .tool-card{color:#3A5566}
+#area-dsm .tool-card:hover{border-color:#3A5566;background:#EEF2F4}
+#area-dsm .tool-card .tool-card-arr{color:#3A5566}
+
+.pat{background:var(--primary-soft);border:1px solid var(--border-soft);border-radius:10px;padding:15px;font-size:14px;line-height:1.8}
+.pat .h{font-weight:600;color:var(--primary-dark);margin-bottom:4px}
+.ph{color:var(--text-muted);font-size:13px;margin-top:8px}
+.free-grp{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border-line);background:var(--primary-bg);border-radius:8px;padding:6px 12px;margin-bottom:12px}
+.free-grp label{font-weight:600;color:var(--primary-dark);font-size:13px}
+.free-grp select{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(--border-line);border-radius:7px;background:#fff;color:var(--text-secondary)}
+.result-actions{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap}
+.save-btn{border:0;border-radius:8px;padding:7px 14px;background:var(--primary);color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+.ai-eta{font-size:12.5px;color:var(--text-muted);margin-top:8px}
+.ai-run{font:inherit;border:0;border-radius:8px;padding:8px 15px;background:var(--primary);color:#fff;font-size:14px;font-weight:600;cursor:pointer;margin-top:12px}
+.ai-run:disabled{opacity:.5;cursor:not-allowed}
+.prog{background:var(--primary-bg);border:1px solid var(--border-line);border-radius:10px;padding:14px;margin-top:12px;font-size:13.5px;color:var(--text-secondary)}
+.prog .line{font-weight:600;color:var(--primary-dark)}
+.prog-bar{height:7px;background:var(--border-med);border-radius:4px;margin-top:10px;overflow:hidden}
+.prog-bar > div{height:100%;width:0;background:var(--primary);transition:width .5s}
+.qeeg-slots{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.qeeg-slot{flex:1;min-width:200px}
+.en-text{display:none}.ko-text{display:inline}
+body[data-lang="en"] .ko-text{display:none}body[data-lang="en"] .en-text{display:inline}
+/* ---- brain topomap (triage.html 이식) + 지원 클래스/변수 폴백 ---- */
+:root{--shadow-sm:0 2px 8px rgba(204,122,85,.10);--border-light:var(--border-soft)}
+.form-section{background:var(--primary-soft);border:1px solid var(--border-soft);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.form-section-title{font-weight:700;color:var(--primary-dark);margin-bottom:12px;font-size:1.02em}
+.brain-viz-wrap{background:#fff;border-radius:16px;padding:22px 24px;margin-bottom:18px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light)}
+.brain-viz-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:600px){.brain-viz-grid{grid-template-columns:1fr}}
+.brain-viz-item{text-align:center}
+.brain-viz-label{font-weight:800;color:var(--text-primary);margin-bottom:4px;font-size:1.05em}
+.brain-viz-sublabel{font-size:.85em;color:var(--text-muted);margin-bottom:12px}
+.brain-svg{width:100%;max-width:360px;height:auto}
+.brain-legend{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--border-light);font-size:.82em;color:var(--text-secondary)}
+.brain-legend-item{display:flex;align-items:center;gap:6px}
+.brain-legend-swatch{width:16px;height:16px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,.1)}
+
+/* ===== Intake form (coral) — panel-1 이식 ===== */
+.form-section{background:#fff;border:1px solid var(--border-med);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.form-section-title{font-weight:800;color:var(--primary-dark);font-size:1.0em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.mode-selector{display:flex;gap:10px;flex-wrap:wrap}
+.mode-card{flex:1;min-width:150px;background:var(--primary-bg);border:2px solid var(--border-line);border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:all .15s}
+.mode-card:hover{border-color:var(--primary)}
+.mode-card.selected{ border:2.5px solid #3A5566 !important; background:#EEF2F4 !important; box-shadow:0 0 0 2px rgba(153,60,29,.25) !important; font-weight:700 !important; }
+.mode-card-icon{font-size:1.6em}
+.mode-card-title{font-weight:800;color:var(--primary-dark);margin-top:4px}
+.mode-card-desc{font-size:.82em;color:var(--text-secondary);margin-top:3px;line-height:1.5}
+.form-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.form-field{flex:1;min-width:180px;display:flex;flex-direction:column;gap:5px}
+.form-field.full{flex-basis:100%}
+.field-label{font-size:.85em;font-weight:700;color:var(--text-secondary)}
+.field-hint{font-weight:400;color:var(--text-muted);font-size:.9em}
+.required{color:#C0392B;margin-left:2px}
+.field-input,.field-select,.field-textarea{font:inherit;font-size:14px;padding:9px 11px;border:1px solid var(--border-med);border-radius:8px;background:var(--primary-soft);color:#1F2D38;width:100%;box-sizing:border-box}
+.field-input:focus,.field-select:focus,.field-textarea:focus{outline:none;border-color:var(--primary);background:#fff}
+.field-textarea{min-height:64px;resize:vertical}
+.intake-note{font-size:.82em;color:var(--text-muted);background:var(--primary-bg);border-radius:8px;padding:8px 12px;margin-bottom:12px}
+.intake-save{font:inherit;font-weight:700;font-size:14px;padding:10px 20px;border:none;border-radius:9px;background:var(--primary);color:#fff;cursor:pointer}
+.intake-save:hover{background:var(--primary-mid)}
+#intake-saved{font-size:.85em;color:var(--good);font-weight:700;margin-left:10px}
+/* ===== AI 모듈 선택 그리드 (intake-engine.js) ===== */
+.preset-row{display:flex;gap:7px;flex-wrap:wrap;margin:4px 0 12px}
+.preset-btn{font:inherit;font-size:12.5px;font-weight:600;padding:6px 12px;border:1px solid var(--border-line);border-radius:20px;background:#fff;color:var(--primary-dark);cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.preset-btn:hover{border-color:var(--primary)}
+.cat-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.cat-pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:6px 11px;border:1px solid var(--border-line);border-left:3px solid var(--cat-color,var(--primary));border-radius:8px;background:var(--primary-soft);color:var(--text-secondary);cursor:pointer}
+.cat-pill:hover{background:#fff;border-color:var(--primary)}
+.cat-pill-icon{font-size:1.05em}
+.cat-pill-count{margin-left:2px;font-size:.82em;font-weight:800;color:var(--cat-color,var(--primary))}
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:6px}
+.module-card{border:1.5px solid var(--border-med);border-radius:11px;padding:11px 13px;background:#fff;cursor:pointer;transition:all .13s;position:relative}
+.module-card:hover{border-color:var(--primary);box-shadow:var(--shadow-sm)}
+.module-card.selected{ border:2.5px solid #3A5566 !important; background:#EEF2F4 !important; box-shadow:0 0 0 2px rgba(153,60,29,.25) !important; font-weight:700 !important; }
+.module-header{display:flex;align-items:flex-start;gap:7px;margin-bottom:5px}
+.module-icon{font-size:1.15em;line-height:1.2}
+.module-name{font-weight:800;color:var(--primary-dark);font-size:.92em;line-height:1.35;flex:1;display:flex;align-items:flex-start;gap:4px;flex-wrap:wrap}
+.module-info-btn{margin-left:auto;border:0;background:transparent;color:var(--text-muted);cursor:pointer;font-size:.95em;padding:0 2px;line-height:1}
+.module-info-btn:hover{color:var(--primary)}
+.module-desc{font-size:.8em;color:var(--text-secondary);line-height:1.5;margin-bottom:7px;min-height:2.2em}
+.module-meta{display:flex;gap:10px;font-size:.74em;color:var(--text-muted);font-weight:600}
+.sel-bar{display:none;position:sticky;bottom:0;margin-top:14px;padding:10px 12px;background:var(--primary-mid);border-radius:11px;color:#fff;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 -3px 12px rgba(153,60,29,.18)}
+.sel-bar.show{display:flex}
+.sel-bar-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+.sel-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:4px 8px;background:rgba(255,255,255,.16);border-radius:16px}
+.chip-icon{font-size:1em}
+.chip-x{border:0;background:transparent;color:#fff;opacity:.75;cursor:pointer;font-size:.9em;padding:0 1px;line-height:1}
+.chip-x:hover{opacity:1}
+.sel-bar-right{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.sel-clear{font:inherit;font-size:12px;font-weight:700;padding:5px 11px;border:1px solid rgba(255,255,255,.5);border-radius:8px;background:transparent;color:#fff;cursor:pointer}
+.sel-clear:hover{background:rgba(255,255,255,.14)}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(45,24,16,.5);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-backdrop.open{display:flex}
+.modal-box{background:#fff;border-radius:14px;max-width:520px;width:100%;max-height:85vh;overflow:auto;padding:22px 24px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.modal-title{font-size:1.15em;font-weight:800;color:var(--primary-dark)}
+.modal-subtitle{font-size:.9em;color:var(--text-secondary);margin:4px 0 12px}
+.modal-content h4{font-size:.9em;color:var(--primary-mid);margin:12px 0 5px}
+.modal-content ul{margin:0 0 6px;padding-left:18px;font-size:.85em;color:var(--text-secondary);line-height:1.6}
+.modal-content p{font-size:.85em;color:var(--text-secondary);margin:3px 0}
+.modal-close{margin-top:16px;font:inherit;font-weight:700;font-size:13px;padding:8px 18px;border:0;border-radius:9px;background:var(--primary);color:#fff;cursor:pointer}
+.survey-progress-wrap{height:8px;background:var(--border-med);border-radius:100px;overflow:hidden;margin:12px 0 4px}
+.survey-progress{height:100%;width:0;background:var(--primary);border-radius:100px;transition:width .3s}
+.survey-count{font-size:.82em;color:var(--text-muted);font-weight:700;margin-bottom:12px}
+.question-card{background:#fff;border:1px solid var(--border-med);border-radius:12px;padding:16px 18px;margin-bottom:12px}
+.question-module{font-size:.78em;font-weight:700;color:var(--primary-mid);margin-bottom:6px}
+.question-text{font-size:1.05em;font-weight:700;color:var(--text-primary);line-height:1.55;margin-bottom:14px}
+.response-options{display:flex;flex-direction:column;gap:8px}
+.response-option{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 14px;border:1.5px solid var(--border-med);border-radius:10px;background:var(--primary-soft);cursor:pointer;font-size:.95em;transition:all .12s}
+.response-option:hover{border-color:var(--primary);background:#fff}
+.response-option.selected{ border:2.5px solid #3A5566 !important; background:#EEF2F4 !important; box-shadow:0 0 0 2px rgba(153,60,29,.25) !important; font-weight:700 !important; }
+.response-score{font-size:.78em;color:var(--text-muted);font-weight:700;white-space:nowrap}
+.clinician-note{margin-top:12px;font-size:.82em;color:var(--text-secondary);background:var(--primary-bg);border-radius:8px;padding:9px 12px;line-height:1.55}
+.survey-nav{display:flex;gap:10px;margin-top:6px}
+.survey-navbtn{font:inherit;font-size:14px;font-weight:700;padding:9px 18px;border:1px solid var(--border-med);border-radius:9px;background:#fff;color:var(--primary-dark);cursor:pointer}
+.survey-navbtn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.survey-navbtn:disabled{opacity:.45;cursor:not-allowed}
+.survey-preview{margin-top:16px;background:var(--primary-soft);border:1px solid var(--border-soft);border-radius:11px;padding:13px 15px}
+.survey-preview-h{font-size:.85em;font-weight:800;color:var(--primary-dark);margin-bottom:8px}
+.survey-empty{color:var(--text-muted);font-size:.9em;padding:16px;text-align:center}
+.axis-scores{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.axis-score-card{flex:1;min-width:110px;background:var(--primary-soft);border:1px solid var(--border-soft);border-radius:11px;padding:12px;text-align:center}
+.axis-score-card.bio{border-top:3px solid #10B981}
+.axis-score-card.psycho{border-top:3px solid #8B5CF6}
+.axis-score-card.social{border-top:3px solid #3B82F6}
+.axis-label{font-size:.82em;font-weight:700;color:var(--text-secondary)}
+.axis-value{font-size:1.6em;font-weight:800;color:var(--primary-dark);margin-top:2px}
+.axis-unit{font-size:.5em;color:var(--text-muted);font-weight:600}
+.diagnosis-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border-med);border-radius:11px;margin-bottom:8px;background:#fff}
+.diagnosis-rank{font-size:1.05em;font-weight:800;color:#fff;min-width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.diagnosis-name{font-weight:800;color:var(--text-primary);font-size:.98em}
+.diagnosis-detail{font-size:.82em;color:var(--text-secondary);margin-top:2px}
+.diagnosis-prob{margin-left:auto;font-size:1.15em;font-weight:800;white-space:nowrap}
+.info-box{background:var(--primary-bg);border:1px solid var(--border-soft);border-radius:10px;padding:11px 14px;font-size:.86em;color:var(--text-secondary);line-height:1.6;margin:8px 0}
+.tool-card{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:14px 18px;border:1.5px solid var(--border-med);border-radius:11px;background:#fff;color:var(--primary-dark);text-decoration:none;font-weight:700;cursor:pointer;transition:all .13s}
+.tool-card:hover{border-color:var(--primary);background:var(--primary-light);box-shadow:var(--shadow-sm)}
+.tool-card .tool-card-arr{font-size:1.25em;color:var(--primary)}
+.tool-sub{font-size:.82em;color:var(--text-muted);margin-top:4px}
+</style></head><body data-lang="en">
+
+<div class="hd">
+  <div>
+    <div class="t"><span class="ko-text">ADHD 트래커</span><span class="en-text">ADHD Tracker</span></div>
+    <div class="s"><span class="ko-text">Boston Neuromind · ADHD 스크리닝 & 훈련</span><span class="en-text">Boston Neuromind · ADHD Screening & Training</span></div>
+  </div>
+  <div class="hd-right">
+    <a href="dmda/admin.html" class="admin-link">⚙ <span class="ko-text">관리자</span><span class="en-text">Admin</span></a>
+    <div class="langfix"><button id="g-ko" data-lang="kr">KO</button><button id="g-en" class="on" data-lang="en">EN</button></div>
+  </div>
+</div>
+
+<div class="ctrl">
+  <label><span class="ko-text">나이:</span><span class="en-text">Age:</span></label>
+  <input type="number" id="p-age" value="35" min="6" max="99" style="width:52px">
+  <label><span class="ko-text">성별:</span><span class="en-text">Sex:</span></label>
+  <select id="p-sex"><option value="">-</option><option value="M"><span class="ko-text">남</span><span class="en-text">M</span></option><option value="F"><span class="ko-text">여</span><span class="en-text">F</span></option></select>
+  <label><span class="ko-text">손잡이:</span><span class="en-text">Handedness:</span></label>
+  <select id="p-hand"><option value="right"><span class="ko-text">오른손</span><span class="en-text">Right</span></option><option value="left"><span class="ko-text">왼손</span><span class="en-text">Left</span></option><option value="ambidextrous"><span class="ko-text">양손</span><span class="en-text">Ambi</span></option></select>
+  <span class="divider"></span>
+  <label>QEEG EDF:</label>
+  <label class="edf-btn" id="lbl-ec">EC <input type="file" id="edf-ec" accept=".edf,.xdfx,.csv,.eeg" style="display:none"></label>
+  <label class="edf-btn" id="lbl-eo">EO <input type="file" id="edf-eo" accept=".edf,.xdfx,.csv,.eeg" style="display:none"></label>
+  <button id="run-btn" class="edf-btn" style="background:var(--primary);color:#fff;border-color:var(--primary)"><span class="ko-text">분석 시작</span><span class="en-text">Run</span></button>
+  <button id="clear-btn" class="act-btn"><span class="ko-text">지우기</span><span class="en-text">Clear</span></button>
+  <span id="edf-status" style="font-size:13px;color:var(--primary);font-weight:600"></span>
+</div>
+
+<div class="body">
+
+  <!-- ===== AREA: SymptomCatcher ===== -->
+  <div class="area-label"><span class="ko-text">분석 영역</span><span class="en-text">Area</span></div>
+  <div class="area-bar" id="areabar">
+    <button data-a="symptom" class="on"><span class="ko-text">ADHD 트래커</span><span class="en-text">ADHD Tracker</span></button>
+    <!-- [ADHD단일] <button data-a="dsm">DSM5_TR</button> -->
+  </div>
+
+  <div class="area show" id="area-symptom">
+    <div class="rpt-tabbar">
+      <button data-t="s-in" class="on"><span class="ko-text">입력</span><span class="en-text">Intake</span></button>
+      <button data-t="s-sv"><span class="ko-text">설문</span><span class="en-text">Survey</span></button>
+      <button data-t="s-meas"><span class="ko-text">QEEG</span><span class="en-text">QEEG</span></button>
+      <button data-t="s-nf"><span class="ko-text">뉴로피드백</span><span class="en-text">Neurofeedback</span></button>
+      <button data-t="s-trk"><span class="ko-text">추적</span><span class="en-text">Tracking</span></button>
+    </div>
+
+    <div id="tab-s-in" class="rtab show"><div class="pat">
+      <div class="h"><span class="ko-text">입력 — 환자 · BPS · AI모듈</span><span class="en-text">Intake — Patient · BPS · AI Modules</span></div>
+      <span class="ko-text">환자 정보 등록, BPS 평가, AI 진단 모듈 선택. 좌우뇌 QEEG(EC/EO)는 상단 EDF에서 업로드.</span><span class="en-text">Patient registration, BPS assessment, AI module selection. Bilateral QEEG (EC/EO) uploads from the top EDF strip.</span>
+      <div class="intake-note"><span class="ko-text">※ 나이 · 성별 · 손잡이 · QEEG(EC/EO)는 상단 입력줄에서 관리됩니다. 아래는 임상 기록입니다.</span><span class="en-text">※ Age · sex · handedness · QEEG (EC/EO) are managed in the top strip. Below is the clinical record.</span></div>
+
+      <!-- [triage-save] 임상가 등록 환자 선택 → 매칭 AI를 그 환자로 저장(dept='symptom'). 로그인 임상가면 노출. -->
+      <div class="form-section" id="tri-patient-select-section" style="display:none">
+        <div class="form-section-title">👤 <span class="ko-text">등록 환자 선택</span><span class="en-text">Select Registered Patient</span></div>
+        <select id="tri-patient-select" onchange="triSelectPatient(this.value)" style="width:100%;max-width:360px;padding:8px;border:1px solid var(--border-med,#CAD6DE);border-radius:8px;font:inherit">
+          <option value="">— <span class="ko-text">새 환자 / 익명 (저장 안 함)</span><span class="en-text">New / anonymous (not saved)</span> —</option>
+        </select>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">🎯 <span class="ko-text">등록 방식</span><span class="en-text">Registration Mode</span></div>
+        <div class="mode-selector">
+          <div class="mode-card selected" id="mode-simple" onclick="setRegMode('simple')">
+            <div class="mode-card-icon">⚡</div>
+            <div class="mode-card-title"><span class="ko-text">간편 등록</span><span class="en-text">Simple</span></div>
+            <div class="mode-card-desc"><span class="ko-text">이름·ID만 · 빠른 평가</span><span class="en-text">Name & ID only · Quick screening</span></div>
+          </div>
+          <div class="mode-card" id="mode-full" onclick="setRegMode('full')">
+            <div class="mode-card-icon">📋</div>
+            <div class="mode-card-title"><span class="ko-text">정식 등록</span><span class="en-text">Full</span></div>
+            <div class="mode-card-desc"><span class="ko-text">병력·약물·가족력 포함 · 정밀 평가</span><span class="en-text">Includes history, meds, family · Comprehensive</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">📝 <span class="ko-text">기본 정보</span><span class="en-text">Basic Info</span></div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="field-label"><span class="ko-text">이름</span><span class="en-text">Name</span> <span class="field-hint">(<span class="ko-text">선택</span><span class="en-text">optional</span>)</span></label>
+            <input type="text" class="field-input" id="pf-name" placeholder="John Doe">
+          </div>
+          <div class="form-field">
+            <label class="field-label"><span class="ko-text">환자 ID</span><span class="en-text">Patient ID</span> <span class="field-hint">(<span class="ko-text">선택</span><span class="en-text">optional</span>)</span></label>
+            <input type="text" class="field-input" id="pf-id" placeholder="e.g., BNM-001">
+          </div>
+        </div>
+      </div>
+
+      <div id="pf-full-fields" style="display:none">
+        <div class="form-section">
+          <div class="form-section-title">🏥 <span class="ko-text">주호소 및 병력</span><span class="en-text">Chief Complaint &amp; History</span></div>
+          <div class="form-field full" style="margin-bottom:12px">
+            <label class="field-label"><span class="ko-text">주 호소 증상</span><span class="en-text">Chief Complaint</span></label>
+            <textarea class="field-textarea" id="pf-chief" data-ko-ph="예: 2개월 전부터 우울감과 집중력 저하" data-en-ph="e.g., Depression & attention issues for 2 months"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label class="field-label"><span class="ko-text">증상 지속 기간</span><span class="en-text">Symptom Duration</span></label>
+              <select class="field-select" id="pf-duration">
+                <option value="" data-ko="선택" data-en="Select">Select</option>
+                <option value="<2w" data-ko="2주 미만" data-en="&lt;2 weeks">&lt;2 weeks</option>
+                <option value="2w-1m" data-ko="2주-1개월" data-en="2w-1m">2w-1m</option>
+                <option value="1-3m" data-ko="1-3개월" data-en="1-3m">1-3m</option>
+                <option value="3-6m" data-ko="3-6개월" data-en="3-6m">3-6m</option>
+                <option value="6m-1y" data-ko="6개월-1년" data-en="6m-1y">6m-1y</option>
+                <option value=">1y" data-ko="1년 이상" data-en="&gt;1 year">&gt;1 year</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="field-label"><span class="ko-text">방문 유형</span><span class="en-text">Visit Type</span></label>
+              <select class="field-select" id="pf-visit">
+                <option value="first" data-ko="초진" data-en="First">First</option>
+                <option value="followup" data-ko="재진" data-en="Follow-up">Follow-up</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-field full" style="margin-bottom:12px">
+            <label class="field-label"><span class="ko-text">정신과 과거력</span><span class="en-text">Psychiatric History</span></label>
+            <textarea class="field-textarea" id="pf-history" data-ko-ph="과거 진단·입원·치료 이력" data-en-ph="Past diagnoses, hospitalizations, treatments"></textarea>
+          </div>
+          <div class="form-field full" style="margin-bottom:12px">
+            <label class="field-label"><span class="ko-text">현재 복용 약물</span><span class="en-text">Current Medications</span></label>
+            <textarea class="field-textarea" id="pf-meds" data-ko-ph="약물명·용량·복용 기간" data-en-ph="Drug names, doses, duration"></textarea>
+          </div>
+          <div class="form-field full">
+            <label class="field-label"><span class="ko-text">가족 정신과력</span><span class="en-text">Family Psychiatric History</span></label>
+            <textarea class="field-textarea" id="pf-family" data-ko-ph="가족의 정신과 진단" data-en-ph="Family mental health history"></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">🧪 <span class="ko-text">물질 사용력</span><span class="en-text">Substance History</span></div>
+          <div class="form-row">
+            <div class="form-field">
+              <label class="field-label"><span class="ko-text">알코올</span><span class="en-text">Alcohol</span></label>
+              <select class="field-select" id="pf-alcohol">
+                <option value="none" data-ko="전혀" data-en="None">None</option>
+                <option value="occasional" data-ko="가끔" data-en="Occasional">Occasional</option>
+                <option value="regular" data-ko="정기적" data-en="Regular">Regular</option>
+                <option value="heavy" data-ko="과음" data-en="Heavy">Heavy</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="field-label"><span class="ko-text">흡연</span><span class="en-text">Tobacco</span></label>
+              <select class="field-select" id="pf-tobacco">
+                <option value="none" data-ko="비흡연" data-en="None">None</option>
+                <option value="former" data-ko="과거 흡연" data-en="Former">Former</option>
+                <option value="current" data-ko="현재 흡연" data-en="Current">Current</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:4px">
+        <button class="intake-save" onclick="savePatientForm()"><span class="ko-text">환자 정보 저장</span><span class="en-text">Save Patient Info</span></button>
+        <span id="intake-saved"></span>
+      </div>
+    </div>
+    <!-- ===== AI 모듈 선택 그리드 (intake-engine.js) ===== -->
+    <div class="pat" style="margin-top:16px">
+      <div class="h"><span class="ko-text">AI 진단 모듈 선택</span><span class="en-text">Select AI Diagnostic Modules</span></div>
+      <div class="intake-note"><span class="ko-text">감별 분석에 포함할 캐처 모듈을 선택하세요. 카테고리별로 묶여 있고, 카드를 눌러 선택/해제합니다.</span><span class="en-text">Select the catcher modules to include in the differential. Grouped by category — click a card to toggle.</span></div>
+      <div id="preset-btns" class="preset-row"></div>
+      <div id="categories-grid" class="cat-grid"></div>
+      <div id="modules-list"></div>
+    </div>
+    <div id="sel-bar" class="sel-bar">
+      <div id="sel-bar-chips" class="sel-bar-chips"></div>
+      <div class="sel-bar-right">
+        <span id="sel-bar-stats"></span>
+        <button class="sel-clear" onclick="clearAllModules()"><span class="ko-text">전체 해제</span><span class="en-text">Clear all</span></button>
+      </div>
+    </div>
+    <!-- [bridge] 엔진 auto-fill 대상 obj-* 필드: 입력탭 이식 전까지 hidden으로 존재시켜 크래시 방지 -->
+    <input type="hidden" id="obj-theta_beta_ratio"><input type="hidden" id="obj-frontal_alpha_asym"><input type="hidden" id="obj-posterior_alpha">
+    </div>
+
+    <div id="tab-s-sv" class="rtab"><div class="pat">
+      <div class="h"><span class="ko-text">설문 — ADHD 자기보고</span><span class="en-text">Survey — ADHD Self-Report</span></div>
+      <span class="ko-text">ASRS 파생 자기보고 (주의력·과잉행동·수면·정서). 각 문항 0(전혀)~4(매우 자주).</span><span class="en-text">ASRS-derived self-report (attention · hyperactivity · sleep · emotion). 0 (never) – 4 (very often).</span>
+      <div id="adhd-survey-progress" style="margin:12px 0 4px"></div>
+      <div id="adhd-survey-container" style="margin-top:8px;max-width:900px"></div>
+      <div style="margin:12px 0">
+        <button class="intake-save" onclick="AdhdEngine.runSurvey()"><span class="ko-text">채점 · 판별</span><span class="en-text">Score · Classify</span></button>
+      </div>
+      <div id="adhd-survey-result"></div>
+    </div></div>
+
+    <!-- ===== QEEG분석 탭 — 실작동 (엔진 배선) ===== -->
+    <div id="tab-s-meas" class="rtab">
+      <div id="eeg-empty" class="pat">
+        <span class="ko-text">상단에서 EC/EO 뇌파(EDF/xdfx/CSV) 파일을 올리고 [분석 시작]을 누르면 결과가 표시됩니다.</span><span class="en-text">Upload EC/EO EEG files (EDF/xdfx/CSV) in the strip above and click [Run] to see results.</span>
+        <div class="ph"><span class="ko-text">19채널 밴드파워 · Z-스코어 · QEEG표 · EO/EC 알파 감쇠 — 무료, 서버 없이 브라우저 내 분석.</span><span class="en-text">19-channel band powers · Z-scores · QEEG table · EO/EC alpha attenuation — free, fully in-browser.</span></div>
+      </div>
+      <div class="qeeg-slots">
+        <div class="qeeg-slot"><div id="eeg-upload-status-ec"></div></div>
+        <div class="qeeg-slot"><div id="eeg-upload-status-eo"></div></div>
+      </div>
+      <div id="eeg-upload-status"></div>
+      <div id="eeg-summary"></div>
+      <div id="eeg-topo" style="margin-top:12px"></div>
+      <div id="eeg-bands"></div>
+      <div id="eeg-analysis-results" style="margin-top:12px"></div>
+      <div id="eeg-zgauge"></div>
+      <div id="eeg-eo-ec-comparison" style="margin-top:12px"></div>
+      <div id="eeg-guide" style="margin-top:12px"></div>
+      <!-- HRV/Temp/GSR 옵션 자리 - B단계 배선 -->
+      <div class="pat" style="margin-top:12px">
+        <div class="h"><span class="ko-text">수동 입력 (측정값)</span><span class="en-text">Manual input (measures)</span></div>
+        <span class="ko-text" style="font-size:12px;color:#4A6472">QEEG/HRV 등을 직접 입력하면 판별에 반영됩니다. (EDF 업로드 결과가 있으면 자동 연동 예정 — B단계)</span><span class="en-text" style="font-size:12px;color:#4A6472">Enter QEEG/HRV values manually to feed classification. (Auto-link from EDF upload — stage B)</span>
+        <div id="adhd-measure-container" style="margin-top:10px"></div>
+        <div style="margin:10px 0"><button class="intake-save" onclick="AdhdEngine.saveMeasure()"><span class="ko-text">측정값 저장</span><span class="en-text">Save measures</span></button></div>
+        <div id="adhd-measure-result"></div>
+      </div>
+    </div>
+
+    <div id="tab-s-nf" class="rtab">
+      <div class="pat">
+        <div class="h"><span class="ko-text">뉴로피드백 세션</span><span class="en-text">Neurofeedback Session</span></div>
+        <span class="ko-text">세션별 밴드파워를 입력하면 Monastra θ/β·Busy-Brain·Delta-Theta를 자동 계산하고 추세를 추적합니다.</span><span class="en-text">Enter per-session band powers to auto-compute Monastra θ/β · Busy-Brain · Delta-Theta and track progress.</span>
+        <div class="h" style="margin-top:14px"><span class="ko-text">① 세션 입력</span><span class="en-text">① Session input</span></div>
+        <div style="margin:6px 0">
+          <label class="edf-btn" style="cursor:pointer">📂 <span class="ko-text">파일 업로드</span><span class="en-text">Upload file</span><input type="file" id="nf-file" accept=".xlsx,.csv,.txt,.edf" style="display:none" onchange="AdhdNF.parseFile(this)"></label>
+          <span class="intake-note" style="margin-left:8px"><span class="ko-text">ProComp/BioGraph 파일 또는 1Hz-bin 엑셀 (파서 준비중 — 수동 폴백)</span><span class="en-text">ProComp/BioGraph or 1Hz-bin Excel (parser coming — manual fallback)</span></span>
+        </div>
+        <div id="nf-file-note" style="font-size:12px;color:#8FA9BC;margin:4px 0"></div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px">
+          <label style="font-size:12px;color:#3A5566"><span class="ko-text">세션 #</span><span class="en-text">Session #</span><input id="nf-num" type="number" min="1" step="1" style="width:100%;padding:6px;border:1px solid #CAD6DE;border-radius:6px;margin-top:3px"></label>
+          <label style="font-size:12px;color:#3A5566"><span class="ko-text">조건</span><span class="en-text">Condition</span><select id="nf-cond" style="width:100%;padding:6px;border:1px solid #CAD6DE;border-radius:6px;margin-top:3px"><option value="EO">EO</option><option value="EC">EC</option></select></label>
+          <label style="font-size:12px;color:#3A5566">Theta (µV²)<input id="nf-theta" type="number" step="0.1" style="width:100%;padding:6px;border:1px solid #CAD6DE;border-radius:6px;margin-top:3px"></label>
+          <label style="font-size:12px;color:#3A5566">Alpha (µV²)<input id="nf-alpha" type="number" step="0.1" style="width:100%;padding:6px;border:1px solid #CAD6DE;border-radius:6px;margin-top:3px"></label>
+          <label style="font-size:12px;color:#3A5566">SMR 12-15 (µV²)<input id="nf-smr" type="number" step="0.1" style="width:100%;padding:6px;border:1px solid #CAD6DE;border-radius:6px;margin-top:3px"></label>
+          <label style="font-size:12px;color:#3A5566">Beta 15-20 (µV²)<input id="nf-beta" type="number" step="0.1" style="width:100%;padding:6px;border:1px solid #CAD6DE;border-radius:6px;margin-top:3px"></label>
+          <label style="font-size:12px;color:#3A5566">HiBeta 20-30 (µV²)<input id="nf-hibeta" type="number" step="0.1" style="width:100%;padding:6px;border:1px solid #CAD6DE;border-radius:6px;margin-top:3px"></label>
+        </div>
+        <div style="margin:10px 0"><button class="intake-save" onclick="AdhdNF.analyzeAndSave()"><span class="ko-text">분석 · 저장</span><span class="en-text">Analyze · Save</span></button></div>
+        <div id="nf-analysis"></div>
+        <div class="h" style="margin-top:18px"><span class="ko-text">③ 세션 추적</span><span class="en-text">③ Session tracking</span></div>
+        <div id="nf-sessions" style="margin-top:6px"></div>
+        <div style="margin-top:10px"><canvas id="nf-chart" height="140"></canvas></div>
+        <div id="nf-prepost" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <!-- [재편] 감별분석 텝 보류 (삭제 아님, 복원 가능):
+    <div id="tab-s-re" class="rtab">
+      <div id="re-report" class="pat">
+        <div class="h"><span class="ko-text">감별분석</span><span class="en-text">Differential analysis</span></div>
+        <span class="ko-text">사후확률(posterior), 5-lens 점수, 감별 배제 논리를 눈에 보이게. (renderResults 11 도식)</span><span class="en-text">Posterior probabilities, five-lens scoring, differential exclusion made explicit. (renderResults 11 panels)</span>
+        <div style="margin:10px 0">
+          <button class="intake-save" onclick="scStartDifferential()"><span class="ko-text">감별 분석 실행</span><span class="en-text">Run Differential</span></button>
+        </div>
+        <div id="results-container"></div>
+      </div>
+      <div class="result-actions"><button class="save-btn" onclick="savePDF('re-report','symptom_screening.pdf')">📄 <span class="ko-text">PDF 저장</span><span class="en-text">Save PDF</span></button></div>
+    </div>
+    -->
+
+    <!-- [재편] 얼굴기반 텝 보류 (삭제 아님, 복원 가능):
+    <div id="tab-s-face" class="rtab"><div class="pat">
+      <div class="h"><span class="ko-text">얼굴 기반 분석</span><span class="en-text">Face-based Analysis</span></div>
+      <div class="intake-note"><span class="ko-text">같은 세션의 얼굴 기반 분석입니다. 전용 페이지에서 진행됩니다. (환자정보 자동 연계는 준비 중)</span><span class="en-text">Face-based analysis for the same session. Runs in its dedicated page. (Auto patient-data handoff coming soon.)</span></div>
+      <a class="tool-card" href="face-reading/face-reading-v3.5.html" onclick="return openTool(this)"><span><span class="ko-text">얼굴 분석 열기</span><span class="en-text">Open Face Analysis</span></span><span class="tool-card-arr">→</span></a>
+    </div></div>
+    -->
+    <div id="tab-s-trk" class="rtab"><div class="ai-lk-wrap">
+      <div id="ai-inner" class="ai-lk-blur">
+      <div class="pat">
+        <div class="h"><span class="ko-text">종합 리포트</span><span class="en-text">Comprehensive Report</span></div>
+        <span class="ko-text">설문 판별 + QEEG + 추천을 통합한 DMDA급 종합 리포트입니다. (유료 · 게이트 뒤)</span><span class="en-text">Integrated DMDA-grade report: survey classification + QEEG + recommendations. (paid · behind gate)</span>
+        <div style="margin:12px 0">
+          <button class="ai-run" onclick="AdhdReport.build()"><span class="ko-text">리포트 생성</span><span class="en-text">Generate report</span></button>
+          <button class="ai-run" style="margin-left:8px;background:#5B7B94" onclick="AdhdReport.savePDF()">📄 <span class="ko-text">PDF 저장</span><span class="en-text">Save PDF</span></button>
+        </div>
+        <div id="adhd-report-container"></div>
+      </div>
+      <div id="ai-result"></div>
+      </div>
+      <div id="ai-lock" class="ai-lk-over"><div style="color:var(--primary-dark);opacity:.7;font-size:13px">…</div></div>
+    </div></div>
+  </div>
+
+  <!-- ===== AREA: DSM-5-TR ===== -->
+  <div class="area" id="area-dsm">
+    <div class="pat">
+      <div class="h"><span class="ko-text">DSM5_TR판별</span><span class="en-text">DSM5_TR</span></div>
+      <div class="intake-note"><span class="ko-text">DSM5_TR판별은 독립 워크플로우입니다. <b>가입정보 → 타이핑 캘리브레이션 → 90문항 BPS 설문 → qEEG 분석</b> 순으로 전용 페이지에서 진행됩니다.</span><span class="en-text">DSM5_TR is an independent workflow: <b>registration → typing calibration → 90-item BPS survey → qEEG analysis</b>, in dedicated pages.</span></div>
+      <a class="tool-card" href="dmda/intake.html" onclick="return openTool(this)"><span><span class="ko-text">1. 문진</span><span class="en-text">1. Intake</span><div class="tool-sub"><span class="ko-text">환자 문진 입력</span><span class="en-text">Patient intake</span></div></span><span class="tool-card-arr">→</span></a>
+      <a class="tool-card" href="dmda/engine.html" onclick="return openTool(this)"><span><span class="ko-text">2. 감별 엔진</span><span class="en-text">2. Engine</span><div class="tool-sub"><span class="ko-text">QEEG·설문 통합 분석</span><span class="en-text">QEEG·survey analysis</span></div></span><span class="tool-card-arr">→</span></a>
+      <a class="tool-card" href="dmda/assessment.html" onclick="return openTool(this)"><span><span class="ko-text">3. 평가</span><span class="en-text">3. Assessment</span><div class="tool-sub"><span class="ko-text">임상 평가</span><span class="en-text">Clinical assessment</span></div></span><span class="tool-card-arr">→</span></a>
+      <a class="tool-card" href="dmda/report.html" onclick="return openTool(this)"><span><span class="ko-text">4. 보고서</span><span class="en-text">4. Report</span><div class="tool-sub"><span class="ko-text">최종 보고서</span><span class="en-text">Final report</span></div></span><span class="tool-card-arr">→</span></a>
+    </div>
+  </div>
+  <!-- ===== AREA: Face-based ===== -->
+
+
+</div>
+
+<script>
+// [bridge 1] 엔진이 참조하는 state — lang은 body[data-lang] 게터(엔진 무편집), patient/objectiveData 제공.
+window.state = {
+  patient:{ age:35, sex:'', gender:'', handedness:'right', name:'', id:'' },
+  regMode:'simple',
+  objectiveData:{},
+  get lang(){ return document.body.getAttribute('data-lang')==='ko' ? 'ko' : 'en'; }
+};
+var pendingEC=null, pendingEO=null;
+
+function openTool(a){ try{ var l=document.body.getAttribute("data-lang")||"en"; var h=a.getAttribute("href"); window.location.href=h+(h.indexOf("?")>=0?"&":"?")+"lang="+l; }catch(e){ window.location.href=a.getAttribute("href"); } return false; }
+function applyLang(l){
+  document.body.setAttribute('data-lang', l==='kr'?'ko':'en');
+  document.getElementById('g-ko').classList.toggle('on', l==='kr');
+  document.getElementById('g-en').classList.toggle('on', l==='en');
+  reRenderQEEG(); // [bridge 2] 언어 토글 시 구워진 QEEG 출력 재렌더
+  relabelFormI18n(); // [bridge 3] 입력폼 select/placeholder i18n
+}
+// [bridge 2] QEEG 결과가 떠있으면 현재 언어로 다시 그림 (엔진 renderQEEGTable/renderEOECComparison 재호출)
+function reRenderQEEG(){
+  try{
+    if(!window.state || !state.eegQeegData) return;
+    var qd = state.eegEC ? state.eegEC.qeegData : (state.eegEO ? state.eegEO.qeegData : state.eegQeegData);
+    var zs = state.eegEC ? state.eegEC.zscores  : (state.eegEO ? state.eegEO.zscores  : state.eegZScores);
+    var r=document.getElementById('eeg-analysis-results'); if(r && typeof renderQEEGTable==='function') r.innerHTML=renderQEEGTable(qd, zs);
+    var topoEl=document.getElementById('eeg-topo');
+    if(topoEl && typeof renderBrainTopoFromRealData==='function') topoEl.innerHTML=renderBrainTopoFromRealData(zs);
+    function setH(id,html){ var e=document.getElementById(id); if(e) e.innerHTML=html||''; }
+    if(typeof renderQEEGSummary==='function') setH('eeg-summary', renderQEEGSummary(qd,zs));
+    if(typeof renderBandBars==='function')    setH('eeg-bands',   renderBandBars(qd));
+    if(typeof renderZGauge==='function')      setH('eeg-zgauge',  renderZGauge(zs));
+    if(typeof renderQEEGGuide==='function')   setH('eeg-guide',   renderQEEGGuide());
+    if(state.eegEO && state.eegEC && typeof renderEOECComparison==='function') renderEOECComparison();
+  }catch(e){ if(window.console)console.warn('reRenderQEEG', e); }
+}
+function setRegMode(mode){
+  state.regMode = mode;
+  var ms=document.getElementById('mode-simple'), mf=document.getElementById('mode-full');
+  if(ms) ms.classList.toggle('selected', mode==='simple');
+  if(mf) mf.classList.toggle('selected', mode==='full');
+  var full=document.getElementById('pf-full-fields'); if(full) full.style.display = (mode==='full')?'block':'none';
+}
+function savePatientForm(){
+  var g=function(id){ var e=document.getElementById(id); return e?e.value:''; };
+  state.patient.name = g('pf-name');
+  state.patient.id   = g('pf-id') || ('anon_'+Date.now());
+  state.patient.age  = +g('p-age')||35;
+  state.patient.sex  = g('p-sex');
+  state.patient.gender = state.patient.sex; // 엔진/renderResults는 gender 키 사용
+  state.patient.handedness = g('p-hand');
+  if(state.regMode==='full'){
+    state.patient.chiefComplaint = g('pf-chief');
+    state.patient.duration       = g('pf-duration');
+    state.patient.visitType      = g('pf-visit');
+    state.patient.history        = g('pf-history');
+    state.patient.medications    = g('pf-meds');
+    state.patient.familyHistory  = g('pf-family');
+    state.patient.alcohol        = g('pf-alcohol');
+    state.patient.tobacco        = g('pf-tobacco');
+  }
+  var msg=document.getElementById('intake-saved');
+  if(msg){ msg.textContent = (state.lang==='ko'?'저장됨 ✓':'Saved ✓'); setTimeout(function(){ if(msg) msg.textContent=''; }, 2500); }
+}
+// [bridge 3] native <select>/placeholder는 span 토글이 안 먹음 → data-ko/en 로 재라벨
+function relabelFormI18n(){
+  var ko = document.body.getAttribute('data-lang')==='ko';
+  document.querySelectorAll('select option[data-ko]').forEach(function(o){
+    var t = ko ? o.getAttribute('data-ko') : o.getAttribute('data-en');
+    if(t!=null){ var tmp=document.createElement('textarea'); tmp.innerHTML=t; o.textContent=tmp.value; }
+  });
+  document.querySelectorAll('[data-ko-ph]').forEach(function(el){
+    var t = ko ? el.getAttribute('data-ko-ph') : el.getAttribute('data-en-ph');
+    if(t!=null) el.setAttribute('placeholder', t);
+  });
+}
+function switchSymptomTab(t){
+  var area=document.getElementById('area-symptom');
+  area.querySelectorAll('.rpt-tabbar button').forEach(function(b){b.classList.toggle('on', b.getAttribute('data-t')===t);});
+  area.querySelectorAll('.rtab').forEach(function(d){d.classList.toggle('show', d.id==='tab-'+t);});
+}
+function savePDF(elId, filename){
+  var el=document.getElementById(elId);
+  if(window.html2pdf){ html2pdf().set({margin:10,filename:filename,html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4'}}).from(el).save(); }
+  else { window.print(); }
+}
+// QEEG 실행: EC/EO 선택본을 엔진 handleEEGFile로 분석 → 표 렌더 → QEEG탭으로 이동
+async function runQEEG(){
+  var ko=state.lang==='ko';
+  if(!pendingEC && !pendingEO){ document.getElementById('edf-status').textContent = ko?'EC/EO 파일을 먼저 선택하세요':'Pick EC/EO files first'; return; }
+  var empty=document.getElementById('eeg-empty'); if(empty) empty.style.display='none';
+  document.getElementById('edf-status').textContent = ko?'분석 중…':'Analyzing…';
+  document.getElementById('run-btn').disabled=true;
+  try{
+    if(pendingEC){ await handleEEGFile(pendingEC,'ec'); document.getElementById('lbl-ec').classList.add('done'); }
+    if(pendingEO){ await handleEEGFile(pendingEO,'eo'); document.getElementById('lbl-eo').classList.add('done'); }
+    reRenderQEEG();                 // 채널 표(엔진은 condLabel일 때 표를 안 그리므로 여기서 렌더)
+    switchSymptomTab('s-qeeg');
+    document.getElementById('edf-status').textContent = ko?'분석 완료':'Done';
+  }catch(e){ document.getElementById('edf-status').textContent = (ko?'오류: ':'Error: ')+((e&&e.message)||e); if(window.console)console.error(e); }
+  document.getElementById('run-btn').disabled=false;
+}
+// AI 진행 UI — learning startProgress 문구/진행바 패턴 (데모 타이머, 실 엔드포인트 배선 전 시각화용)
+function runAIDeepDemo(){
+  var box=document.getElementById('ai-result'); var btn=document.getElementById('ai-run-btn');
+  var en=document.body.getAttribute('data-lang')==='en'; var eta=115, s=0;
+  btn.disabled=true;
+  box.innerHTML='<div class="prog"><div class="line"></div><div class="prog-bar"><div></div></div></div>';
+  var line=box.querySelector('.line'), bar=box.querySelector('.prog-bar>div');
+  var iv=setInterval(function(){
+    s++; var pct=Math.min(96, Math.round(s/eta*100));
+    if(s<=eta){ line.textContent = en ? ('AI deep analysis… · '+s+'s elapsed / ~'+eta+'s') : ('AI 심층 분석 중 · 경과 '+s+'초 / 예상 ~'+eta+'초'); bar.style.background='var(--primary)'; }
+    else { line.textContent = en ? 'Taking longer than expected — almost done' : '예상보다 길어지는 중 — 곧 완료'; bar.style.background='#8AA5B5'; pct=98; }
+    bar.style.width=pct+'%';
+    if(s>=12){ clearInterval(iv);
+      box.innerHTML='<div id="ai-report" class="pat"><div class="h">🤖 <span class="ko-text">AI 심층 분석</span><span class="en-text">AI deep analysis</span></div><span class="ko-text">여기에 AI 임상 해석 · NF 프로토콜 보고서가 표시됩니다. (실 엔드포인트 배선 후)</span><span class="en-text">AI clinical interpretation and NF protocol report appears here. (after endpoint wiring)</span></div><div class="result-actions"><button class="save-btn" onclick="savePDF(\'ai-report\',\'symptom_ai_report.pdf\')">📄 <span class="ko-text">PDF 저장</span><span class="en-text">Save PDF</span></button></div>';
+      btn.disabled=false;
+    }
+  },1000);
+}
+window.addEventListener('DOMContentLoaded',function(){
+  // 영한 토글
+  ['g-ko','g-en'].forEach(function(id){
+    document.getElementById(id).addEventListener('click',function(e){
+      var l=e.target.dataset.lang;
+      try{ if(typeof window.bnmSetLang==='function') window.bnmSetLang(l==='kr'?'ko':'en'); }catch(x){}
+      applyLang(l);
+    });
+  });
+  // 영역 2층 전환 (첫 탭 리셋)
+  document.querySelectorAll('#areabar button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var aa=b.getAttribute('data-a');
+      document.querySelectorAll('#areabar button').forEach(function(x){x.classList.toggle('on',x===b);});
+      document.querySelectorAll('.area').forEach(function(d){
+        var on=d.id==='area-'+aa; d.classList.toggle('show',on);
+        if(on){ var bar=d.querySelector('.rpt-tabbar'); if(bar){ var bs=bar.querySelectorAll('button'); bs.forEach(function(x,i){x.classList.toggle('on',i===0);}); var f=bs.length?bs[0].getAttribute('data-t'):null; d.querySelectorAll('.rtab').forEach(function(p){p.classList.toggle('show',p.id==='tab-'+f);}); } }
+      });
+    });
+  });
+  // 워크플로우 탭 전환
+  document.querySelectorAll('.rpt-tabbar button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var tt=b.getAttribute('data-t'), area=b.closest('.area');
+      area.querySelectorAll('.rpt-tabbar button').forEach(function(x){x.classList.toggle('on',x===b);});
+      area.querySelectorAll('.rtab').forEach(function(d){d.classList.toggle('show',d.id==='tab-'+tt);});
+    });
+  });
+  // 환자 메타 → state.patient (엔진 computeZScores가 age 사용)
+  ['p-age','p-sex','p-hand'].forEach(function(id){
+    document.getElementById(id).addEventListener('change',function(){
+      state.patient.age=+document.getElementById('p-age').value||35;
+      state.patient.sex=document.getElementById('p-sex').value;
+      state.patient.gender=state.patient.sex; // 엔진/renderResults는 gender 키 사용
+      state.patient.handedness=document.getElementById('p-hand').value;
+    });
+  });
+  // EC/EO 파일 선택 → pending 저장 + picked 표시
+  document.getElementById('edf-ec').addEventListener('change',function(e){ if(e.target.files[0]){ pendingEC=e.target.files[0]; document.getElementById('lbl-ec').classList.add('picked'); } });
+  document.getElementById('edf-eo').addEventListener('change',function(e){ if(e.target.files[0]){ pendingEO=e.target.files[0]; document.getElementById('lbl-eo').classList.add('picked'); } });
+  // 분석 시작 → runQEEG
+  document.getElementById('run-btn').addEventListener('click', runQEEG);
+  // 지우기
+  document.getElementById('clear-btn').addEventListener('click',function(){
+    pendingEC=null; pendingEO=null;
+    ['lbl-ec','lbl-eo'].forEach(function(id){var e=document.getElementById(id);e.classList.remove('picked');e.classList.remove('done');});
+    document.getElementById('edf-ec').value=''; document.getElementById('edf-eo').value='';
+    ['eeg-upload-status-ec','eeg-upload-status-eo','eeg-upload-status','eeg-analysis-results','eeg-eo-ec-comparison'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML='';});
+    var empty=document.getElementById('eeg-empty'); if(empty) empty.style.display='block';
+    document.getElementById('edf-status').textContent='';
+    delete state.eegQeegData; delete state.eegEO; delete state.eegEC; delete state.eegZScores;
+  });
+  // 전역 언어 존중 → 없으면 EN 기본
+  var l='en';
+  try{ var g=(typeof window.bnmGetLang==='function')?window.bnmGetLang():(window.BNM_LANG||localStorage.getItem('bnm_lang')); if(g==='ko')l='kr'; else if(g==='en')l='en'; }catch(e){}
+  applyLang(l);
+});
+</script>
+<div id="modal-backdrop" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <div id="modal-content-wrapper"></div>
+    <button class="modal-close" onclick="document.getElementById('modal-backdrop').classList.remove('open')"><span class="ko-text">닫기</span><span class="en-text">Close</span></button>
+  </div>
+</div>
+<script src="adhd-engine/intake-engine.js"></script>
+<script>/* render AI module grid after engine + DOM parsed */try{window.scRenderModuleGrid&&window.scRenderModuleGrid();}catch(e){console.error('module grid init',e);}</script>
+<script>
+/* ── AI 분석 탭 결제 게이트 (자체완결, shared 0접촉) — bot='symptom' (사이트단위) ──
+   AdhdAuth 로그인 → check-access. access면 잠금해제(requestAIDeepUnlock 원래대로),
+   없으면 blur + 구독 UI. 정적 사이트(bostonneuromind.com) + adhd-config=sepiera라
+   create-checkout/check-access 직접(c.functions.invoke, learning 서버 브리지 없음).
+   기본 잠금(fail-closed): 오버레이 absolute inset:0 + ai-inner pointer-events:none로 버튼 물리 차단.
+   ★ symptom AI(requestAIDeepUnlock/symptom-ai-deep) 실행경로 0 접촉 — UI 잠금만. */
+(function(){
+  var BOT='symptom';
+  var PRICE={consumer:{monthly:'$15',yearly:'$100'},owner:{monthly:'$30',yearly:'$300'}};
+  var _plan='consumer_monthly', _type='consumer';
+  function kr(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
+  function tx(ko,en){ return kr()?ko:en; }
+  function $(id){ return document.getElementById(id); }
+  function authClient(){ return (window.AdhdAuth && AdhdAuth.configured()) ? AdhdAuth.client() : null; }
+  async function token(){ var c=authClient(); if(!c)return null; try{ var s=await c.auth.getSession(); return (s&&s.data&&s.data.session)?s.data.session.access_token:null; }catch(e){ return null; } }
+  async function checkAccess(){
+    var c=authClient(); if(!c)return {access:false,reason:'no-auth'};
+    if(!(await token()))return {access:false,reason:'login'};
+    try{ var r=await c.functions.invoke('check-access',{body:{bot:BOT}}); return r.error?{access:false,reason:'err'}:(r.data||{access:false}); }
+    catch(e){ return {access:false,reason:'err'}; }
+  }
+  async function startCheckout(){
+    var msg=$('aiCkMsg'); function show(s){ if(msg)msg.textContent=s; }
+    if(!(await token())){ show(tx('구독하려면 로그인이 필요해요. 홈에서 로그인 후 다시 시도하세요.','Sign in to subscribe, then retry.')); return; }
+    show(tx('결제창 여는 중…','Opening checkout…'));
+    try{
+      var c=authClient();
+      var r=await c.functions.invoke('create-checkout',{body:{bot:BOT,plan:_plan,return_url:location.href.split('?')[0]}});
+      if(r.error){ show(tx('결제창 오류: ','Checkout error: ')+(r.error.message||'')); return; }
+      var d=r.data||{};
+      if(d.url){ location.href=d.url; return; }
+      if(d.comp){ show(tx('이미 이용권이 있어요. 새로고침…','You already have access. Reloading…')); setTimeout(function(){location.reload();},1200); return; }
+      show(tx('결제창을 열지 못했어요: ','Could not open checkout: ')+(d.error||''));
+    }catch(e){ show(tx('네트워크 오류: ','Network error: ')+(e&&e.message||e)); }
+  }
+  function pcard(type,cycle){
+    var amt=PRICE[type][cycle], per=cycle==='monthly'?tx('/월','/mo'):tx('/년','/yr');
+    var on=(_plan===type+'_'+cycle);
+    var save=cycle==='yearly'?'<div style="font-size:11px;color:var(--primary);font-weight:700;margin-top:3px">'+tx('2개월 무료','2 mo free')+'</div>':'';
+    return '<button class="ai-pcard" data-plan="'+type+'_'+cycle+'" data-type="'+type+'" style="flex:1;min-width:108px;border-radius:12px;padding:10px 8px;cursor:pointer;font-family:inherit;border:2px solid '+(on?'var(--primary)':'var(--border-med)')+';background:'+(on?'var(--primary-bg)':'#fff')+';'+(type!==_type?'display:none;':'')+'">'+
+      '<div style="font-size:12px;color:var(--primary-dark);font-weight:700">'+(cycle==='monthly'?tx('월간','Monthly'):tx('연간','Yearly'))+'</div>'+
+      '<div style="font-size:20px;font-weight:900;color:var(--primary);line-height:1.2">'+amt+'<span style="font-size:11px;color:var(--primary-dark);font-weight:600">'+per+'</span></div>'+save+'</button>';
+  }
+  function renderLock(){
+    var lk=$('ai-lock'); if(!lk)return;
+    lk.innerHTML=
+      '<div style="font-size:17px;font-weight:800;color:var(--primary-dark);margin-bottom:6px">'+tx('AI 심층 분석은 구독 후 열람','Unlock the AI deep analysis')+'</div>'+
+      '<p style="color:var(--primary-dark);opacity:.8;font-size:13px;max-width:300px;margin:0 auto 12px">'+tx('상세 임상 해석 · NF 프로토콜이 열려요. 무료 QEEG·감별 결과는 그대로 이용할 수 있어요.','Detailed clinical interpretation and the NF protocol unlock. Free QEEG and differential results stay available.')+'</p>'+
+      '<div id="aiToggle" style="display:none;border:1px solid var(--border-med);border-radius:999px;overflow:hidden;margin-bottom:10px">'+
+        '<button data-pt="consumer" style="border:0;background:var(--primary);color:#fff;padding:6px 15px;font-weight:700;cursor:pointer;font-family:inherit">'+tx('개인','Individual')+'</button>'+
+        '<button data-pt="owner" style="border:0;background:transparent;color:var(--primary-dark);padding:6px 15px;font-weight:700;cursor:pointer;font-family:inherit">'+tx('임상가','Clinician')+'</button>'+
+      '</div>'+
+      '<div id="aiCards" style="display:flex;gap:8px;flex-wrap:wrap;max-width:300px;margin:0 auto 12px">'+pcard('consumer','monthly')+pcard('consumer','yearly')+pcard('owner','monthly')+pcard('owner','yearly')+'</div>'+
+      '<button id="aiSubBtn" style="border:none;border-radius:9px;background:var(--primary);color:#fff;font-weight:800;font-size:15px;padding:11px 22px;cursor:pointer;font-family:inherit">'+tx('선택한 요금제로 구독','Subscribe')+' →</button>'+
+      '<div id="aiCkMsg" style="font-size:12.5px;color:var(--primary-dark);opacity:.8;margin-top:9px;min-height:16px"></div>'+
+      '<div style="font-size:11px;color:#8a8a8a;margin-top:8px;max-width:300px;line-height:1.45">'+tx('이 구독은 SymptomCatcher의 AI만 잠금 해제합니다. 다른 사이트는 별도 구독이 필요합니다.','This subscription unlocks AI on SymptomCatcher only. Other Boston Neuromind sites need separate subscriptions.')+'</div>';
+    function paint(){ lk.querySelectorAll('.ai-pcard').forEach(function(c){ var on=c.getAttribute('data-plan')===_plan; c.style.border='2px solid '+(on?'var(--primary)':'var(--border-med)'); c.style.background=on?'var(--primary-bg)':'#fff'; }); }
+    lk.querySelectorAll('.ai-pcard').forEach(function(c){ c.addEventListener('click',function(){ _plan=c.getAttribute('data-plan'); paint(); }); });
+    lk.querySelectorAll('#aiToggle button').forEach(function(b){ b.addEventListener('click',function(){ _type=b.getAttribute('data-pt'); lk.querySelectorAll('#aiToggle button').forEach(function(x){ var on=x===b; x.style.background=on?'var(--primary)':'transparent'; x.style.color=on?'#fff':'var(--primary-dark)'; }); lk.querySelectorAll('.ai-pcard').forEach(function(c){ c.style.display=(c.getAttribute('data-type')===_type)?'':'none'; }); _plan=_type+'_monthly'; paint(); }); });
+    $('aiSubBtn').addEventListener('click',startCheckout);
+  }
+  var _busy=false;
+  async function gate(){
+    var inner=$('ai-inner'), lk=$('ai-lock'); if(!inner||!lk||_busy)return;
+    _busy=true;
+    var res=await checkAccess();
+    if(res&&res.access){ inner.classList.remove('ai-lk-blur'); lk.style.display='none'; lk.innerHTML=''; }
+    else{ inner.classList.add('ai-lk-blur'); lk.style.display='flex'; try{var _u=await AdhdAuth.getUser();var _dm=(_u&&_u.user_metadata&&_u.user_metadata.deploy_mode)==='professional'?'owner':'consumer';_type=_dm;_plan=_dm+'_monthly';}catch(e){} renderLock(); }
+    _busy=false;
+  }
+  function wire(){ var b=document.querySelector('.rpt-tabbar button[data-t="s-trk"]'); if(b)b.addEventListener('click',function(){ setTimeout(gate,0); }); }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire); else wire();
+})();
+</script>
+<script>
+// [triage-save] 환자 선택 드롭다운 — 로그인 임상가 자기 환자(listClientsPaged 격리) → state.patient.client_id (매칭 저장 연결). 익명=null=저장 skip. intake-engine.js state 공유(window.state).
+window.triSelectPatient = function(id){
+  window.state = window.state || {}; window.state.patient = window.state.patient || {};
+  window.state.patient.client_id = id || null;
+};
+async function triLoadPatientOptions(){
+  try{
+    if(!(window.AdhdAuth && AdhdAuth.configured && AdhdAuth.configured())) return;
+    var u = await AdhdAuth.getUser(); if(!u) return;
+    if(!(window.ADHD_DB && ADHD_DB.listClientsPaged)) return;
+    var sess = window.ADHD_SESSION || {};
+    var res = await ADHD_DB.listClientsPaged({ role:(sess.role||'clinician'), userId:(sess.user_id||u.id), clientId: sess.self_client_id, page:0 });
+    var rows = (res && res.rows) || [];
+    var sel = document.getElementById('tri-patient-select'); if(!sel) return;
+    rows.forEach(function(r){ var o=document.createElement('option'); o.value=r.id; o.textContent=(r.full_name||r.client_code||r.id)+(r.date_of_birth?(' · '+r.date_of_birth):''); sel.appendChild(o); });
+    if(rows.length){ var sec=document.getElementById('tri-patient-select-section'); if(sec) sec.style.display=''; }
+  }catch(e){}
+}
+if(window.AdhdAuth && AdhdAuth.onChange) AdhdAuth.onChange(function(){ triLoadPatientOptions(); });
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', triLoadPatientOptions); else triLoadPatientOptions();
+</script>
+<script>
+/* ===== ADHD Engine — adhd_rules.json 얇은 인터프리터 (설문→features→states→axes→profile) ===== */
+(function(){
+  var RULES=null;
+  function ko(){ try{ return (window.bnmGetLang&&window.bnmGetLang())==='ko'; }catch(e){ return false; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+  async function load(){ if(RULES) return RULES; var r=await fetch('adhd-engine/rules/adhd_rules.json'); RULES=await r.json(); return RULES; }
+
+  function totalItems(){ var R=RULES,n=0; (R&&R.surveys||[]).forEach(function(sv){ n+=(sv.items||[]).length; }); return n; }
+  function answeredItems(){ var R=RULES,n=0; (R&&R.surveys||[]).forEach(function(sv){ (sv.items||[]).forEach(function(it){ if(document.querySelector('input[name="adhd_'+it.id+'"]:checked')) n++; }); }); return n; }
+  function updateProgress(){ var p=document.getElementById('adhd-survey-progress'); if(!p) return; var t=totalItems(),a=answeredItems(),pct=t?Math.round(a/t*100):0; var isk=ko();
+    p.innerHTML='<div style="font-size:12px;color:#3A5566;margin-bottom:4px">'+(isk?'진행':'Progress')+' '+a+'/'+t+' ('+pct+'%)</div><div style="height:8px;background:#EEF2F4;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:#5B7B94;transition:width .2s"></div></div>'; }
+  function renderSurvey(){
+    var R=RULES; if(!R) return; var isk=ko(); var c=document.getElementById('adhd-survey-container'); if(!c) return;
+    var h='';
+    (R.surveys||[]).forEach(function(sv){
+      h+='<div style="font-weight:700;color:#3A5566;margin:14px 0 6px;font-size:.95rem">'+esc(sv.name)+'</div>';
+      (sv.items||[]).forEach(function(it){
+        var q=isk?(it.text_ko||it.text):it.text;
+        h+='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:10px;padding:16px;margin:8px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)">';
+        h+='<div style="font-size:1.15rem;line-height:1.4;margin-bottom:10px;color:#22333f">'+esc(q)+'</div>';
+        h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+        for(var val=0;val<=4;val++){ h+='<label style="flex:1;min-width:56px;text-align:center;padding:10px 0;border:1.5px solid #CAD6DE;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:600;color:#3A5566;background:#EEF2F4"><input type="radio" name="adhd_'+esc(it.id)+'" value="'+val+'" style="display:none" onchange="AdhdEngine.onPick(this)"> '+val+'</label>'; }
+        h+='</div></div>';
+      });
+    });
+    c.innerHTML=h; updateProgress();
+  }
+  function surveyScores(R){ var out={};
+    (R.surveys||[]).forEach(function(sv){ var sum=0,max=0,ans=0;
+      (sv.items||[]).forEach(function(it){ var w=it.weight||1; max+=4*w;
+        var el=document.querySelector('input[name="adhd_'+it.id+'"]:checked'); if(el){ sum+=parseInt(el.value,10)*w; ans++; } });
+      out[sv.id]={score: max?Math.round(sum/max*100):0, answered:ans, total:(sv.items||[]).length}; });
+    return out; }
+  function featureValues(R,ss){ var fv={};
+    (R.features||[]).forEach(function(f){ var cs=f.manual_input&&f.manual_input.computed_from_survey; if(cs&&ss[cs]) fv[f.id]=ss[cs].score; }); return fv; }
+  function operand(t,fv,st){ var x=0;
+    if(t.feature!=null) x=(fv[t.feature]!=null?fv[t.feature]:0); else if(t.state!=null) x=(st[t.state]!=null?st[t.state]:0);
+    if(t.transform==='distance_from_55_inverted') x=Math.max(0,100-Math.abs(x-55)*2); return x; }
+  function evalF(fm,fv,st){ var v=(fm&&fm.base!=null)?fm.base:0;
+    ((fm&&fm.terms)||[]).forEach(function(t){ var m=(t.multiplier!=null?t.multiplier:1), off=(t.offset!=null?t.offset:0);
+      if(t.op==='add') v+=(operand(t,fv,st)+off)*m;
+      else if(t.op==='subtract') v-=(operand(t,fv,st)+off)*m;
+      else if(t.op==='add_inverted') v+=(100-operand(t,fv,st))*m;
+      else if(t.op==='conditional_add'){ var raw=(t.feature!=null?fv[t.feature]:st[t.state])||0;
+        if(t.if_greater_than!=null&&raw>t.if_greater_than) v+=t.value; if(t.if_less_than!=null&&raw<t.if_less_than) v+=t.value; } });
+    return v; }
+  function states(R,fv){ var st={}; (R.state_formulas||[]).forEach(function(s){ st[s.id]=clamp(evalF(s.formula,fv,st),0,100); }); return st; }
+  function axesC(R,fv,st){ var a={}; Object.keys(R.axis_formulas||{}).forEach(function(k){ a[k]=clamp(evalF(R.axis_formulas[k],fv,st),0,100); }); return a; }
+  function profilesC(R,fv,st){ return (R.profile_matching||[]).map(function(p){ var sc=clamp(evalF({base:0,terms:p.terms},fv,st),0,1);
+    var th=p.thresholds||{strong:.6,moderate:.35,mild:.2}; var lv=sc>=th.strong?'strong':sc>=th.moderate?'moderate':sc>=th.mild?'mild':'weak';
+    return {id:p.id,name:p.name,pct:Math.round(sc*100),score:sc,level:lv,exp:p.explanations}; }).sort(function(a,b){return b.score-a.score;}); }
+
+  window.adhdScore=function(){ var R=RULES; if(!R) return null; var ss=surveyScores(R), fv=featureValues(R,ss), st=states(R,fv);
+    return {surveyScores:ss, features:fv, states:st, axes:axesC(R,fv,st), profiles:profilesC(R,fv,st)}; };
+
+  window.AdhdEngine={ load:load, render:renderSurvey,
+    onPick: function(inp){ try{ var g=inp.closest('div').parentNode; g.querySelectorAll('label').forEach(function(l){ l.style.background='#EEF2F4'; l.style.color='#3A5566'; l.style.borderColor='#CAD6DE'; }); var lb=inp.closest('label'); if(lb){ lb.style.background='#5B7B94'; lb.style.color='#fff'; lb.style.borderColor='#5B7B94'; } updateProgress(); }catch(e){} },
+    runSurvey: async function(){ await load(); var res=window.adhdScore(); if(!res) return; var isk=ko();
+      var el=document.getElementById('adhd-survey-result'); if(!el) return; var top=res.profiles[0];
+      var h='<div class="pat" style="margin-top:12px"><div class="h">'+(isk?'채점 결과':'Results')+'</div>';
+      h+='<div style="margin:6px 0"><b>'+(isk?'축 점수 (BPS)':'Axes (BPS)')+':</b> ';
+      Object.keys(res.axes).forEach(function(k){ h+=esc(k)+' <b>'+Math.round(res.axes[k])+'</b>/100 &nbsp; '; });
+      h+='</div><div style="margin:6px 0"><b>'+(isk?'프로파일 매칭':'Profile match')+':</b><ul style="margin:4px 0 0 16px;padding:0">';
+      res.profiles.forEach(function(p){ var ex=p.exp&&(isk?p.exp.general:p.exp.clinician); var msg=(ex&&ex[p.level]||'').replace('{pct}',p.pct);
+        h+='<li style="margin:4px 0">'+esc(p.name)+' — <b>'+p.pct+'%</b> ('+p.level+')'+(msg?'<br><span style="font-size:12px;color:#4A6472">'+esc(msg)+'</span>':'')+'</li>'; });
+      h+='</ul></div><div style="font-size:11px;color:#8FA9BC;margin-top:8px">'+(isk?'참고용 스크리닝입니다. 임상 진단이 아닙니다.':'Screening reference only. Not a clinical diagnosis.')+'</div></div>';
+      el.innerHTML=h;
+      try{ var db=window.ADHD_DB; if(db&&db.createAssessment){ var s=window.ADHD_SESSION||{}; var cid=s.self_client_id||null;
+        try{ var u=new URLSearchParams(location.search).get('cid'); if(u) cid=u; }catch(e){}
+        if(cid){ db.createAssessment({ client_id:cid, symptom:'ADHD', assessment_id:'adhd_rules_v2',
+          total_score:(res.features.bps_attention!=null?res.features.bps_attention/100:null),
+          inattention_score:(res.surveyScores.BPS_ATTN?res.surveyScores.BPS_ATTN.score/100:null),
+          hyperactivity_score:(res.surveyScores.BPS_HYPER?res.surveyScores.BPS_HYPER.score/100:null),
+          subtype:(top?top.id:null), raw:res }).catch(function(e){ console.warn('[AdhdEngine] save',e); }); } } }catch(e){}
+    } };
+
+  document.addEventListener('DOMContentLoaded', function(){ load().then(renderSurvey).catch(function(e){ console.warn('[AdhdEngine] load',e); }); });
+})();
+</script>
+<script>
+/* ===== ADHD Measurement — manual_input number features → adhd_qeeg_results ===== */
+(function(){
+  function ko(){ try{ return (window.bnmGetLang&&window.bnmGetLang())==='ko'; }catch(e){ return false; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function manualFeatures(R){ return (R.features||[]).filter(function(f){ var mi=f.manual_input; return mi&&mi.enabled&&mi.type==='number'&&!mi.computed_from_survey; }); }
+  function render(R){ var isk=ko(); var c=document.getElementById('adhd-measure-container'); if(!c) return;
+    var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+    manualFeatures(R).forEach(function(f){ var mi=f.manual_input;
+      h+='<label style="font-size:12px;color:#3A5566">'+esc(f.name)+(f.unit?' ('+esc(f.unit)+')':'')+
+        '<input type="number" data-feat="'+esc(f.id)+'" min="'+(mi.min!=null?mi.min:'')+'" max="'+(mi.max!=null?mi.max:'')+'" step="'+(mi.step!=null?mi.step:'any')+'" placeholder="'+esc(mi.placeholder||'')+'" style="width:100%;padding:5px;border:1px solid #CAD6DE;border-radius:6px;margin-top:3px"></label>';
+    });
+    h+='</div>'; c.innerHTML=h;
+  }
+  function collect(){ var out={}; document.querySelectorAll('#adhd-measure-container input[data-feat]').forEach(function(el){ if(el.value!=='') out[el.getAttribute('data-feat')]=parseFloat(el.value); }); return out; }
+  var _R=null;
+  window.AdhdEngine = window.AdhdEngine || {};
+  window.AdhdEngine.renderMeasure = async function(){ if(!_R){ try{ _R=await window.AdhdEngine.load(); }catch(e){ return; } } render(_R); };
+  window.AdhdEngine.saveMeasure = async function(){ var vals=collect(); var el=document.getElementById('adhd-measure-result'); var isk=ko();
+    if(!Object.keys(vals).length){ if(el) el.innerHTML='<span style="color:#D97706;font-size:13px">'+(isk?'위에서 QEEG 데이터를 입력하세요 · 최소 1개 필요':'Enter QEEG data above · at least one required')+'</span>'; return; }
+    try{ var db=window.ADHD_DB; if(db&&db.saveQeegResult){ var s=window.ADHD_SESSION||{}; var cid=s.self_client_id||null;
+      try{ var u=new URLSearchParams(location.search).get('cid'); if(u) cid=u; }catch(e){}
+      if(cid){ await db.saveQeegResult({ client_id:cid, dept:'adhd', framework:'adhd_rules_v2', qeeg_data:{ manual_features:vals }, source_meta:{ source:'manual_input' } });
+        if(el) el.innerHTML='<span style="color:#5B7B94;font-size:12px">'+(isk?'저장됨 ('+Object.keys(vals).length+'개)':'Saved ('+Object.keys(vals).length+')')+'</span>';
+      } else if(el){ el.innerHTML='<span style="color:#D97706;font-size:12px">'+(isk?'로그인/환자 선택 필요':'Login/patient required')+'</span>'; }
+    } }catch(e){ if(el) el.innerHTML='<span style="color:#DC2626;font-size:12px">'+(isk?'저장 실패':'Save failed')+'</span>'; console.warn('[AdhdMeasure]',e); }
+  };
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ if(window.AdhdEngine&&window.AdhdEngine.renderMeasure) window.AdhdEngine.renderMeasure(); }, 300);
+    document.addEventListener('click', function(ev){ var b=ev.target&&ev.target.closest&&ev.target.closest('.rpt-tabbar button[data-t="s-meas"]'); if(b) setTimeout(function(){ if(!document.querySelector('#adhd-measure-container input')) window.AdhdEngine.renderMeasure(); },50); });
+  });
+})();
+</script>
+<script>
+/* ===== ADHD Report + NF — adhd_rules.json 소비 (설문판별+QEEG+추천→리포트, NF 프로토콜/세션) ===== */
+(function(){
+  var R=null;
+  function ko(){ try{ return (window.bnmGetLang&&window.bnmGetLang())==='ko'; }catch(e){ return false; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  async function load(){ if(R) return R; if(window.AdhdEngine&&window.AdhdEngine.load){ R=await window.AdhdEngine.load(); } else { var r=await fetch('adhd-engine/rules/adhd_rules.json'); R=await r.json(); } return R; }
+  function cid(){ var s=window.ADHD_SESSION||{}; var c=s.self_client_id||null; try{ var u=new URLSearchParams(location.search).get('cid'); if(u)c=u; }catch(e){} return c; }
+  function condMatch(cond, res){ if(!cond) return true; try{
+    if(cond.axis!=null && res.axes){ var v=res.axes[cond.axis]; if(v==null) return false; if(cond.less_than!=null) return v<cond.less_than; if(cond.greater_than!=null) return v>cond.greater_than; }
+    if(cond.feature!=null && res.features){ var f=res.features[cond.feature]; if(f==null) return false; if(cond.less_than!=null) return f<cond.less_than; if(cond.greater_than!=null) return f>cond.greater_than; }
+    if(cond.profile!=null && res.profiles){ var p=res.profiles[0]; return p&&p.id===cond.profile; }
+  }catch(e){} return true; }
+
+  /* ---------- 리포트 ---------- */
+  window.AdhdReport={
+    build: async function(){ await load(); var isk=ko(); var el=document.getElementById('adhd-report-container'); if(!el) return;
+      var res=(window.adhdScore&&window.adhdScore())||null;
+      if(!res){ el.innerHTML='<div class="pat"><span style="color:#D97706">'+(isk?'설문을 먼저 채점하세요 (설문 탭 → 채점·판별).':'Run the survey first (Survey tab → Score).')+'</span></div>'; return; }
+      var top=res.profiles[0]; var h='';
+      h+='<div style="border:1px solid #CAD6DE;border-radius:12px;padding:18px;background:#fff;margin-top:8px">';
+      h+='<div style="font-size:1.3rem;font-weight:800;color:#3A5566">'+(isk?'ADHD 종합 리포트':'ADHD Comprehensive Report')+'</div>';
+      /* 핵심 발견 배지 */
+      h+='<div style="margin:10px 0"><span style="display:inline-block;background:#5B7B94;color:#fff;padding:5px 12px;border-radius:99px;font-weight:700">'+esc(top.name)+' · '+top.pct+'% ('+top.level+')</span></div>';
+      /* impression */
+      var it=R.impression_templates; if(it){ var side=isk?it.general:it.clinician; if(side){ var key=top.level==='strong'?'strong_match':top.level==='weak'?'weak_match':'moderate_match'; var msg=(side[key]||'').replace(/{top_profile}/g,esc(top.name)).replace(/{top_pct}/g,top.pct);
+        if(msg) h+='<div style="margin:8px 0;font-size:14px;line-height:1.6">'+msg+'</div>'; } }
+      /* 축 점수 */
+      h+='<div style="font-weight:700;color:#3A5566;margin:14px 0 6px">'+(isk?'축 점수 (BPS)':'Axes (BPS)')+'</div>';
+      Object.keys(res.axes||{}).forEach(function(k){ var val=Math.round(res.axes[k]);
+        h+='<div style="margin:4px 0"><span style="display:inline-block;width:70px;font-size:13px">'+esc(k)+'</span><span style="display:inline-block;width:180px;height:9px;background:#EEF2F4;border-radius:99px;vertical-align:middle;overflow:hidden"><span style="display:block;height:100%;width:'+val+'%;background:#5B7B94"></span></span> <b>'+val+'</b>/100</div>'; });
+      /* 프로파일 매칭 */
+      h+='<div style="font-weight:700;color:#3A5566;margin:14px 0 6px">'+(isk?'프로파일 매칭':'Profile match')+'</div><ul style="margin:0 0 0 16px;padding:0">';
+      res.profiles.forEach(function(p){ h+='<li style="margin:3px 0">'+esc(p.name)+' — <b>'+p.pct+'%</b> ('+p.level+')</li>'; }); h+='</ul>';
+      /* QEEG */
+      var qd=(window.state&&window.state.objectiveData)||null;
+      h+='<div style="font-weight:700;color:#3A5566;margin:14px 0 6px">QEEG</div>';
+      h+='<div style="font-size:13px;color:#4A6472">'+(qd?(isk?'QEEG 측정값 반영됨.':'QEEG measures included.'):(isk?'QEEG 미측정 (측정 탭에서 EDF 업로드/수동입력).':'No QEEG yet (upload EDF / manual input in Measurement tab).'))+'</div>';
+      /* 추천 개입 */
+      var recs=(R.recommendations||[]).filter(function(r){ return condMatch(r.condition,res); });
+      if(recs.length){ h+='<div style="font-weight:700;color:#3A5566;margin:14px 0 6px">'+(isk?'추천 개입':'Recommended interventions')+'</div><ul style="margin:0 0 0 16px;padding:0">';
+        recs.forEach(function(r){ h+='<li style="margin:4px 0;font-size:13px">'+esc(isk?r.general:r.clinician)+'</li>'; }); h+='</ul>'; }
+      /* NF 프로토콜 요약 */
+      h+='<div style="font-weight:700;color:#3A5566;margin:14px 0 6px">'+(isk?'뉴로피드백 프로토콜':'Neurofeedback protocols')+'</div>';
+      h+='<div style="font-size:13px;color:#4A6472">'+(isk?'뉴로피드백 탭에서 프로파일 기반 프로토콜을 확인하세요.':'See profile-based protocols in the Neurofeedback tab.')+'</div>';
+      /* 경고 */
+      var warns=(R.warnings||[]).filter(function(w){ return condMatch(w.condition,res); });
+      if(warns.length){ h+='<div style="font-weight:700;color:#D97706;margin:14px 0 6px">'+(isk?'감별 경고':'Warnings')+'</div><ul style="margin:0 0 0 16px;padding:0">';
+        warns.forEach(function(w){ h+='<li style="margin:4px 0;font-size:13px;color:#8A4A2C">'+esc(isk?w.general:w.clinician)+'</li>'; }); h+='</ul>'; }
+      h+='<div style="font-size:11px;color:#8FA9BC;margin-top:14px;border-top:1px solid #EEF2F4;padding-top:8px">'+(isk?'참고용 스크리닝 리포트입니다. 임상 진단이 아닙니다. · Boston Neuromind':'Screening reference report. Not a clinical diagnosis. · Boston Neuromind')+'</div>';
+      h+='</div>'; el.innerHTML=h;
+      /* 저장 */
+      try{ var db=window.ADHD_DB; var c=cid(); if(db&&db.saveQeegResult&&c){ db.saveQeegResult({ client_id:c, dept:'adhd', framework:'adhd_rules_v2', ai_deep:JSON.stringify({axes:res.axes,profiles:res.profiles}), source_meta:{source:'report'} }).catch(function(){}); } }catch(e){}
+    },
+    savePDF: function(){ var el=document.getElementById('adhd-report-container'); if(!el||!el.innerHTML){ alert(ko()?'먼저 리포트를 생성하세요.':'Generate the report first.'); return; }
+      if(window.html2pdf){ window.html2pdf().set({margin:10,filename:'adhd_report.pdf',html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4'}}).from(el).save(); } else { window.print(); } }
+  };
+
+})();
+</script>
+<script>
+/* ===== ADHD Neurofeedback 세션 모듈 (실배선) — Monastra θ/β · Busy-Brain · Delta-Theta ===== */
+(function(){
+  var _sessions=[], _chart=null;
+  function ko(){ try{ return (window.bnmGetLang&&window.bnmGetLang())==='ko'; }catch(e){ return false; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function num(id){ var e=document.getElementById(id); var v=e?parseFloat(e.value):NaN; return isFinite(v)?v:null; }
+  function cid(){ var s=window.ADHD_SESSION||{}; var c=s.self_client_id||null; try{ var u=new URLSearchParams(location.search).get('cid'); if(u)c=u; }catch(e){} return c; }
+  function calc(b){ var r={}; r.monastra=(b.beta>0)?+(b.theta/b.beta).toFixed(2):null; r.busyBrain=(b.smr>0)?+(b.hibeta/b.smr).toFixed(2):null; r.deltaTheta=(b.alpha>0)?+(b.theta/b.alpha).toFixed(2):null; return r; }
+  function band(val,lo,hi){ if(val==null) return {t:'—',c:'#8FA9BC'}; if(val>hi) return {t:(ko()?'상승':'high'),c:'#D97706'}; if(val<lo) return {t:(ko()?'낮음':'low'),c:'#5B7B94'}; return {t:(ko()?'정상':'normal'),c:'#3A5566'}; }
+  function renderAnalysis(b,r){ var isk=ko(); var el=document.getElementById('nf-analysis'); if(!el) return;
+    var mB=band(r.monastra,1.5,2.8), bB=band(r.busyBrain,0,1.0), dB=band(r.deltaTheta,0,1.5);
+    function row(name,val,rng,bd,mx){ var pct=val!=null?Math.min(100,Math.round(val/mx*100)):0; return '<div style="margin:8px 0"><div style="font-size:13px"><b>'+name+'</b> = <b style="color:'+bd.c+'">'+(val==null?'—':val)+'</b> <span style="font-size:11px;color:#8FA9BC">('+rng+')</span> <span style="color:'+bd.c+';font-weight:700">'+bd.t+'</span></div><div style="height:8px;background:#EEF2F4;border-radius:99px;overflow:hidden;margin-top:3px"><div style="height:100%;width:'+pct+'%;background:'+bd.c+'"></div></div></div>'; }
+    var h='<div class="pat" style="margin-top:12px;background:#fff;border:1px solid #CAD6DE"><div class="h"><span class="ko-text">② 세션 분석</span><span class="en-text">② Session analysis</span></div>';
+    h+=row('Monastra θ/β',r.monastra,'1.5–2.8',mB,4);
+    h+=row('Busy-Brain HiBeta/SMR',r.busyBrain,'&lt;1.0',bB,2);
+    h+=row('Delta-Theta (θ/α)',r.deltaTheta,'&lt;1.5',dB,3);
+    var op=[];
+    if(r.monastra!=null&&r.monastra>2.8) op.push(isk?'Theta/Beta 상승 — 전두 저각성, 주의 조절 저하 소견.':'Elevated theta/beta — frontal underarousal, reduced attentional control.');
+    if(r.busyBrain!=null&&r.busyBrain>1.0) op.push(isk?'HiBeta/SMR 상승 — 과각성·긴장·반추 경향.':'Elevated HiBeta/SMR — hyperarousal/rumination.');
+    if(r.deltaTheta!=null&&r.deltaTheta>1.5) op.push(isk?'서파(θ/α) 우세 — 각성 저하 방향.':'Slow-wave (θ/α) dominance.');
+    if(!op.length) op.push(isk?'주요 지표 정상 범위.':'Key indices within normal range.');
+    h+='<div style="margin-top:8px;font-size:13px;color:#4A6472;line-height:1.5">'+op.map(function(x){return '· '+esc(x);}).join('<br>')+'</div>';
+    h+='<div style="margin-top:10px;padding:9px 12px;border:1px solid #5B7B94;border-radius:8px;background:#EEF2F4;font-size:13px"><b style="color:#3A5566">'+(isk?'권장 NF 프로토콜':'Recommended NF protocol')+'</b><br>Cz · Reward SMR 12-15Hz ↑ · Inhibit Theta 4-7 / HiBeta 20-30 ↓ · '+(isk?'목표':'target')+' θ/β ≤ 2.0</div></div>';
+    el.innerHTML=h;
+  }
+  function renderTracking(){ var isk=ko(); var nf=_sessions.slice().sort(function(a,b){return (a.n||0)-(b.n||0);});
+    var lst=document.getElementById('nf-sessions');
+    if(lst){ if(!nf.length){ lst.innerHTML='<span style="font-size:12px;color:#8FA9BC">'+(isk?'저장된 세션 없음':'No sessions yet')+'</span>'; } else { lst.innerHTML=nf.map(function(s){ return '<span style="display:inline-block;margin:3px;padding:3px 9px;border-radius:99px;background:#EEF2F4;border:1px solid #CAD6DE;font-size:12px">#'+esc(String(s.n))+' θ/β '+esc(String(s.monastra!=null?s.monastra:'—'))+'</span>'; }).join(''); } }
+    var cv=document.getElementById('nf-chart');
+    if(cv&&window.Chart){ try{ if(_chart){ _chart.destroy(); _chart=null; } var labels=nf.map(function(s){return '#'+s.n;}); var data=nf.map(function(s){return s.monastra;});
+      _chart=new Chart(cv.getContext('2d'),{ type:'line', data:{ labels:labels, datasets:[ {label:'Monastra θ/β',data:data,borderColor:'#5B7B94',backgroundColor:'rgba(91,123,148,.12)',tension:.25,fill:true}, {label:(isk?'정상 상한 2.8':'Upper 2.8'),data:labels.map(function(){return 2.8;}),borderColor:'#D97706',borderDash:[5,5],pointRadius:0,fill:false} ] }, options:{ responsive:true, plugins:{legend:{labels:{font:{size:10}}}}, scales:{y:{beginAtZero:true,suggestedMax:4}} } });
+    }catch(e){ console.warn('[AdhdNF] chart',e); } }
+    var pp=document.getElementById('nf-prepost');
+    if(pp){ if(nf.length>=2){ var f=nf[0], l=nf[nf.length-1]; var d=(f.monastra!=null&&l.monastra!=null)?(l.monastra-f.monastra):null;
+      pp.innerHTML='<div style="font-size:13px"><b>'+(isk?'Pre/Post 비교':'Pre/Post')+'</b> ('+(isk?'첫':'first')+' #'+f.n+' → '+(isk?'최근':'latest')+' #'+l.n+')<br>Monastra θ/β: '+(f.monastra!=null?f.monastra:'—')+' → '+(l.monastra!=null?l.monastra:'—')+(d!=null?' <b style="color:'+((d<0)?'#3A5566':'#D97706')+'">('+((d>=0)?'+':'')+d.toFixed(2)+')</b>':'')+'</div>';
+    } else { pp.innerHTML=''; } }
+  }
+  async function loadSessions(){ var db=window.ADHD_DB, c=cid(); _sessions=[];
+    if(db&&db.listTrainingSessions&&c){ try{ var rows=await db.listTrainingSessions(c); (rows||[]).forEach(function(s){ if((s.tool||'')!=='neurofeedback') return; var ed=s.estimated_deltas||{}; _sessions.push({ n:s.difficulty||0, monastra:ed.monastra, busyBrain:ed.busyBrain, deltaTheta:ed.deltaTheta, detail:s.detail }); }); }catch(e){ console.warn('[AdhdNF] load',e); } }
+    renderTracking();
+  }
+  window.AdhdNF={
+    render: function(){ loadSessions(); },
+    load: function(){ return (window.AdhdEngine&&window.AdhdEngine.load)?window.AdhdEngine.load():Promise.resolve(); },
+    parseFile: function(inp){ var el=document.getElementById('nf-file-note'); var isk=ko(); var f=inp&&inp.files&&inp.files[0]; if(!f) return; if(el) el.innerHTML=(isk?'파일 인식: ':'File: ')+esc(f.name)+' — '+(isk?'자동 파서 준비중. 아래 밴드값을 수동 입력하세요.':'auto-parser coming; enter band values below.'); },
+    analyzeAndSave: async function(){ var isk=ko(); var b={ theta:num('nf-theta'),alpha:num('nf-alpha'),smr:num('nf-smr'),beta:num('nf-beta'),hibeta:num('nf-hibeta') };
+      if(b.theta==null||b.beta==null){ var e0=document.getElementById('nf-analysis'); if(e0) e0.innerHTML='<span style="color:#D97706;font-size:13px">'+(isk?'최소 Theta·Beta 값을 입력하세요.':'Enter at least Theta and Beta.')+'</span>'; return; }
+      var r=calc(b); renderAnalysis(b,r);
+      var n=num('nf-num')||(_sessions.length+1); var cond=(document.getElementById('nf-cond')||{}).value||'EO';
+      var db=window.ADHD_DB, c=cid();
+      if(db&&db.createTrainingSession&&c){ try{ await db.createTrainingSession({ client_id:c, symptom:'ADHD', tool:'neurofeedback', game_id:'nf', difficulty:n, estimated_deltas:{ monastra:r.monastra, busyBrain:r.busyBrain, deltaTheta:r.deltaTheta }, detail:{ bands:b, cond:cond } }); }catch(e){ console.warn('[AdhdNF] save',e); } }
+      _sessions.push({ n:n, monastra:r.monastra, busyBrain:r.busyBrain, deltaTheta:r.deltaTheta, detail:{bands:b,cond:cond} }); renderTracking(); loadSessions();
+    },
+    saveSession: function(){ return this.analyzeAndSave(); }
+  };
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadSessions,400);
+    document.addEventListener('click', function(ev){ var t=ev.target&&ev.target.closest&&ev.target.closest('.rpt-tabbar button[data-t="s-nf"]'); if(t) setTimeout(loadSessions,60); });
+  });
+})();
+</script>
+</body></html>

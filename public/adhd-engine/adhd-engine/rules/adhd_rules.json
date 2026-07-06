@@ -1,0 +1,2031 @@
+{
+  "meta": {
+    "catcher_id": "adhd",
+    "catcher_name": "ADHD Catcher",
+    "version": "2.0.0",
+    "last_updated": "2026-04-20",
+    "description": "ADHD Catcher with AI Normative Database integration (QEEG/HRV/NF/Clinical/ERP)",
+    "target_conditions": [
+      "ADHD-Inattentive",
+      "ADHD-Hyperactive",
+      "ADHD-Combined"
+    ],
+    "publisher": "NeuroCatchers / Boston Neuromind",
+    "update_url": "https://neurocatchers.com/catcher_rules/adhd_rules.json"
+  },
+  "features": [
+    {
+      "id": "theta_beta_ratio",
+      "name": "Frontal Theta/Beta Ratio",
+      "category": "EEG",
+      "unit": "ratio",
+      "weight": 0.2,
+      "normalRange": [
+        1.5,
+        2.8
+      ],
+      "abnormalDirection": "higher",
+      "manual_input": {
+        "enabled": true,
+        "type": "number",
+        "min": 0.5,
+        "max": 6.0,
+        "step": 0.1,
+        "placeholder": "e.g., 2.5"
+      },
+      "source_path": "eeg.frontal_theta_beta_ratio",
+      "evidence": {
+        "citations": [
+          "Arns & Kenemans 2014",
+          "Clarke et al. 2020"
+        ],
+        "summary": "Most replicated QEEG finding in ADHD"
+      },
+      "severity_bands": [
+        {
+          "threshold": 3.5,
+          "level": "high"
+        },
+        {
+          "threshold": 2.8,
+          "level": "med"
+        },
+        {
+          "threshold": 0,
+          "level": "low"
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "high": "Ratio {value} — markedly elevated (z>2.0). Suggests frontal underarousal, one of the most replicated ADHD QEEG findings.",
+          "med": "Ratio {value} — mildly elevated. Consistent with attention network dysregulation.",
+          "low": "Ratio {value} — within normal range."
+        },
+        "general": {
+          "high": "집중력에 관여하는 뇌파 지표가 많이 높은 상태예요. 머리가 '켜져있지 않은' 느낌과 관련 있을 수 있어요.",
+          "med": "집중력 뇌파가 약간 높은 편이에요. 주의력 조절이 잘 안 될 때 나타나곤 합니다.",
+          "low": "집중력 관련 뇌파는 정상 범위입니다."
+        }
+      },
+      "normative_ref": {
+        "db": "qeeg_eyes_closed",
+        "measurement": "theta_beta_Fz",
+        "auto_stratify_by": [
+          "age_range"
+        ]
+      }
+    },
+    {
+      "id": "frontal_alpha_asym",
+      "name": "Frontal Alpha Asymmetry",
+      "category": "EEG",
+      "unit": "log ratio",
+      "weight": 0.08,
+      "normalRange": [
+        -0.2,
+        0.2
+      ],
+      "abnormalDirection": "bidirectional",
+      "manual_input": {
+        "enabled": true,
+        "type": "number",
+        "min": -2.0,
+        "max": 2.0,
+        "step": 0.05,
+        "placeholder": "e.g., -0.1"
+      },
+      "source_path": "eeg.frontal_alpha_asymmetry",
+      "evidence": {
+        "citations": [
+          "Davidson 1998",
+          "Henriques & Davidson 1991"
+        ],
+        "summary": "Emotional lateralization marker"
+      },
+      "severity_bands": [
+        {
+          "threshold_abs": 0.3,
+          "level": "high"
+        },
+        {
+          "threshold_abs": 0.2,
+          "level": "med"
+        },
+        {
+          "threshold_abs": 0,
+          "level": "low"
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "high_neg": "Asymmetry {value} — strong left-lateralized alpha. Associated with withdrawal/depressive tendency.",
+          "high_pos": "Asymmetry {value} — right-lateralized. Approach motivation pattern.",
+          "med": "Asymmetry {value} — mildly lateralized.",
+          "low": "Asymmetry {value} — balanced. No strong emotional lateralization."
+        },
+        "general": {
+          "high_neg": "감정 조절 쪽 뇌 균형이 회피 쪽으로 기울어 있어요. 우울감과 관련될 수 있습니다.",
+          "high_pos": "감정 뇌 균형이 적극적 쪽으로 기울어 있어요.",
+          "med": "감정 뇌 균형이 약간 기울어 있어요.",
+          "low": "감정 뇌 균형은 정상적입니다."
+        }
+      },
+      "normative_ref": {
+        "db": "qeeg_eyes_closed",
+        "measurement": "frontal_alpha_asym",
+        "auto_stratify_by": [
+          "age_range"
+        ]
+      }
+    },
+    {
+      "id": "posterior_alpha",
+      "name": "Posterior Alpha Power",
+      "category": "EEG",
+      "unit": "z-score",
+      "weight": 0.1,
+      "normalRange": [
+        -1.0,
+        1.0
+      ],
+      "abnormalDirection": "bidirectional",
+      "manual_input": {
+        "enabled": true,
+        "type": "number",
+        "min": -4.0,
+        "max": 4.0,
+        "step": 0.1
+      },
+      "source_path": "eeg.posterior_alpha_zscore",
+      "evidence": {
+        "citations": [
+          "Clarke et al. 2020"
+        ],
+        "summary": "Arousal and visual cortex state"
+      },
+      "severity_bands": [
+        {
+          "threshold_abs": 1.5,
+          "level": "high"
+        },
+        {
+          "threshold_abs": 1.0,
+          "level": "med"
+        },
+        {
+          "threshold_abs": 0,
+          "level": "low"
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "high_neg": "z={value} — low posterior alpha. May reflect hyperarousal, anxiety, or stimulant effect.",
+          "high_pos": "z={value} — elevated posterior alpha. Consistent with relaxation or visual cortex disengagement.",
+          "med": "z={value} — borderline posterior alpha.",
+          "low": "z={value} — normal posterior alpha."
+        },
+        "general": {
+          "high_neg": "뒤쪽 뇌의 알파파가 낮아요. 긴장 상태가 지속되고 있을 수 있어요.",
+          "high_pos": "뒤쪽 알파파가 높아요. 이완 상태이거나 집중이 덜 된 상태입니다.",
+          "med": "뒤쪽 알파파가 약간 비정상 범위에 있어요.",
+          "low": "뇌 뒤쪽 알파 활동은 정상입니다."
+        }
+      },
+      "normative_ref": {
+        "db": "qeeg_eyes_closed",
+        "measurement": "posterior_alpha_zscore",
+        "auto_stratify_by": [
+          "age_range"
+        ]
+      }
+    },
+    {
+      "id": "hrv_rmssd",
+      "name": "HRV (RMSSD)",
+      "category": "HRV",
+      "unit": "ms",
+      "weight": 0.12,
+      "normalRange": [
+        30,
+        60
+      ],
+      "abnormalDirection": "lower",
+      "manual_input": {
+        "enabled": true,
+        "type": "number",
+        "min": 0,
+        "max": 200,
+        "step": 1
+      },
+      "source_path": "hrv.rmssd",
+      "evidence": {
+        "citations": [
+          "Thayer 2012",
+          "Koenig 2017"
+        ],
+        "summary": "Parasympathetic autonomic function"
+      },
+      "severity_bands": [
+        {
+          "threshold": 25,
+          "level": "high",
+          "direction": "below"
+        },
+        {
+          "threshold": 35,
+          "level": "med",
+          "direction": "below"
+        },
+        {
+          "threshold": 999,
+          "level": "low"
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "high": "RMSSD {value}ms — low parasympathetic tone. Indicates chronic stress, poor recovery, or autonomic dysregulation.",
+          "med": "RMSSD {value}ms — borderline low. Stress/sleep factors may be contributing.",
+          "low": "RMSSD {value}ms — normal autonomic tone."
+        },
+        "general": {
+          "high": "심박 변이도가 낮아요. 만성적 스트레스나 피로 상태를 반영할 수 있습니다.",
+          "med": "심박 변이도가 약간 낮아요. 스트레스 관리나 수면 개선이 도움이 될 수 있어요.",
+          "low": "심장과 자율신경 상태는 양호한 편입니다."
+        }
+      },
+      "normative_ref": {
+        "db": "hrv_resting",
+        "measurement": "RMSSD",
+        "auto_stratify_by": [
+          "age_range"
+        ]
+      }
+    },
+    {
+      "id": "bps_attention",
+      "name": "Subjective Attention Difficulty",
+      "category": "Survey",
+      "unit": "score 0-100",
+      "weight": 0.18,
+      "normalRange": [
+        0,
+        40
+      ],
+      "abnormalDirection": "higher",
+      "manual_input": {
+        "enabled": true,
+        "type": "slider",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "computed_from_survey": "BPS_ATTN"
+      },
+      "source_path": "bps.attention_difficulty",
+      "evidence": {
+        "citations": [
+          "BPS-90 items A_P3/A_P4/A_P5",
+          "Kessler et al. 2005 (ASRS)"
+        ],
+        "summary": "Self-reported inattention severity"
+      },
+      "severity_bands": [
+        {
+          "threshold": 70,
+          "level": "high"
+        },
+        {
+          "threshold": 50,
+          "level": "med"
+        },
+        {
+          "threshold": 0,
+          "level": "low"
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "high": "Severity {value}/100 — high subjective attention difficulty. ASRS-like items indicate frequent inattentive symptoms.",
+          "med": "Severity {value}/100 — moderate attention complaints. Clinically significant.",
+          "low": "Severity {value}/100 — within normal variation."
+        },
+        "general": {
+          "high": "본인이 느끼는 집중력 문제가 심한 편이에요. 일상에 영향을 많이 주고 있을 것 같습니다.",
+          "med": "집중력 문제를 중간 정도로 느끼고 있어요.",
+          "low": "집중력에 대한 주관적 어려움은 크지 않아요."
+        }
+      },
+      "normative_ref": {
+        "db": "clinical_scales",
+        "measurement": "BPS_attention_subscale",
+        "auto_stratify_by": [
+          "age_range"
+        ]
+      }
+    },
+    {
+      "id": "bps_hyperactivity",
+      "name": "Subjective Hyperactivity/Impulsivity",
+      "category": "Survey",
+      "unit": "score 0-100",
+      "weight": 0.12,
+      "normalRange": [
+        0,
+        40
+      ],
+      "abnormalDirection": "higher",
+      "manual_input": {
+        "enabled": true,
+        "type": "slider",
+        "min": 0,
+        "max": 100,
+        "step": 1
+      },
+      "source_path": "bps.hyperactivity",
+      "evidence": {
+        "citations": [
+          "BPS-90 behavior items"
+        ],
+        "summary": "Self-reported hyperactivity/impulsivity"
+      },
+      "severity_bands": [
+        {
+          "threshold": 65,
+          "level": "high"
+        },
+        {
+          "threshold": 45,
+          "level": "med"
+        },
+        {
+          "threshold": 0,
+          "level": "low"
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "high": "Severity {value}/100 — prominent hyperactive/impulsive symptoms.",
+          "med": "Severity {value}/100 — moderate hyperactive features.",
+          "low": "Severity {value}/100 — minimal hyperactivity."
+        },
+        "general": {
+          "high": "과활동성/충동성이 높은 편이에요. 가만히 있기 힘들거나 결정이 급한 경향이 있을 수 있어요.",
+          "med": "약간의 과활동성 경향이 보입니다.",
+          "low": "과활동성/충동성은 크지 않아요."
+        }
+      },
+      "normative_ref": {
+        "db": "clinical_scales",
+        "measurement": "BPS_hyperactivity_subscale",
+        "auto_stratify_by": [
+          "age_range"
+        ]
+      }
+    },
+    {
+      "id": "sleep_quality",
+      "name": "Sleep Quality",
+      "category": "Survey",
+      "unit": "score 0-100",
+      "weight": 0.1,
+      "normalRange": [
+        60,
+        100
+      ],
+      "abnormalDirection": "lower",
+      "manual_input": {
+        "enabled": true,
+        "type": "slider",
+        "min": 0,
+        "max": 100,
+        "step": 1
+      },
+      "source_path": "bps.sleep_quality",
+      "evidence": {
+        "citations": [
+          "Instanes 2018",
+          "Cortese 2013"
+        ],
+        "summary": "Sleep deprivation mimics/worsens ADHD"
+      },
+      "severity_bands": [
+        {
+          "threshold": 40,
+          "level": "high",
+          "direction": "below"
+        },
+        {
+          "threshold": 60,
+          "level": "med",
+          "direction": "below"
+        },
+        {
+          "threshold": 999,
+          "level": "low"
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "high": "Score {value}/100 — poor sleep quality. Critical confounder: sleep deprivation mimics and worsens ADHD.",
+          "med": "Score {value}/100 — suboptimal. Sleep hygiene should be prioritized.",
+          "low": "Score {value}/100 — adequate sleep."
+        },
+        "general": {
+          "high": "수면 질이 많이 떨어져 있어요. 이건 집중력 문제의 원인일 수도 있어요.",
+          "med": "수면이 충분하지 않아요. 수면 개선이 우선순위예요.",
+          "low": "수면은 잘 취하고 계신 편이에요."
+        }
+      },
+      "normative_ref": {
+        "db": "clinical_scales",
+        "measurement": "PSQI_sleep",
+        "auto_stratify_by": [
+          "age_range"
+        ]
+      }
+    },
+    {
+      "id": "emotional_regulation",
+      "name": "Emotional Regulation",
+      "category": "Survey",
+      "unit": "score 0-100",
+      "weight": 0.08,
+      "normalRange": [
+        55,
+        100
+      ],
+      "abnormalDirection": "lower",
+      "manual_input": {
+        "enabled": true,
+        "type": "slider",
+        "min": 0,
+        "max": 100,
+        "step": 1
+      },
+      "source_path": "bps.emotional_regulation",
+      "evidence": {
+        "citations": [
+          "Shaw 2014",
+          "Barkley 2015"
+        ],
+        "summary": "Core ADHD feature per Barkley"
+      },
+      "severity_bands": [
+        {
+          "threshold": 40,
+          "level": "high",
+          "direction": "below"
+        },
+        {
+          "threshold": 55,
+          "level": "med",
+          "direction": "below"
+        },
+        {
+          "threshold": 999,
+          "level": "low"
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "high": "Score {value}/100 — significant emotional dysregulation.",
+          "med": "Score {value}/100 — moderate difficulty with emotional control.",
+          "low": "Score {value}/100 — adequate emotional regulation."
+        },
+        "general": {
+          "high": "감정 조절이 어려운 편이에요. 감정 기복이 크거나 짜증이 쉽게 날 수 있어요.",
+          "med": "감정 조절에 약간의 어려움이 있어요.",
+          "low": "감정 조절은 잘 하고 계십니다."
+        }
+      },
+      "normative_ref": {
+        "db": "clinical_scales",
+        "measurement": "BPS_attention_subscale",
+        "auto_stratify_by": [
+          "age_range"
+        ]
+      }
+    },
+    {
+      "id": "cpt_reaction_time",
+      "name": "CPT Reaction Time Variability",
+      "category": "Cognitive Test",
+      "unit": "ms std",
+      "weight": 0.08,
+      "normalRange": [
+        50,
+        100
+      ],
+      "abnormalDirection": "higher",
+      "manual_input": {
+        "enabled": true,
+        "type": "number",
+        "min": 0,
+        "max": 300,
+        "step": 5
+      },
+      "source_path": "cognitive.cpt_rt_variability",
+      "evidence": {
+        "citations": [
+          "Tamm 2012"
+        ],
+        "summary": "Intra-individual variability marker for ADHD"
+      },
+      "severity_bands": [
+        {
+          "threshold": 150,
+          "level": "high"
+        },
+        {
+          "threshold": 110,
+          "level": "med"
+        },
+        {
+          "threshold": 0,
+          "level": "low"
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "high": "RT SD {value}ms — highly variable. Classic ADHD cognitive marker.",
+          "med": "RT SD {value}ms — elevated variability.",
+          "low": "RT SD {value}ms — normal consistency."
+        },
+        "general": {
+          "high": "집중 지속력 테스트에서 반응이 매우 불안정해요. ADHD의 전형적 특징입니다.",
+          "med": "반응 안정성이 다소 떨어져요.",
+          "low": "집중 지속력은 안정적이에요."
+        }
+      }
+    },
+    {
+      "id": "age_factor",
+      "name": "Developmental Age Factor",
+      "category": "Context",
+      "unit": "multiplier",
+      "weight": 0.04,
+      "normalRange": [
+        0.8,
+        1.2
+      ],
+      "abnormalDirection": "none",
+      "manual_input": {
+        "enabled": false
+      },
+      "source_path": "context.age_factor",
+      "evidence": {
+        "citations": [
+          "Developmental norms"
+        ],
+        "summary": "Adjusts other indicators against age norms"
+      },
+      "severity_bands": [
+        {
+          "threshold_abs": 0.3,
+          "level": "med"
+        },
+        {
+          "threshold_abs": 0,
+          "level": "low"
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "low": "Age-based adjustment factor: {value}. Contextualizes indicators against developmental norms."
+        },
+        "general": {
+          "low": "나이에 맞는 기준으로 조정됩니다."
+        }
+      }
+    }
+  ],
+  "state_formulas": [
+    {
+      "id": "arousal",
+      "name": "Cortical Arousal",
+      "formula": {
+        "base": 50,
+        "terms": [
+          {
+            "feature": "theta_beta_ratio",
+            "op": "subtract",
+            "multiplier": 12,
+            "offset": -2.0
+          },
+          {
+            "feature": "posterior_alpha",
+            "op": "subtract",
+            "multiplier": 5
+          }
+        ]
+      },
+      "explanations": {
+        "clinician": {
+          "low": "Underarousal state ({value}/100). Consistent with ADHD frontal hypoactivation.",
+          "high": "Hyperarousal ({value}/100). May indicate anxiety or stimulant effect.",
+          "mid": "Normal arousal ({value}/100)."
+        },
+        "general": {
+          "low": "뇌의 각성 수준이 낮은 편이에요. '멍하거나 흐릿한' 상태와 관련 있어요.",
+          "high": "뇌가 과하게 켜져있는 상태예요. 긴장이나 흥분 상태입니다.",
+          "mid": "뇌 각성 수준은 정상입니다."
+        }
+      },
+      "thresholds": {
+        "low": 40,
+        "high": 70
+      }
+    },
+    {
+      "id": "attention",
+      "name": "Attention Capacity",
+      "formula": {
+        "base": 100,
+        "terms": [
+          {
+            "feature": "bps_attention",
+            "op": "subtract",
+            "multiplier": 0.7
+          },
+          {
+            "feature": "theta_beta_ratio",
+            "op": "subtract",
+            "multiplier": 10,
+            "offset": -2.0
+          }
+        ]
+      },
+      "explanations": {
+        "clinician": {
+          "low": "Low attention capacity ({value}/100). Strong indicator for ADHD evaluation.",
+          "mid": "Attention capacity {value}/100.",
+          "high": "Good attention capacity ({value}/100)."
+        },
+        "general": {
+          "low": "주의력이 많이 떨어져 있어요.",
+          "mid": "주의력 상태: {value}점",
+          "high": "주의력이 양호해요."
+        }
+      },
+      "thresholds": {
+        "low": 40,
+        "high": 70
+      }
+    },
+    {
+      "id": "impulseControl",
+      "name": "Impulse Control",
+      "formula": {
+        "base": 100,
+        "terms": [
+          {
+            "feature": "bps_hyperactivity",
+            "op": "subtract",
+            "multiplier": 0.5
+          },
+          {
+            "feature": "emotional_regulation",
+            "op": "add",
+            "multiplier": 0.3,
+            "offset": -50
+          }
+        ]
+      },
+      "explanations": {
+        "clinician": {
+          "low": "Reduced impulse control ({value}/100). Suggests hyperactive/impulsive features.",
+          "mid": "Impulse control {value}/100.",
+          "high": "Good impulse control ({value}/100)."
+        },
+        "general": {
+          "low": "충동 조절이 어려운 상태예요.",
+          "mid": "충동 조절 능력은 괜찮아요.",
+          "high": "충동 조절이 잘 되고 있어요."
+        }
+      },
+      "thresholds": {
+        "low": 50,
+        "high": 70
+      }
+    },
+    {
+      "id": "autonomic",
+      "name": "Autonomic Balance",
+      "formula": {
+        "base": 0,
+        "terms": [
+          {
+            "feature": "hrv_rmssd",
+            "op": "add",
+            "multiplier": 2,
+            "offset": -20
+          }
+        ]
+      },
+      "explanations": {
+        "clinician": {
+          "low": "Autonomic dysregulation ({value}/100). Sympathetic dominance likely.",
+          "mid": "Autonomic balance {value}/100.",
+          "high": "Good autonomic balance ({value}/100)."
+        },
+        "general": {
+          "low": "자율신경 균형이 깨져있어요. 만성 긴장 가능성이 있습니다.",
+          "mid": "자율신경은 보통입니다.",
+          "high": "자율신경은 균형 잡혀있어요."
+        }
+      },
+      "thresholds": {
+        "low": 50,
+        "high": 70
+      }
+    },
+    {
+      "id": "emotional",
+      "name": "Emotional Stability",
+      "formula": {
+        "base": 0,
+        "terms": [
+          {
+            "feature": "emotional_regulation",
+            "op": "add",
+            "multiplier": 1.0
+          },
+          {
+            "feature": "frontal_alpha_asym",
+            "op": "add",
+            "multiplier": 30
+          }
+        ]
+      },
+      "explanations": {
+        "clinician": {
+          "low": "Emotional instability ({value}/100). Consider emotional dysregulation.",
+          "mid": "Emotional stability {value}/100.",
+          "high": "Good emotional stability ({value}/100)."
+        },
+        "general": {
+          "low": "감정 기복이 크거나 조절이 어려워요.",
+          "mid": "감정 상태는 보통이에요.",
+          "high": "감정 상태는 안정적이에요."
+        }
+      },
+      "thresholds": {
+        "low": 45,
+        "high": 70
+      }
+    }
+  ],
+  "axis_formulas": {
+    "Bio": {
+      "base": 0,
+      "terms": [
+        {
+          "state": "autonomic",
+          "op": "add",
+          "multiplier": 0.45
+        },
+        {
+          "feature": "sleep_quality",
+          "op": "add",
+          "multiplier": 0.35
+        },
+        {
+          "state": "arousal",
+          "op": "add",
+          "multiplier": 0.2,
+          "transform": "distance_from_55_inverted"
+        }
+      ],
+      "explanations": {
+        "clinician": "Bio: {value}/100 — autonomic regulation, sleep, and arousal composite.",
+        "general": "생물학적 건강 수준: {value}점. 수면/자율신경/각성 상태를 반영합니다."
+      }
+    },
+    "Psycho": {
+      "base": 0,
+      "terms": [
+        {
+          "state": "attention",
+          "op": "add",
+          "multiplier": 0.4
+        },
+        {
+          "state": "impulseControl",
+          "op": "add",
+          "multiplier": 0.3
+        },
+        {
+          "state": "emotional",
+          "op": "add",
+          "multiplier": 0.3
+        }
+      ],
+      "explanations": {
+        "clinician": "Psycho: {value}/100 — attention, impulse control, emotional regulation composite.",
+        "general": "심리적 기능 수준: {value}점. 주의력/충동조절/감정안정성을 반영합니다."
+      }
+    },
+    "Social": {
+      "base": 50,
+      "terms": [
+        {
+          "state": "emotional",
+          "op": "add",
+          "multiplier": 0.3,
+          "offset": -50
+        },
+        {
+          "state": "impulseControl",
+          "op": "add",
+          "multiplier": 0.3,
+          "offset": -50
+        }
+      ],
+      "explanations": {
+        "clinician": "Social: {value}/100 — inferred from regulatory capacity (social-specific data not yet measured).",
+        "general": "사회적 기능 수준: {value}점. 감정/충동 조절 능력에서 간접 추정됨."
+      }
+    }
+  },
+  "profile_matching": [
+    {
+      "id": "adhd_inattentive",
+      "name": "ADHD-Inattentive",
+      "terms": [
+        {
+          "feature": "bps_attention",
+          "op": "add",
+          "multiplier": 0.0035
+        },
+        {
+          "feature": "theta_beta_ratio",
+          "op": "conditional_add",
+          "if_greater_than": 3.0,
+          "value": 0.25
+        },
+        {
+          "state": "attention",
+          "op": "add_inverted",
+          "multiplier": 0.0025
+        },
+        {
+          "feature": "bps_hyperactivity",
+          "op": "conditional_add",
+          "if_less_than": 40,
+          "value": 0.15
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "strong": "Strong similarity ({pct}%). Multiple supporting indicators across EEG, HRV, and self-report.",
+          "moderate": "Moderate similarity ({pct}%). Some features present, but not full pattern.",
+          "mild": "Mild similarity ({pct}%). Limited supporting evidence.",
+          "weak": "Low similarity ({pct}%). Pattern not consistent with this subtype."
+        },
+        "general": {
+          "strong": "이 유형의 특징이 강하게 나타납니다 ({pct}%). 여러 지표가 같은 방향을 가리킵니다.",
+          "moderate": "이 유형의 특징이 중간 정도로 보여요 ({pct}%).",
+          "mild": "이 유형의 특징이 약간 있어요 ({pct}%).",
+          "weak": "이 유형의 특징은 크지 않아요 ({pct}%)."
+        }
+      },
+      "thresholds": {
+        "strong": 0.6,
+        "moderate": 0.35,
+        "mild": 0.2
+      }
+    },
+    {
+      "id": "adhd_hyperactive",
+      "name": "ADHD-Hyperactive/Impulsive",
+      "terms": [
+        {
+          "feature": "bps_hyperactivity",
+          "op": "add",
+          "multiplier": 0.004
+        },
+        {
+          "state": "impulseControl",
+          "op": "add_inverted",
+          "multiplier": 0.003
+        },
+        {
+          "state": "emotional",
+          "op": "add_inverted",
+          "multiplier": 0.0015
+        },
+        {
+          "feature": "bps_attention",
+          "op": "conditional_add",
+          "if_less_than": 50,
+          "value": 0.15
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "strong": "Strong similarity ({pct}%). Hyperactive/impulsive features predominant.",
+          "moderate": "Moderate similarity ({pct}%). Some hyperactive features present.",
+          "mild": "Mild similarity ({pct}%). Limited evidence.",
+          "weak": "Low similarity ({pct}%)."
+        },
+        "general": {
+          "strong": "과활동/충동형 특징이 강하게 나타나요 ({pct}%).",
+          "moderate": "과활동/충동 특징이 중간 정도예요 ({pct}%).",
+          "mild": "약간의 과활동 경향이 있어요 ({pct}%).",
+          "weak": "과활동 특징은 크지 않아요 ({pct}%)."
+        }
+      },
+      "thresholds": {
+        "strong": 0.6,
+        "moderate": 0.35,
+        "mild": 0.2
+      }
+    },
+    {
+      "id": "adhd_combined",
+      "name": "ADHD-Combined",
+      "terms": [
+        {
+          "feature_min": [
+            "bps_attention",
+            "bps_hyperactivity"
+          ],
+          "op": "add",
+          "multiplier": 0.008
+        },
+        {
+          "feature": "theta_beta_ratio",
+          "op": "conditional_add",
+          "if_greater_than": 3.0,
+          "value": 0.2
+        }
+      ],
+      "explanations": {
+        "clinician": {
+          "strong": "Strong combined pattern ({pct}%). Both inattentive and hyperactive features present.",
+          "moderate": "Moderate combined ({pct}%).",
+          "mild": "Mild combined features ({pct}%).",
+          "weak": "Combined pattern not prominent ({pct}%)."
+        },
+        "general": {
+          "strong": "주의력 + 과활동 모두 강하게 나타나는 복합형이에요 ({pct}%).",
+          "moderate": "복합형 특징이 중간 정도로 보여요 ({pct}%).",
+          "mild": "약간의 복합형 경향이 있어요 ({pct}%).",
+          "weak": "복합형 특징은 크지 않아요 ({pct}%)."
+        }
+      },
+      "thresholds": {
+        "strong": 0.6,
+        "moderate": 0.35,
+        "mild": 0.2
+      }
+    }
+  ],
+  "impression_templates": {
+    "clinician": {
+      "strong_match": "Overall pattern is highly consistent with <strong>{top_profile}</strong> ({top_pct}% similarity). ",
+      "moderate_match": "Partial pattern matching <strong>{top_profile}</strong> ({top_pct}%). Not a full syndrome — consider sub-threshold presentation or alternative diagnoses.",
+      "weak_match": "Pattern does not strongly match any ADHD subtype. Consider alternative etiologies or re-evaluation with additional data."
+    },
+    "general": {
+      "strong_match": "전체적으로 <strong>{top_profile}</strong>의 특징이 강하게 나타나요 ({top_pct}%). ",
+      "moderate_match": "<strong>{top_profile}</strong>의 특징이 약간 보이지만 ({top_pct}%), 전형적인 유형은 아니에요. 다른 원인 가능성도 함께 보는 게 좋겠어요.",
+      "weak_match": "현재 데이터로는 뚜렷한 ADHD 패턴이 보이지 않아요. 다른 원인을 함께 살펴볼 필요가 있어요."
+    }
+  },
+  "warnings": [
+    {
+      "id": "sleep_confound",
+      "condition": {
+        "feature": "sleep_quality",
+        "less_than": 50
+      },
+      "clinician": "Sleep deprivation can mimic and worsen ADHD — recommend ruling out/treating sleep issues first.",
+      "general": "수면 부족은 집중력 문제를 크게 악화시킬 수 있어요. 먼저 수면을 개선하는 것이 중요합니다."
+    },
+    {
+      "id": "hrv_confound",
+      "condition": {
+        "feature": "hrv_rmssd",
+        "less_than": 30
+      },
+      "clinician": "Low HRV suggests chronic stress — may confound ADHD presentation.",
+      "general": "만성 스트레스 징후가 보여요. 스트레스 관리가 함께 필요합니다."
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "bio_foundation",
+      "condition": {
+        "axis": "Bio",
+        "less_than": 55
+      },
+      "clinician": "Prioritize Bio-axis interventions (sleep hygiene, HRV biofeedback, exercise) — foundational before NF.",
+      "general": "수면/운동/자율신경 개선을 먼저 챙기는 게 가장 큰 도움이 될 거예요."
+    },
+    {
+      "id": "inattentive_protocol",
+      "condition": {
+        "profile": "adhd_inattentive",
+        "score_greater": 0.5
+      },
+      "clinician": "Consider SMR or Beta training protocols targeting attention networks.",
+      "general": "주의력 개선을 위한 뉴로피드백 훈련(SMR, Beta)을 고려할 수 있어요."
+    },
+    {
+      "id": "hyperactive_protocol",
+      "condition": {
+        "profile": "adhd_hyperactive",
+        "score_greater": 0.5
+      },
+      "clinician": "Consider SMR or Alpha-theta training for impulse regulation.",
+      "general": "충동 조절 훈련(SMR, Alpha-theta)을 고려하세요."
+    },
+    {
+      "id": "emotional_regulation_protocol",
+      "condition": {
+        "state": "emotional",
+        "less_than": 45
+      },
+      "clinician": "Address emotional dysregulation — consider mindfulness-based NF or specific ER interventions.",
+      "general": "감정 조절 훈련(마음챙김 기반)도 병행하면 좋겠어요."
+    },
+    {
+      "id": "monitoring",
+      "condition": {
+        "always": true
+      },
+      "clinician": "Monitor progress with repeat measurements q2-4 weeks to validate trajectory.",
+      "general": "2-4주 간격으로 재측정해서 변화를 확인하는 게 좋습니다."
+    }
+  ],
+  "surveys": [
+    {
+      "id": "BPS_ATTN",
+      "name": "Attention Difficulty Scale",
+      "description": "Subset of BPS-90 attention items (ASRS-derived)",
+      "items": [
+        {
+          "id": "A_P3",
+          "text": "Difficulty starting tasks",
+          "text_ko": "과제 시작이 어려움",
+          "scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "weight": 1.0
+        },
+        {
+          "id": "A_P4",
+          "text": "Careless mistakes in details",
+          "text_ko": "세부 사항에서 부주의한 실수",
+          "scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "weight": 1.0
+        },
+        {
+          "id": "A_P5",
+          "text": "Attention drifts during conversations",
+          "text_ko": "대화 중 주의가 흐트러짐",
+          "scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "weight": 1.0
+        }
+      ],
+      "scoring": "mean_times_25",
+      "output_feature": "bps_attention"
+    },
+    {
+      "id": "BPS_HYPER",
+      "name": "Hyperactivity/Impulsivity Scale",
+      "description": "Hyperactive and impulsive symptom items",
+      "items": [
+        {
+          "id": "H1",
+          "text": "Feeling restless/fidgety",
+          "text_ko": "안절부절/가만히 있기 힘듦",
+          "scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "id": "H2",
+          "text": "Acting without thinking",
+          "text_ko": "생각 없이 행동함",
+          "scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "id": "H3",
+          "text": "Interrupting others",
+          "text_ko": "다른 사람의 말을 가로막음",
+          "scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      "scoring": "mean_times_25",
+      "output_feature": "bps_hyperactivity"
+    },
+    {
+      "id": "BPS_SLEEP",
+      "name": "Sleep Quality Scale",
+      "items": [
+        {
+          "id": "S1",
+          "text": "How well did you sleep last night?",
+          "text_ko": "어젯밤 수면의 질은?",
+          "scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "reverse": true
+        },
+        {
+          "id": "S2",
+          "text": "Feeling rested on waking",
+          "text_ko": "깨었을 때 개운함",
+          "scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "reverse": true
+        }
+      ],
+      "scoring": "mean_times_25",
+      "output_feature": "sleep_quality"
+    },
+    {
+      "id": "BPS_EMO",
+      "name": "Emotional Regulation Scale",
+      "items": [
+        {
+          "id": "E1",
+          "text": "Ability to calm self when upset",
+          "text_ko": "화났을 때 진정 능력",
+          "scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "reverse": true
+        },
+        {
+          "id": "E2",
+          "text": "Stable mood",
+          "text_ko": "기분 안정성",
+          "scale": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "reverse": true
+        }
+      ],
+      "scoring": "mean_times_25",
+      "output_feature": "emotional_regulation"
+    }
+  ],
+  "sample_cases": [
+    {
+      "id": "adhd_inattentive",
+      "label": "ADHD Inattentive (Adult F, 28yo)",
+      "data": {
+        "context": {
+          "age": 28,
+          "gender": "F",
+          "age_factor": 1.0
+        },
+        "eeg": {
+          "frontal_theta_beta_ratio": 3.6,
+          "frontal_alpha_asymmetry": -0.1,
+          "posterior_alpha_zscore": 0.3
+        },
+        "hrv": {
+          "rmssd": 35
+        },
+        "bps": {
+          "attention_difficulty": 78,
+          "hyperactivity": 35,
+          "sleep_quality": 55,
+          "emotional_regulation": 50
+        },
+        "cognitive": {
+          "cpt_rt_variability": 130
+        }
+      }
+    },
+    {
+      "id": "adhd_hyperactive",
+      "label": "ADHD Hyperactive (Child M, 10yo)",
+      "data": {
+        "context": {
+          "age": 10,
+          "gender": "M",
+          "age_factor": 1.15
+        },
+        "eeg": {
+          "frontal_theta_beta_ratio": 3.2,
+          "frontal_alpha_asymmetry": 0.1,
+          "posterior_alpha_zscore": -0.8
+        },
+        "hrv": {
+          "rmssd": 42
+        },
+        "bps": {
+          "attention_difficulty": 55,
+          "hyperactivity": 82,
+          "sleep_quality": 50,
+          "emotional_regulation": 38
+        },
+        "cognitive": {
+          "cpt_rt_variability": 100
+        }
+      }
+    },
+    {
+      "id": "adhd_combined",
+      "label": "ADHD Combined (Teen M, 15yo)",
+      "data": {
+        "context": {
+          "age": 15,
+          "gender": "M",
+          "age_factor": 1.05
+        },
+        "eeg": {
+          "frontal_theta_beta_ratio": 3.9,
+          "frontal_alpha_asymmetry": -0.2,
+          "posterior_alpha_zscore": -0.4
+        },
+        "hrv": {
+          "rmssd": 30
+        },
+        "bps": {
+          "attention_difficulty": 75,
+          "hyperactivity": 72,
+          "sleep_quality": 45,
+          "emotional_regulation": 40
+        },
+        "cognitive": {
+          "cpt_rt_variability": 160
+        }
+      }
+    },
+    {
+      "id": "normal",
+      "label": "Normal Control (Adult F, 35yo)",
+      "data": {
+        "context": {
+          "age": 35,
+          "gender": "F",
+          "age_factor": 1.0
+        },
+        "eeg": {
+          "frontal_theta_beta_ratio": 2.1,
+          "frontal_alpha_asymmetry": 0.05,
+          "posterior_alpha_zscore": 0.2
+        },
+        "hrv": {
+          "rmssd": 48
+        },
+        "bps": {
+          "attention_difficulty": 25,
+          "hyperactivity": 20,
+          "sleep_quality": 75,
+          "emotional_regulation": 72
+        },
+        "cognitive": {
+          "cpt_rt_variability": 70
+        }
+      }
+    },
+    {
+      "id": "borderline",
+      "label": "Borderline (Adult M, 42yo)",
+      "data": {
+        "context": {
+          "age": 42,
+          "gender": "M",
+          "age_factor": 1.0
+        },
+        "eeg": {
+          "frontal_theta_beta_ratio": 2.9,
+          "frontal_alpha_asymmetry": -0.15,
+          "posterior_alpha_zscore": -0.3
+        },
+        "hrv": {
+          "rmssd": 32
+        },
+        "bps": {
+          "attention_difficulty": 52,
+          "hyperactivity": 38,
+          "sleep_quality": 55,
+          "emotional_regulation": 55
+        },
+        "cognitive": {
+          "cpt_rt_variability": 105
+        }
+      }
+    }
+  ],
+  "normative_databases": {
+    "_meta": {
+      "version": "1.0",
+      "description": "AI-driven normative database for ADHD Catcher decision system",
+      "last_updated": "2026-04-20",
+      "methodology": "Tier 1: Literature-based priors from peer-reviewed sources. Tier 2 (synthetic Bayesian) and Tier 3 (real patient accumulation) planned in next phases."
+    },
+    "qeeg_eyes_closed": {
+      "source": "Thatcher 2003 (NeuroGuide) + Kropotov 2009 (HBI) + John 1988",
+      "n_total_ref": 625,
+      "condition": "Eyes Closed, resting state",
+      "strata": {
+        "child_6_12": {
+          "n": 120,
+          "age_range": [
+            6,
+            12
+          ],
+          "measurements": {
+            "theta_beta_Fz": {
+              "mu": 3.8,
+              "sd": 1.2,
+              "unit": "ratio"
+            },
+            "theta_beta_Cz": {
+              "mu": 3.5,
+              "sd": 1.1,
+              "unit": "ratio"
+            },
+            "alpha_peak_freq": {
+              "mu": 9.0,
+              "sd": 0.8,
+              "unit": "Hz"
+            },
+            "alpha_power_Pz": {
+              "mu": 15.2,
+              "sd": 6.1,
+              "unit": "μV²"
+            },
+            "frontal_alpha_asym": {
+              "mu": 0.02,
+              "sd": 0.18,
+              "unit": "log ratio"
+            }
+          }
+        },
+        "teen_13_17": {
+          "n": 95,
+          "age_range": [
+            13,
+            17
+          ],
+          "measurements": {
+            "theta_beta_Fz": {
+              "mu": 2.9,
+              "sd": 0.8,
+              "unit": "ratio"
+            },
+            "theta_beta_Cz": {
+              "mu": 2.7,
+              "sd": 0.7,
+              "unit": "ratio"
+            },
+            "alpha_peak_freq": {
+              "mu": 9.8,
+              "sd": 0.7,
+              "unit": "Hz"
+            },
+            "alpha_power_Pz": {
+              "mu": 18.5,
+              "sd": 7.2,
+              "unit": "μV²"
+            },
+            "frontal_alpha_asym": {
+              "mu": 0.01,
+              "sd": 0.16,
+              "unit": "log ratio"
+            }
+          }
+        },
+        "adult_18_39": {
+          "n": 240,
+          "age_range": [
+            18,
+            39
+          ],
+          "measurements": {
+            "theta_beta_Fz": {
+              "mu": 2.1,
+              "sd": 0.35,
+              "unit": "ratio"
+            },
+            "theta_beta_Cz": {
+              "mu": 2.0,
+              "sd": 0.32,
+              "unit": "ratio"
+            },
+            "alpha_peak_freq": {
+              "mu": 10.2,
+              "sd": 0.8,
+              "unit": "Hz"
+            },
+            "alpha_power_Pz": {
+              "mu": 20.1,
+              "sd": 8.5,
+              "unit": "μV²"
+            },
+            "frontal_alpha_asym": {
+              "mu": 0.0,
+              "sd": 0.15,
+              "unit": "log ratio"
+            },
+            "posterior_alpha_zscore": {
+              "mu": 0.0,
+              "sd": 1.0,
+              "unit": "z"
+            }
+          }
+        },
+        "adult_40_59": {
+          "n": 115,
+          "age_range": [
+            40,
+            59
+          ],
+          "measurements": {
+            "theta_beta_Fz": {
+              "mu": 1.9,
+              "sd": 0.38,
+              "unit": "ratio"
+            },
+            "theta_beta_Cz": {
+              "mu": 1.85,
+              "sd": 0.34,
+              "unit": "ratio"
+            },
+            "alpha_peak_freq": {
+              "mu": 9.9,
+              "sd": 0.9,
+              "unit": "Hz"
+            },
+            "alpha_power_Pz": {
+              "mu": 17.8,
+              "sd": 7.9,
+              "unit": "μV²"
+            },
+            "frontal_alpha_asym": {
+              "mu": 0.0,
+              "sd": 0.16,
+              "unit": "log ratio"
+            }
+          }
+        },
+        "senior_60_plus": {
+          "n": 55,
+          "age_range": [
+            60,
+            90
+          ],
+          "measurements": {
+            "theta_beta_Fz": {
+              "mu": 1.8,
+              "sd": 0.42,
+              "unit": "ratio"
+            },
+            "alpha_peak_freq": {
+              "mu": 9.2,
+              "sd": 1.1,
+              "unit": "Hz"
+            },
+            "alpha_power_Pz": {
+              "mu": 14.5,
+              "sd": 7.2,
+              "unit": "μV²"
+            }
+          }
+        }
+      },
+      "citations": [
+        "Thatcher RW (2003). NeuroGuide normative database.",
+        "Kropotov JD (2009). Quantitative EEG, Event-Related Potentials and Neurotherapy.",
+        "John ER (1988). The Neurometric Method."
+      ]
+    },
+    "qeeg_eyes_open": {
+      "source": "Thatcher 2003 + Clarke 2020",
+      "n_total_ref": 580,
+      "condition": "Eyes Open, resting state",
+      "strata": {
+        "child_6_12": {
+          "n": 110,
+          "measurements": {
+            "theta_beta_Fz": {
+              "mu": 4.2,
+              "sd": 1.3,
+              "unit": "ratio"
+            },
+            "alpha_power_Pz": {
+              "mu": 8.5,
+              "sd": 3.8,
+              "unit": "μV²"
+            }
+          }
+        },
+        "adult_18_39": {
+          "n": 220,
+          "measurements": {
+            "theta_beta_Fz": {
+              "mu": 2.4,
+              "sd": 0.45,
+              "unit": "ratio"
+            },
+            "alpha_power_Pz": {
+              "mu": 10.2,
+              "sd": 4.5,
+              "unit": "μV²"
+            }
+          }
+        }
+      },
+      "citations": [
+        "Clarke AR et al. (2020). Clinical Neurophysiology."
+      ]
+    },
+    "hrv_resting": {
+      "source": "Nunan 2010 meta-analysis + Shaffer 2017",
+      "n_total_ref": 21438,
+      "condition": "Resting, seated, 5-min recording",
+      "strata": {
+        "adult_18_29": {
+          "n": 6250,
+          "age_range": [
+            18,
+            29
+          ],
+          "measurements": {
+            "RMSSD": {
+              "mu": 45.0,
+              "sd": 18.0,
+              "unit": "ms"
+            },
+            "SDNN": {
+              "mu": 56.0,
+              "sd": 19.0,
+              "unit": "ms"
+            },
+            "pNN50": {
+              "mu": 18.5,
+              "sd": 13.0,
+              "unit": "%"
+            },
+            "LF": {
+              "mu": 1170,
+              "sd": 430,
+              "unit": "ms²"
+            },
+            "HF": {
+              "mu": 975,
+              "sd": 520,
+              "unit": "ms²"
+            },
+            "LF_HF": {
+              "mu": 1.88,
+              "sd": 1.44,
+              "unit": "ratio"
+            },
+            "mean_HR": {
+              "mu": 72,
+              "sd": 10,
+              "unit": "bpm"
+            }
+          }
+        },
+        "adult_30_39": {
+          "n": 5820,
+          "measurements": {
+            "RMSSD": {
+              "mu": 42.0,
+              "sd": 16.5,
+              "unit": "ms"
+            },
+            "SDNN": {
+              "mu": 50.0,
+              "sd": 17.0,
+              "unit": "ms"
+            },
+            "LF_HF": {
+              "mu": 2.2,
+              "sd": 1.52,
+              "unit": "ratio"
+            }
+          }
+        },
+        "adult_40_49": {
+          "n": 4200,
+          "measurements": {
+            "RMSSD": {
+              "mu": 34.0,
+              "sd": 14.0,
+              "unit": "ms"
+            },
+            "SDNN": {
+              "mu": 44.0,
+              "sd": 15.0,
+              "unit": "ms"
+            },
+            "LF_HF": {
+              "mu": 2.5,
+              "sd": 1.6,
+              "unit": "ratio"
+            }
+          }
+        },
+        "adult_50_59": {
+          "n": 3480,
+          "measurements": {
+            "RMSSD": {
+              "mu": 28.0,
+              "sd": 12.0,
+              "unit": "ms"
+            },
+            "SDNN": {
+              "mu": 38.0,
+              "sd": 14.0,
+              "unit": "ms"
+            }
+          }
+        },
+        "senior_60_plus": {
+          "n": 1688,
+          "measurements": {
+            "RMSSD": {
+              "mu": 22.0,
+              "sd": 10.0,
+              "unit": "ms"
+            },
+            "SDNN": {
+              "mu": 32.0,
+              "sd": 12.0,
+              "unit": "ms"
+            }
+          }
+        },
+        "child_6_12": {
+          "n": 245,
+          "measurements": {
+            "RMSSD": {
+              "mu": 60.0,
+              "sd": 22.0,
+              "unit": "ms"
+            },
+            "SDNN": {
+              "mu": 65.0,
+              "sd": 20.0,
+              "unit": "ms"
+            }
+          }
+        },
+        "teen_13_17": {
+          "n": 195,
+          "measurements": {
+            "RMSSD": {
+              "mu": 52.0,
+              "sd": 20.0,
+              "unit": "ms"
+            },
+            "SDNN": {
+              "mu": 60.0,
+              "sd": 19.0,
+              "unit": "ms"
+            }
+          }
+        }
+      },
+      "citations": [
+        "Nunan D et al. (2010). A quantitative systematic review of normal values for short-term heart rate variability in healthy adults. PACE.",
+        "Shaffer F, Ginsberg JP (2017). An overview of heart rate variability metrics and norms. Frontiers in Public Health."
+      ]
+    },
+    "nf_training_response": {
+      "source": "Arns 2014 meta-analysis + Enriquez-Geppert 2019 + Van Doren 2019",
+      "n_studies_ref": 42,
+      "condition": "ADHD neurofeedback protocols, 20-40 session course",
+      "protocols": {
+        "SMR_training": {
+          "description": "12-15 Hz SMR uptraining at C3/C4/Cz",
+          "indication": "ADHD-inattentive, attention",
+          "session_count_typical": [
+            20,
+            40
+          ],
+          "response_rate": 0.65,
+          "expected_changes": {
+            "theta_beta_ratio_delta": {
+              "mu": -0.4,
+              "sd": 0.3,
+              "direction": "decrease"
+            },
+            "bps_attention_delta": {
+              "mu": -18,
+              "sd": 12,
+              "direction": "decrease"
+            },
+            "cpt_rt_variability_delta": {
+              "mu": -22,
+              "sd": 18,
+              "direction": "decrease"
+            }
+          },
+          "sessions_to_visible_change": {
+            "mu": 15,
+            "sd": 5
+          },
+          "non_responder_indicators": [
+            "severe sleep deprivation",
+            "active trauma",
+            "med change mid-course"
+          ]
+        },
+        "Beta_training": {
+          "description": "15-18 Hz Beta uptraining at Cz/Fz",
+          "indication": "ADHD-inattentive, slow cortical activation",
+          "response_rate": 0.6,
+          "expected_changes": {
+            "theta_beta_ratio_delta": {
+              "mu": -0.5,
+              "sd": 0.35,
+              "direction": "decrease"
+            },
+            "cpt_rt_variability_delta": {
+              "mu": -18,
+              "sd": 15
+            }
+          },
+          "sessions_to_visible_change": {
+            "mu": 18,
+            "sd": 6
+          }
+        },
+        "Theta_inhibit": {
+          "description": "4-7 Hz Theta downtraining at Fz",
+          "indication": "ADHD-inattentive, frontal slowing",
+          "response_rate": 0.62,
+          "expected_changes": {
+            "theta_beta_ratio_delta": {
+              "mu": -0.55,
+              "sd": 0.4
+            }
+          },
+          "sessions_to_visible_change": {
+            "mu": 16,
+            "sd": 5
+          }
+        },
+        "Alpha_theta": {
+          "description": "Alpha/theta crossover training",
+          "indication": "Emotional regulation, hyperactive/impulsive",
+          "response_rate": 0.55,
+          "expected_changes": {
+            "emotional_regulation_delta": {
+              "mu": 15,
+              "sd": 10,
+              "direction": "increase"
+            },
+            "hrv_rmssd_delta": {
+              "mu": 6,
+              "sd": 5,
+              "direction": "increase"
+            }
+          },
+          "sessions_to_visible_change": {
+            "mu": 12,
+            "sd": 4
+          }
+        },
+        "ILF_infra_low": {
+          "description": "Infra-low frequency (<0.1 Hz) training",
+          "indication": "Autonomic regulation, arousal modulation",
+          "response_rate": 0.58,
+          "expected_changes": {
+            "autonomic_state_delta": {
+              "mu": 12,
+              "sd": 9
+            },
+            "hrv_rmssd_delta": {
+              "mu": 8,
+              "sd": 6
+            }
+          }
+        },
+        "HRV_biofeedback": {
+          "description": "0.1 Hz resonant frequency breathing (non-NF, adjunct)",
+          "indication": "Autonomic regulation, stress",
+          "response_rate": 0.7,
+          "expected_changes": {
+            "hrv_rmssd_delta": {
+              "mu": 10,
+              "sd": 7
+            },
+            "autonomic_state_delta": {
+              "mu": 18,
+              "sd": 10
+            }
+          },
+          "sessions_to_visible_change": {
+            "mu": 6,
+            "sd": 3
+          }
+        }
+      },
+      "general_principles": {
+        "responder_definition": "≥25% reduction in target metric over course",
+        "dose_response": "Most studies show plateau around 30-40 sessions",
+        "transfer": "Gains generalize best when training is contingent and specific"
+      },
+      "citations": [
+        "Arns M, de Ridder S, Strehl U, Breteler M, Coenen A (2014). Efficacy of neurofeedback treatment in ADHD. Clinical EEG Neuroscience.",
+        "Enriquez-Geppert S, Huster RJ, Herrmann CS (2019). EEG-neurofeedback as a tool to modulate cognition and behavior. Frontiers in Human Neuroscience.",
+        "Van Doren J et al. (2019). Sustained effects of neurofeedback in ADHD: a systematic review and meta-analysis. European Child & Adolescent Psychiatry."
+      ]
+    },
+    "clinical_scales": {
+      "ASRS_v1_1_adult": {
+        "description": "Adult ADHD Self-Report Scale",
+        "cutoff_screener": 14,
+        "strata": {
+          "general_adult": {
+            "n": 966,
+            "mu": 5.2,
+            "sd": 4.1,
+            "percentiles": {
+              "50": 5,
+              "75": 8,
+              "90": 12,
+              "95": 14
+            }
+          }
+        },
+        "citations": [
+          "Kessler RC et al. (2005). The World Health Organization Adult ADHD Self-Report Scale (ASRS)."
+        ]
+      },
+      "Conners_CBRS_child": {
+        "description": "Conners Comprehensive Behavior Rating Scales (parent-rated)",
+        "strata": {
+          "child_6_11_male": {
+            "mu": 50,
+            "sd": 10,
+            "t_score_scale": true
+          },
+          "child_6_11_female": {
+            "mu": 50,
+            "sd": 10,
+            "t_score_scale": true
+          }
+        },
+        "clinical_cutoff_t_score": 65
+      },
+      "BPS_attention_subscale": {
+        "description": "BPS-90 attention items (BNM internal)",
+        "strata": {
+          "general_adult": {
+            "mu": 28,
+            "sd": 18,
+            "scale": "0-100"
+          }
+        },
+        "clinical_cutoff": 50
+      },
+      "BPS_hyperactivity_subscale": {
+        "description": "BPS-90 hyperactivity/impulsivity items",
+        "strata": {
+          "general_adult": {
+            "mu": 25,
+            "sd": 17,
+            "scale": "0-100"
+          }
+        },
+        "clinical_cutoff": 45
+      },
+      "PSQI_sleep": {
+        "description": "Pittsburgh Sleep Quality Index",
+        "cutoff": 5,
+        "strata": {
+          "general_adult": {
+            "mu": 4.8,
+            "sd": 2.9
+          }
+        }
+      }
+    },
+    "erp_hbi": {
+      "source": "Kropotov 2009 + HBImed normative database",
+      "n_total_ref": 350,
+      "paradigms": {
+        "visual_GO_NOGO": {
+          "description": "Cued GO/NOGO paradigm, HBI standard",
+          "adult_18_39": {
+            "n": 180,
+            "measurements": {
+              "P300_Pz_target_amp": {
+                "mu": 8.5,
+                "sd": 2.5,
+                "unit": "μV"
+              },
+              "P300_Pz_target_latency": {
+                "mu": 340,
+                "sd": 30,
+                "unit": "ms"
+              },
+              "N200_Cz_inhibit_amp": {
+                "mu": -4.8,
+                "sd": 1.8,
+                "unit": "μV"
+              },
+              "CNV_Cz": {
+                "mu": -3.2,
+                "sd": 1.5,
+                "unit": "μV"
+              }
+            }
+          },
+          "child_6_12": {
+            "n": 95,
+            "measurements": {
+              "P300_Pz_target_amp": {
+                "mu": 10.2,
+                "sd": 3.0,
+                "unit": "μV"
+              },
+              "P300_Pz_target_latency": {
+                "mu": 380,
+                "sd": 40,
+                "unit": "ms"
+              }
+            }
+          }
+        },
+        "auditory_oddball": {
+          "adult_18_39": {
+            "measurements": {
+              "P300_Pz_amp": {
+                "mu": 9.0,
+                "sd": 3.0,
+                "unit": "μV"
+              },
+              "P300_Pz_latency": {
+                "mu": 320,
+                "sd": 25,
+                "unit": "ms"
+              }
+            }
+          }
+        }
+      },
+      "adhd_typical_findings": {
+        "P300_amp_reduction": "Typically 20-40% reduced in ADHD vs controls",
+        "N200_amp_reduction": "Reduced N2 in NOGO suggests inhibitory control deficit"
+      },
+      "citations": [
+        "Kropotov JD (2009). Quantitative EEG, Event-Related Potentials and Neurotherapy.",
+        "Johnstone SJ et al. (2013). ERP meta-analysis in ADHD."
+      ]
+    }
+  }
+}

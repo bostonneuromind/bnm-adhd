@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADHD TalkCatcher · 임상 입력실</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',system-ui,sans-serif;font-size:16px;line-height:1.7;color:#1A1A2E;background:linear-gradient(135deg,#F5F3FF 0%,#FCE7F3 100%);min-height:100vh;-webkit-font-smoothing:antialiased;padding:24px}
+.wrap{max-width:880px;margin:0 auto}
+.home-link{display:inline-block;margin-bottom:18px;color:#7C3AED;text-decoration:none;font-size:0.88em;font-weight:600}
+.home-link:hover{text-decoration:underline}
+
+/* 헤더 */
+.top{text-align:center;margin-bottom:14px}
+.top .logo{font-size:2.6em;margin-bottom:6px}
+.top h1{font-family:'Playfair Display',serif;font-size:2em;font-weight:900;color:#4C1D95;margin-bottom:4px}
+.top .sub{color:#6D28D9;font-weight:600;font-size:0.92em}
+
+/* 봇 선택 */
+.bot-bar{background:white;border-radius:16px;padding:16px 20px;box-shadow:0 4px 14px rgba(91,33,182,0.1);margin-bottom:16px}
+.bot-bar-label{font-size:0.8em;font-weight:700;color:#9D174D;margin-bottom:9px}
+.bot-chips{display:flex;gap:7px;flex-wrap:wrap}
+.bot-chip{padding:8px 13px;border:1.5px solid #DDD6FE;border-radius:100px;background:#FAFAFF;font-family:inherit;font-size:0.83em;font-weight:700;color:#6B7280;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px}
+.bot-chip:hover{border-color:#C4B5FD;background:#F5F3FF}
+.bot-chip.active{background:#7C3AED;border-color:#7C3AED;color:white}
+.bot-chip .bot-prog{font-size:0.86em;opacity:0.85;font-weight:600}
+.bot-chip.locked{opacity:0.62}
+.bot-chip.active.locked{opacity:1}
+
+/* 작성 가이드 */
+.guide{background:white;border-radius:16px;box-shadow:0 4px 14px rgba(91,33,182,0.1);margin-bottom:16px;overflow:hidden;border:2px solid #FCE7F3}
+.guide-head{padding:16px 22px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:background 0.2s;user-select:none;background:#FDF4FF}
+.guide-head:hover{background:#FCE7F3}
+.guide-emoji{font-size:1.3em}
+.guide-title{flex:1;font-weight:800;color:#9D174D}
+.guide-chevron{color:#EC4899;transition:transform 0.25s;font-size:0.8em}
+.guide.open .guide-chevron{transform:rotate(90deg)}
+.guide-body{display:none;padding:8px 22px 22px}
+.guide.open .guide-body{display:block}
+.guide-body h3{font-family:'Playfair Display',serif;font-size:1.1em;color:#4C1D95;margin:20px 0 10px;font-weight:900}
+.guide-body h3:first-child{margin-top:8px}
+.guide-steps{margin:0 0 4px;padding-left:22px;color:#374151;font-size:0.92em}
+.guide-steps li{margin-bottom:6px}
+.guide-steps b,.guide-good b,.guide-bad b{color:#6D28D9}
+.guide-tip{margin-top:8px;background:#FEF9C3;border-radius:8px;padding:9px 13px;font-size:0.85em;line-height:1.55;color:#713F12}
+.guide-tip b{color:#92400E}
+.guide-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.guide-good,.guide-bad{border-radius:12px;padding:14px 16px;font-size:0.88em}
+.guide-good{background:#F0FDF4;border:1.5px solid #A7F3D0}
+.guide-bad{background:#FEF2F2;border:1.5px solid #FECACA}
+.guide-col-label{font-weight:800;margin-bottom:8px}
+.guide-good .guide-col-label{color:#065F46}
+.guide-bad .guide-col-label{color:#991B1B}
+.guide-good ul,.guide-bad ul{margin:0;padding-left:18px}
+.guide-good li,.guide-bad li{margin-bottom:5px;line-height:1.5}
+.guide-sample{background:#FAFAFF;border:1.5px dashed #C4B5FD;border-radius:12px;padding:16px;margin-top:6px}
+.sample-field{margin-bottom:12px}
+.sample-field:last-of-type{margin-bottom:0}
+.sample-label{font-size:0.8em;font-weight:700;color:#6D28D9;margin-bottom:4px}
+.sample-label span{font-weight:500;color:#9CA3AF}
+.sample-text{background:white;border:1px solid #E9D5FF;border-radius:8px;padding:10px 12px;font-size:0.9em;line-height:1.65;color:#1A1A2E}
+.sample-note{margin-top:12px;background:#FEF9C3;border-radius:8px;padding:10px 13px;font-size:0.85em;line-height:1.6;color:#713F12}
+.guide-foot{margin-top:18px;font-size:0.88em;color:#6B7280;text-align:center;background:#F5F3FF;border-radius:10px;padding:11px 14px}
+
+/* 진척 바 */
+.progress-box{background:white;border-radius:16px;padding:18px 22px;box-shadow:0 4px 14px rgba(91,33,182,0.1);margin-bottom:16px}
+.progress-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.progress-head .count{font-family:'Playfair Display',serif;font-size:1.5em;font-weight:900;color:#4C1D95}
+.progress-head .goal{color:#6B7280;font-size:0.88em}
+.progress-track{height:12px;background:#EDE9FE;border-radius:100px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#8B5CF6,#EC4899);border-radius:100px;transition:width 0.4s ease;width:0%}
+.progress-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:0.78em;color:#6B7280}
+.progress-legend span{display:flex;align-items:center;gap:5px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.dot.ko{background:#FBBF24}.dot.en{background:#34D399}.dot.flag{background:#F87171}.dot.empty{background:#D1D5DB}
+
+/* 툴바 */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.tbtn{flex:1;min-width:130px;padding:12px 14px;border:none;border-radius:12px;font-family:inherit;font-size:0.9em;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.tbtn.primary{background:white;color:#5B21B6;box-shadow:0 2px 8px rgba(91,33,182,0.1)}
+.tbtn.primary:hover{background:#F5F3FF}
+.tbtn.ghost{background:white;color:#5B21B6;box-shadow:0 2px 8px rgba(91,33,182,0.1)}
+.tbtn.ghost:hover{background:#F5F3FF}
+.file-hidden{display:none}
+
+/* 카테고리 */
+.cat{background:white;border-radius:16px;box-shadow:0 4px 14px rgba(91,33,182,0.08);margin-bottom:14px;overflow:hidden}
+.cat-head{padding:16px 22px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:background 0.2s;user-select:none}
+.cat-head:hover{background:#F5F3FF}
+.cat-head .cat-emoji{font-size:1.4em}
+.cat-head .cat-title{font-weight:800;color:#4C1D95;flex:1}
+.cat-head .cat-title .cat-en{display:block;font-size:0.74em;color:#9CA3AF;font-weight:600;margin-top:1px}
+.cat-head .cat-count{font-size:0.78em;font-weight:700;padding:3px 10px;border-radius:100px;background:#EDE9FE;color:#5B21B6}
+.cat-head .cat-count.done{background:#D1FAE5;color:#065F46}
+.cat-head .chevron{color:#A78BFA;transition:transform 0.25s;font-size:0.8em}
+.cat.open .chevron{transform:rotate(90deg)}
+.cat-body{display:none;padding:0 22px 18px}
+.cat.open .cat-body{display:block}
+.cat-export-btn{width:100%;margin-top:14px;padding:11px 14px;border:none;border-radius:10px;font-family:inherit;font-size:0.85em;font-weight:700;cursor:pointer;background:#EDE9FE;color:#5B21B6;transition:all 0.2s}
+.cat-export-btn:hover{background:#DDD6FE}
+
+/* 케이스 카드 */
+.case{border:2px solid #EDE9FE;border-radius:14px;padding:16px;margin-top:12px;transition:border-color 0.2s}
+.case[data-status="ko"]{border-color:#FCD34D}
+.case[data-status="en"]{border-color:#6EE7B7}
+.case[data-status="flag"]{border-color:#FCA5A5;background:#FEF2F2}
+.case-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
+.case-num{font-weight:800;color:#7C3AED;font-size:0.9em}
+.case-status{font-size:0.74em;font-weight:700;padding:3px 10px;border-radius:100px;background:#F3F4F6;color:#9CA3AF}
+.case-status.ko{background:#FEF3C7;color:#92400E}
+.case-status.en{background:#D1FAE5;color:#065F46}
+.case-status.flag{background:#FEE2E2;color:#991B1B}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:0.82em;font-weight:700;color:#6D28D9;margin-bottom:5px}
+.field label .hint{font-weight:500;color:#9CA3AF;font-size:0.92em}
+.field textarea{width:100%;padding:11px 13px;border:1.5px solid #DDD6FE;border-radius:10px;font-family:inherit;font-size:0.92em;line-height:1.65;resize:vertical;min-height:60px;outline:none;background:#FEFEFF;color:#1A1A2E}
+.field textarea:focus{border-color:#8B5CF6;background:white}
+.field textarea.en-field{background:#F0FDF4;border-color:#A7F3D0}
+.field textarea.en-field:focus{border-color:#34D399;background:white}
+.en-wrap{position:relative}
+.case-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.cabtn{padding:7px 12px;border:none;border-radius:8px;font-family:inherit;font-size:0.78em;font-weight:700;cursor:pointer;transition:all 0.15s}
+.cabtn.flag{background:#FEE2E2;color:#991B1B}
+.cabtn.flag:hover{background:#FECACA}
+.cabtn.flag.active{background:#DC2626;color:white}
+.cabtn.clear{background:#F3F4F6;color:#6B7280}
+.cabtn.clear:hover{background:#E5E7EB}
+
+/* 언어 토글 */
+.lang-toggle{position:fixed;bottom:22px;right:22px;background:white;border-radius:100px;box-shadow:0 6px 20px rgba(91,33,182,0.25);padding:5px;display:flex;gap:3px;z-index:50}
+.lang-toggle button{padding:9px 14px;border:none;border-radius:100px;font-family:inherit;font-size:0.82em;font-weight:700;cursor:pointer;background:transparent;color:#9CA3AF;transition:all 0.2s}
+.lang-toggle button.active{background:#7C3AED;color:white}
+
+/* 저장 알림 */
+.saved-toast{position:fixed;bottom:22px;left:22px;background:#4C1D95;color:white;padding:10px 18px;border-radius:100px;font-size:0.82em;font-weight:600;opacity:0;transform:translateY(10px);transition:all 0.3s;z-index:50;pointer-events:none}
+.saved-toast.show{opacity:1;transform:translateY(0)}
+
+/* 언어 표시 모드 */
+body.show-ko .field.en-only{display:none}
+body.show-en .field.ko-only{display:none}
+
+.footer{text-align:center;color:#9CA3AF;font-size:0.8em;margin:30px 0 80px;padding-top:18px;border-top:1px solid #DDD6FE}
+@media (max-width:600px){body{font-size:15px;padding:14px}.top h1{font-size:1.6em}.toolbar{flex-direction:column}.lang-toggle{bottom:14px;right:14px}.saved-toast{bottom:14px;left:14px}.guide-cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="show-both">
+
+<div class="wrap">
+
+  <a href="index.html" class="home-link">&larr; TalkCatcher 홈으로</a>
+
+  <div class="top">
+    <div class="logo">&#129418;</div>
+    <h1 id="botTitle">ADHD TalkCatcher</h1>
+    <p class="sub">임상 입력실 &middot; 마누라 Voice 케이스 &middot; 30 카테고리 &times; 5 = 150개</p>
+  </div>
+
+  <!-- 봇 선택 -->
+  <div class="bot-bar">
+    <div class="bot-bar-label">&#127919; 어떤 봇의 Voice를 입력하시겠어요?</div>
+    <div class="bot-chips" id="botChips"></div>
+  </div>
+
+  <!-- 작성 가이드 -->
+  <div class="guide" id="guideBox">
+    <div class="guide-head" id="guideHead">
+      <span class="guide-emoji">&#128214;</span>
+      <span class="guide-title">처음이세요? 작성 가이드 + 샘플 먼저 보기</span>
+      <span class="guide-chevron">&#9654;</span>
+    </div>
+    <div class="guide-body">
+      <h3>1. 이렇게 쓰면 돼요</h3>
+      <ol class="guide-steps">
+        <li>위에서 <b>봇</b>을 고르세요. <b>ADHD TalkCatcher</b>에는 Claude 초안 150개가 이미 들어 있어요. 나머지 봇은 빈 그릇이라 직접 채우면 됩니다.</li>
+        <li>카테고리를 펼쳐 초안을 읽고, <b>내 임상 voice로 수정</b>하세요. 마음에 안 들면 통째로 다시 써도 돼요.</li>
+        <li><b>한글로만</b> 고치면 됩니다. 영어는 신경 안 써도 돼요 &mdash; 나중에 Claude가 채웁니다.</li>
+        <li>수정하는 족족 <b>자동 저장</b>돼요. 창을 닫아도 안 날아갑니다. 봇마다 따로 저장돼요.</li>
+        <li>한 카테고리를 다 다듬으면, 그 카테고리 맨 아래 <b>&#128228; (이 카테고리만) 내보내기</b> &rarr; 그 5개만 파일로 Claude에게 주세요.</li>
+        <li>Claude가 영어를 채워서 돌려주면 <b>&#128229; 불러오기</b> &rarr; 화면에 한글&middot;영어가 <b>나란히</b> 떠요.</li>
+        <li>영어가 어색하면 <b>그 자리에서 바로 고쳐도</b> 되고, <b>&#128681;</b>를 눌러 Claude에게 다시 맡겨도 돼요.</li>
+      </ol>
+      <p class="guide-tip">&#128161; 봇별로 시간 날 때 수시로 검증하세요. 분야 하나를 오래 묵혀가며 다듬는 게 좋아요. &middot; <b>&#128230; 전체 내보내기</b>는 지금 봇의 작업 전체를 한 파일로 백업할 때 쓰세요.</p>
+
+      <h3>2. 좋은 답변 vs 아쉬운 답변</h3>
+      <div class="guide-cols">
+        <div class="guide-good">
+          <div class="guide-col-label">&#9989; 좋은 답변</div>
+          <ul>
+            <li><b>3~4문장</b>으로 충분히</li>
+            <li>먼저 <b>감정을 알아주고</b> 시작</li>
+            <li><b>진짜 내 임상 voice</b> &mdash; 평소 말투, 표현</li>
+            <li>작고 <b>구체적인 한 걸음</b>을 권함</li>
+            <li>케이스마다 <b>톤을 다양하게</b></li>
+          </ul>
+        </div>
+        <div class="guide-bad">
+          <div class="guide-col-label">&#9888; 아쉬운 답변</div>
+          <ul>
+            <li>1~2문장으로 너무 짧게</li>
+            <li>"그냥 더 노력해봐" 같은 훈계조</li>
+            <li>봇이 할 법한 일반적인 답</li>
+            <li>진단&middot;약 추천</li>
+            <li>모든 케이스가 같은 톤</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>3. 완성된 샘플</h3>
+      <div class="guide-sample">
+        <div class="sample-field">
+          <div class="sample-label">&#128193; 카테고리</div>
+          <div class="sample-text">&#128640; 과제 시작 &middot; 케이스 1</div>
+        </div>
+        <div class="sample-field">
+          <div class="sample-label">호소 <span>&middot; 사용자가 한 말</span></div>
+          <div class="sample-text">30분째 이메일 하나를 못 보내고 있어요. 내용은 다 정리됐는데 보내기 버튼을 못 누르겠어요.</div>
+        </div>
+        <div class="sample-field">
+          <div class="sample-label">마누라 답변 <span>&middot; 한글, 3~4문장</span></div>
+          <div class="sample-text">다 써놓고 마지막 한 걸음에서 멈춰 있는 거, 그게 진짜 답답하죠. 근데 이건 의지의 문제가 아니라 ADHD 뇌가 '시작'이라는 동작 자체에 에너지를 크게 쓰는 거예요. 내용을 다 정리한 건 이미 어려운 일을 해낸 거고요. 지금은 그냥 보내기 버튼 위에 마우스를 올려놓는 것까지만 해볼까요?</div>
+        </div>
+        <div class="sample-note">&#128161; ① 감정 먼저 알아주고 ② ADHD 기제로 재구성하고 ③ 이미 한 걸 인정하고 ④ 아주 작은 한 걸음을 권했어요.</div>
+      </div>
+      <p class="guide-foot">준비됐으면 아래 카테고리를 펼쳐서 시작하세요.</p>
+    </div>
+  </div>
+
+  <!-- 진척 -->
+  <div class="progress-box">
+    <div class="progress-head">
+      <span class="count" id="progCount">0 / 150</span>
+      <span class="goal" id="progGoal">한글 작성된 케이스 기준</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+    <div class="progress-legend">
+      <span><i class="dot empty"></i> 빈 칸</span>
+      <span><i class="dot ko"></i> 한글 작성됨</span>
+      <span><i class="dot en"></i> 영어 완료</span>
+      <span><i class="dot flag"></i> &#128681; 수정 요청</span>
+    </div>
+  </div>
+
+  <!-- 툴바 -->
+  <div class="toolbar">
+    <button class="tbtn primary" id="btnExport">&#128230; 전체 내보내기</button>
+    <button class="tbtn ghost" id="btnImport">&#128229; 불러오기 (영어 채워진 파일)</button>
+    <input type="file" id="fileInput" class="file-hidden" accept=".json">
+  </div>
+
+  <!-- 카테고리 목록 -->
+  <div id="catList"></div>
+
+  <div class="footer">
+    &#128190; 입력 내용은 봇마다 따로 이 브라우저에 자동 저장돼요. 다른 기기에서 이어가려면 "전체 내보내기"로 받은 파일을 "불러오기" 하세요.<br>
+    &copy; 2026 Boston Neuromind LLC &middot; TalkCatcher&trade;
+  </div>
+
+</div>
+
+<div class="lang-toggle">
+  <button id="tgKo">&#127472;&#127479; 한글</button>
+  <button id="tgBoth" class="active">한+영</button>
+  <button id="tgEn">&#127482;&#127480; 영어</button>
+</div>
+
+<div class="saved-toast" id="savedToast">&#128190; 자동 저장됨</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ════════════════════════════════════════════════════════
+  //  10개 봇 — TalkCatcher 라인업
+  //  ADHD가 1번. plugin 복제는 ADHD 검증 후지만, 입력(voice)은 10개 다 받는다.
+  //  id는 절대 바꾸지 말 것 (저장 키).
+  // ════════════════════════════════════════════════════════
+  var BOTS = [
+    { id:'adhd',     emoji:'\uD83E\uDD8A', ko:'ADHD',     en:'ADHD' },
+    { id:'anxiety',  emoji:'\uD83D\uDE30', ko:'불안',     en:'Anxiety' },
+    { id:'depression', emoji:'\uD83D\uDCA7', ko:'우울',   en:'Depression' },
+    { id:'learning', emoji:'\uD83D\uDCDA', ko:'학습',     en:'Learning' },
+    { id:'peak',     emoji:'\uD83C\uDFAF', ko:'수행',     en:'Peak Performance' },
+    { id:'sleep',    emoji:'\uD83D\uDE34', ko:'수면',     en:'Sleep' },
+    { id:'burnout',  emoji:'\uD83D\uDD25', ko:'번아웃',   en:'Burnout' },
+    { id:'ocd',      emoji:'\uD83D\uDD01', ko:'강박',     en:'OCD' },
+    { id:'eating',   emoji:'\uD83C\uDF7D\uFE0F', ko:'섭식', en:'Eating Disorder' },
+    { id:'ptsd',     emoji:'\uD83C\uDF2A', ko:'외상후',   en:'PTSD' }
+  ];
+
+  // ════════════════════════════════════════════════════════
+  //  30 카테고리 — 공통 (검증 전엔 모든 봇 동일 구조)
+  // ════════════════════════════════════════════════════════
+  var CATEGORIES = [
+    { id:'c01', emoji:'\uD83D\uDE80', ko:'과제 시작',        en:'Task Initiation' },
+    { id:'c02', emoji:'\u23F0', ko:'시간 감각',        en:'Time Blindness' },
+    { id:'c03', emoji:'\uD83E\uDDE0', ko:'작업 기억',        en:'Working Memory' },
+    { id:'c04', emoji:'\uD83D\uDC94', ko:'거절 민감성',      en:'Rejection Sensitivity' },
+    { id:'c05', emoji:'\uD83C\uDF00', ko:'과집중',          en:'Hyperfocus' },
+    { id:'c06', emoji:'\uD83C\uDF0A', ko:'감정 조절',        en:'Emotional Regulation' },
+    { id:'c07', emoji:'\uD83C\uDFAF', ko:'실행 기능',        en:'Executive Function' },
+    { id:'c08', emoji:'\uD83D\uDE36', ko:'미루기',          en:'Procrastination' },
+    { id:'c09', emoji:'\uD83D\uDD25', ko:'번아웃\u00B7소진',      en:'Burnout' },
+    { id:'c10', emoji:'\uD83D\uDE30', ko:'불안\u00B7걱정',        en:'Anxiety & Worry' },
+    { id:'c11', emoji:'\uD83D\uDCA7', ko:'우울\u00B7무기력',      en:'Low Mood & Energy' },
+    { id:'c12', emoji:'\uD83D\uDE34', ko:'수면 문제',        en:'Sleep Problems' },
+    { id:'c13', emoji:'\uD83C\uDF7D\uFE0F', ko:'식사\u00B7루틴',       en:'Eating & Routine' },
+    { id:'c14', emoji:'\uD83D\uDC8A', ko:'약 복용 관리',      en:'Medication Management' },
+    { id:'c15', emoji:'\uD83D\uDC65', ko:'관계 갈등',        en:'Relationship Conflict' },
+    { id:'c16', emoji:'\uD83D\uDCBC', ko:'직장\u00B7일',          en:'Work & Job' },
+    { id:'c17', emoji:'\uD83D\uDCDA', ko:'공부\u00B7학업',        en:'Study & School' },
+    { id:'c18', emoji:'\uD83C\uDFE0', ko:'집안일\u00B7정리',      en:'Chores & Organizing' },
+    { id:'c19', emoji:'\uD83D\uDCB0', ko:'돈 관리',          en:'Money Management' },
+    { id:'c20', emoji:'\uD83D\uDCF1', ko:'디지털\u00B7산만',      en:'Digital Distraction' },
+    { id:'c21', emoji:'\uD83D\uDDE3\uFE0F', ko:'대화\u00B7소통',        en:'Communication' },
+    { id:'c22', emoji:'\uD83D\uDE14', ko:'자책\u00B7수치심',      en:'Self-Blame & Shame' },
+    { id:'c23', emoji:'\uD83C\uDFAD', ko:'가면\u00B7소진',        en:'Masking' },
+    { id:'c24', emoji:'\u26A1', ko:'충동성',          en:'Impulsivity' },
+    { id:'c25', emoji:'\uD83E\uDDE9', ko:'전환\u00B7유연성',      en:'Transitions & Flexibility' },
+    { id:'c26', emoji:'\uD83C\uDF31', ko:'동기\u00B7의욕',        en:'Motivation' },
+    { id:'c27', emoji:'\uD83C\uDF89', ko:'작은 성공\u00B7강점',    en:'Small Wins & Strengths' },
+    { id:'c28', emoji:'\uD83C\uDD98', ko:'위기\u00B7안전',        en:'Crisis & Safety' },
+    { id:'c29', emoji:'\uD83D\uDC6A', ko:'가족\u00B7양육',        en:'Family & Parenting' },
+    { id:'c30', emoji:'\uD83E\uDE9E', ko:'정체성\u00B7진단 수용',  en:'Identity & Diagnosis' }
+  ];
+  var CASES_PER_CAT = 5;
+  var GOAL = CATEGORIES.length * CASES_PER_CAT;
+
+  // ════════════════════════════════════════════════════════
+  //  ADHD 초안 150개 — 입력실에 내장 (B방식). 첫 진입 시 빈 칸에 자동 주입.
+  // ════════════════════════════════════════════════════════
+  var ADHD_SEED = {
+  "c01_1": {
+    "complaint": "30분째 이메일 하나를 못 보내고 있어요. 내용은 다 정리됐는데 보내기 버튼을 못 누르겠어요.",
+    "voiceKo": "다 써놓고 마지막 한 걸음에서 멈춰 있는 거, 그게 진짜 답답하죠. 근데 이건 의지의 문제가 아니라 ADHD 뇌가 '시작'이라는 동작 자체에 에너지를 크게 쓰는 거예요. 내용을 다 정리한 건 이미 어려운 일을 해낸 거고요. 지금은 '잘 보내야지'가 아니라 그냥 보내기 버튼 위에 마우스를 올려놓는 것까지만 해볼까요?"
+  },
+  "c01_2": {
+    "complaint": "해야 할 일이 산더미인데 뭐부터 손대야 할지 몰라서 그냥 멍하니 앉아있어요.",
+    "voiceKo": "할 일이 한꺼번에 보이면 뇌가 압도돼서 오히려 아무것도 못 하게 되죠. 그건 게으른 게 아니라 너무 많은 게 동시에 보여서 그래요. 지금 그 목록에서 제일 '작고 만만한' 것 하나만 골라볼까요? 큰 걸 고르려 하지 말고, 5분이면 끝날 것 같은 거요."
+  },
+  "c01_3": {
+    "complaint": "아침에 일어나서 첫 일을 시작하는 게 제일 어려워요. 한참을 폰만 봐요.",
+    "voiceKo": "하루의 첫 시동이 제일 무겁다는 거, 많은 분들이 그래요. 아침 뇌는 추운 날 시동 안 걸리는 엔진 같거든요. 그래서 '큰 일'로 시작하지 말고, 몸을 먼저 움직이는 게 도움이 돼요 — 물 한 잔 마시기, 책상에 앉기 같은. 마음이 준비되길 기다리지 말고 몸을 먼저 두는 거예요."
+  },
+  "c01_4": {
+    "complaint": "프로젝트를 시작해야 하는데 완벽하게 하고 싶어서 자꾸 미뤄요.",
+    "voiceKo": "'제대로 시작하고 싶다'는 마음이 오히려 시작을 막고 있는 거네요. 완벽하게 하려는 건 잘하고 싶다는 뜻이고, 그건 나쁜 게 아니에요. 다만 ADHD 뇌한테는 '완벽한 시작'이 너무 큰 목표라서 부담돼요. 일부러 '엉성한 첫 줄'을 써보면 어떨까요? 나중에 고치면 되니까요."
+  },
+  "c01_5": {
+    "complaint": "청소를 해야 하는 걸 아는데 몸이 안 움직여요. 죄책감만 쌓여요.",
+    "voiceKo": "해야 하는 걸 알면서 못 하는 그 사이에서 죄책감이 자라는 거, 그게 제일 힘들죠. 근데 죄책감은 시작을 도와주지 않아요 — 오히려 더 무겁게 만들죠. 지금은 '청소'라는 큰 단어 말고, 딱 한 가지만 정해볼까요? '책상 위 컵 하나 치우기' 정도로요. 그 하나가 다음 동작을 끌어내요."
+  },
+  "c02_1": {
+    "complaint": "'5분만 더'가 항상 1시간이 돼요. 시간이 어떻게 가는지 모르겠어요.",
+    "voiceKo": "시간이 미끄러지듯 사라지는 느낌, ADHD 뇌의 진짜 특징이에요. 머릿속으로 시간을 '느끼는' 능력이 약한 거지, 게으르거나 무책임한 게 아니에요. 그래서 시간을 머리 밖으로 꺼내는 게 도움이 돼요 — 눈에 보이는 타이머를 켜두는 거죠. 시간이 줄어드는 게 보이면 뇌가 알아차려요."
+  },
+  "c02_2": {
+    "complaint": "약속 시간을 항상 아슬아슬하게 맞추거나 늦어요. 준비 시간을 잘못 계산해요.",
+    "voiceKo": "준비에 걸리는 시간을 자꾸 적게 잡는 거, ADHD에서 흔한 패턴이에요. 뇌가 '최선의 경우'로만 계산하거든요. 그래서 내가 생각한 시간에 버퍼를 더하는 연습이 필요해요 — 20분 걸릴 것 같으면 35분으로 잡는 거죠. 처음엔 과하게 느껴져도, 그게 실제에 더 가까워요."
+  },
+  "c02_3": {
+    "complaint": "마감이 멀게 느껴지다가 갑자기 코앞에 와 있어요. 그때서야 부랴부랴 해요.",
+    "voiceKo": "마감이 '먼 일'로만 보이다가 어느 순간 폭발하듯 닥치는 거, 시간 감각의 문제예요. 미래의 시간이 잘 안 느껴져서 그래요. 그래서 마감 하나를 '중간 점검 날짜' 몇 개로 쪼개두면 도움이 돼요. 멀리 있는 큰 점 하나보다, 가까운 작은 점들이 뇌한테 더 잘 보여요."
+  },
+  "c02_4": {
+    "complaint": "할 일이 얼마나 걸릴지 감이 안 와서 하루 계획이 항상 어긋나요.",
+    "voiceKo": "계획이 자꾸 어긋나는 게 의지가 부족해서가 아니라, 시간 예측 자체가 ADHD 뇌한테 어려운 일이라서 그래요. 그러니 계획을 빡빡하게 짜지 말고, 일부러 여유를 많이 남겨두세요. 그리고 한 가지 일을 끝낼 때마다 '실제로 얼마 걸렸나'를 적어보면, 점점 내 감각이 정확해져요."
+  },
+  "c02_5": {
+    "complaint": "주말이 순식간에 사라져요. 쉬지도 못하고 아무것도 못 한 느낌이에요.",
+    "voiceKo": "분명 시간이 있었는데 손에 잡히는 게 없이 사라진 느낌, 허무하죠. 구조가 없는 시간은 ADHD 뇌한테 더 빨리 증발해요. 주말 전체를 계획하라는 게 아니라, '이 한 가지는 한다'를 딱 하나만 정해보면 어떨까요? 나머지는 자유롭게 두되, 그 하나가 닻이 되어줘요."
+  },
+  "c03_1": {
+    "complaint": "방금 들은 걸 바로 까먹어요. 회의 끝나면 뭘 하기로 했는지 기억이 안 나요.",
+    "voiceKo": "방금 들은 게 머리에서 바로 빠져나가는 거, 작업 기억의 한계예요. 집중을 안 한 게 아니라 머리에 담아둘 공간이 작은 거예요. 그러니 머리에 의존하지 말고 바로바로 밖에 적어두는 게 답이에요. 회의 중엔 '듣기'와 '기억하기'를 동시에 하려 하지 말고, 적는 걸 기억의 대신으로 삼으세요."
+  },
+  "c03_2": {
+    "complaint": "물건을 어디 뒀는지 항상 까먹어요. 열쇠, 지갑, 폰을 매일 찾아요.",
+    "voiceKo": "매일 같은 물건을 찾느라 시간과 에너지를 쓰는 거, 진 빠지는 일이죠. 이건 정신이 없어서가 아니라 '어디 뒀는지'를 머리가 기억으로 안 잡아주는 거예요. 그래서 물건마다 '집' 자리를 딱 정해두면 도움이 돼요 — 들어오면 무조건 거기. 기억에 맡기지 말고 자리에 맡기는 거죠."
+  },
+  "c03_3": {
+    "complaint": "여러 단계 일을 하다 보면 중간에 뭘 하던 중이었는지 잊어버려요.",
+    "voiceKo": "하던 일의 흐름을 놓치는 거, 작업 기억이 여러 개를 동시에 못 붙잡아서 그래요. 그건 능력 부족이 아니라 그 기능의 용량 문제예요. 그러니 여러 단계 일은 머리에 담지 말고, 시작 전에 눈에 보이는 체크리스트로 펼쳐두세요. 중간에 길을 잃어도 리스트를 보면 다시 돌아올 수 있어요."
+  },
+  "c03_4": {
+    "complaint": "말하다가 하려던 말을 까먹어요. 단어가 입에서 안 나올 때도 있어요.",
+    "voiceKo": "하려던 말이 갑자기 사라지는 거, 당황스럽고 답답하죠. 이것도 작업 기억이 잠깐 놓친 거예요 — 머리가 나빠서가 아니에요. 중요한 말을 해야 할 땐 키워드 한두 개를 미리 적어두거나, '잠깐만요' 하고 멈춰도 괜찮아요. 그 멈춤은 흠이 아니라 나를 배려하는 방법이에요."
+  },
+  "c03_5": {
+    "complaint": "읽은 내용을 바로 까먹어서 같은 페이지를 몇 번씩 다시 읽어요.",
+    "voiceKo": "같은 줄을 반복해서 읽게 되는 거, 답답하셨겠어요. 읽는 동안 내용이 머리에 안 남는 건 집중을 안 해서가 아니라, 작업 기억이 붙잡아두질 못해서예요. 한 단락 읽고 나서 '방금 뭐였지?'를 한 줄로 적어보면 도움이 돼요. 머리에 담는 대신 종이에 담으면서 읽는 거죠."
+  },
+  "c04_1": {
+    "complaint": "상사가 짧게 '알겠어요'라고만 답했는데 하루 종일 내가 뭘 잘못했나 불안해요.",
+    "voiceKo": "별것 아닌 한마디에 하루가 흔들리는 거, 그 아픔이 진짜라는 걸 먼저 말하고 싶어요. 이건 예민해서가 아니라, ADHD의 거절 민감성이 모호한 신호를 '거절'로 크게 읽는 거예요. 그 사람이 한 말은 '알겠어요' 그 자체고, '내가 뭘 잘못했다'는 건 뇌가 덧붙인 이야기예요. 이 둘을 떼어놓는 연습이 시작이에요."
+  },
+  "c04_2": {
+    "complaint": "친구가 답장이 늦으면 나한테 화났나, 날 싫어하나 싶어서 견디기 힘들어요.",
+    "voiceKo": "답장 하나가 늦었을 뿐인데 마음이 그렇게까지 요동치는 거, 정말 괴로우셨겠어요. 거절 민감성은 침묵이나 공백을 가장 나쁜 쪽으로 채우게 만들어요. 그런데 답장이 늦은 데는 수백 가지 이유가 있고, 대부분 나와 상관없어요. '늦은 답장'은 사실이고, '날 싫어한다'는 건 아직 증거가 없는 추측이에요."
+  },
+  "c04_3": {
+    "complaint": "작은 피드백도 비난처럼 느껴져서 위축돼요. 그 뒤로 일이 손에 안 잡혀요.",
+    "voiceKo": "피드백을 받으면 온몸이 움츠러드는 그 느낌, 거절 민감성이 '교정'을 '거절'로 번역하기 때문이에요. 그건 의지로 누를 수 있는 게 아니라 신경계가 그렇게 반응하는 거예요. 그럴 땐 먼저 그 감정이 가라앉길 기다리고, 진정된 다음에 '이건 나를 부정한 게 아니라 일을 더 낫게 하려는 거였다'를 천천히 떠올려보세요."
+  },
+  "c04_4": {
+    "complaint": "거절당할까 봐 부탁을 아예 못 해요. 그냥 혼자 끙끙대요.",
+    "voiceKo": "거절이 두려워서 부탁 자체를 피하게 되는 거, 그만큼 거절의 아픔이 크다는 뜻이에요. 그 마음 이해해요. 다만 모든 부탁이 거절로 끝나는 건 아니고, '안 된다'는 답조차 나라는 사람을 부정하는 건 아니에요. 제일 안전한 사람에게, 제일 작은 부탁부터 연습해볼까요? 한 번의 성공이 뇌의 예측을 조금씩 바꿔요."
+  },
+  "c04_5": {
+    "complaint": "누가 날 안 좋게 볼 것 같으면 며칠씩 그 생각에 사로잡혀요.",
+    "voiceKo": "한 번 떠오른 생각이 며칠씩 머릿속을 맴도는 거, 정말 지치는 일이에요. 거절 민감성은 부정적인 시나리오를 계속 재생하게 만들어요. 그 생각이 떠오를 때 '이건 사실일까, 아니면 내 뇌가 만든 이야기일까?' 하고 한 번 멈춰 물어봐 주세요. 대부분은 증거 없는 이야기예요."
+  },
+  "c05_1": {
+    "complaint": "한번 빠지면 밥도 잠도 잊고 몇 시간씩 해요. 끝나고 나면 완전히 방전돼요.",
+    "voiceKo": "한번 들어가면 빠져나오질 못하는 거, 과집중의 양면이에요 — 엄청난 힘이지만 멈추는 스위치가 없죠. 그건 의지가 약해서가 아니라 뇌가 터널에 들어간 거예요. 그래서 들어가기 전에 '나오는 신호'를 미리 만들어두면 도움이 돼요 — 알람을 맞춰두는 거죠. 터널엔 출구가 없으니, 출구를 미리 박아두는 거예요."
+  },
+  "c05_2": {
+    "complaint": "재밌는 일엔 과집중하는데 정작 중요한 일엔 집중이 안 돼요.",
+    "voiceKo": "흥미로운 일엔 몰입하면서 중요한 일은 안 되는 거, 모순처럼 느껴지지만 ADHD 뇌의 특징이에요. 집중은 '중요도'가 아니라 '자극'으로 켜지거든요. 그러니 중요한 일을 좀 더 자극적으로 만들어주면 도움이 돼요 — 타이머로 게임처럼, 음악을 깔거나, 장소를 바꾸거나. 의지로 누르는 게 아니라 조건을 바꿔주는 거예요."
+  },
+  "c05_3": {
+    "complaint": "과집중하다 보면 약속이나 다른 할 일을 다 놓쳐요.",
+    "voiceKo": "하나에 빠져서 다른 모든 게 사라지는 거, 그래서 약속을 놓치면 또 자책하게 되죠. 이건 무책임해서가 아니라 터널 시야 때문이에요. 과집중에 들어가기 전에 외부 알람을 여러 개 걸어두세요 — 시작 알람만이 아니라 '이제 정리할 시간' 알람도요. 뇌가 못 느끼는 걸 알람이 대신 두드려줘요."
+  },
+  "c05_4": {
+    "complaint": "과집중이 끝나면 머리가 텅 비고 아무것도 못 하겠어요.",
+    "voiceKo": "몰입이 끝난 뒤의 그 방전 상태, 진짜 힘들죠. 과집중은 에너지를 한꺼번에 크게 쓰기 때문에 그 뒤엔 회복이 필요해요. 그건 약해서가 아니라 자연스러운 거예요. 그러니 과집중 세션에 '하드 스톱'을 정해두는 게 좋아요 — 끝나는 시간을 정하고 지키면, 완전히 방전되기 전에 멈출 수 있어요."
+  },
+  "c05_5": {
+    "complaint": "취미에는 몇 시간씩 빠지는데 그게 정작 해야 할 일이 아니라 죄책감이 들어요.",
+    "voiceKo": "재밌는 데 시간을 쓰고 나면 죄책감이 따라오는 거, 그 마음 알아요. 그런데 과집중할 수 있다는 건 사실 큰 능력이에요 — 문제는 그 힘이 '아무 데나' 켜진다는 거죠. 그 능력 자체를 탓하지 말고, 그 힘을 중요한 일로 '돌리는' 연습을 해봐요. 죄책감보다 방향 조정이 훨씬 도움이 돼요."
+  },
+  "c06_1": {
+    "complaint": "작은 일에도 감정이 확 올라와요. 0에서 100까지 순식간이에요.",
+    "voiceKo": "감정이 0에서 100으로 순식간에 치솟는 거, 그 롤러코스터가 본인도 얼마나 힘들겠어요. 이건 감정이 과해서가 아니라 ADHD 뇌의 감정 브레이크가 약한 거예요. 그 순간엔 생각으로 누르려 하지 말고, 먼저 몸을 진정시키는 게 우선이에요 — 숨을 길게 내쉬거나, 그 자리를 잠깐 벗어나거나. 진정이 먼저, 해결은 나중이에요."
+  },
+  "c06_2": {
+    "complaint": "화가 나면 나중에 후회할 말을 해버려요. 그 순간엔 못 멈춰요.",
+    "voiceKo": "그 순간엔 못 멈추고 나중에 후회하는 거, 그 반복이 스스로를 더 지치게 하죠. 이건 인성의 문제가 아니라 감정과 행동 사이의 간격이 짧은 거예요. 그 간격을 늘리는 연습이 필요해요 — 욱하는 게 느껴지면 '지금은 말할 때가 아니다'를 신호로 삼고 잠깐 멈추는 거죠. 한 박자만 벌어도 많이 달라져요."
+  },
+  "c06_3": {
+    "complaint": "기분이 하루에도 몇 번씩 바뀌어요. 내가 어떤 상태인지 나도 모르겠어요.",
+    "voiceKo": "기분이 수시로 바뀌어서 스스로도 종잡을 수 없는 거, 불안하고 지치는 일이에요. ADHD의 감정 기복은 변덕이 아니라 뇌의 조절 방식이에요. 그 기복을 없애려 하기보다, '아 지금 올라왔구나' 하고 알아차리는 것부터 시작해봐요. 알아차리는 순간 그 감정에 덜 휩쓸려요."
+  },
+  "c06_4": {
+    "complaint": "좌절하면 그 감정에서 한참을 못 빠져나와요. 하루를 망쳐요.",
+    "voiceKo": "한 번 가라앉으면 거기서 오래 머무는 거, 그 하루가 통째로 무겁죠. 좌절한 순간은 뭔가를 배우거나 고칠 때가 아니라, 그냥 가라앉히고 추슬러야 할 때예요. 진정되기 전까진 자신을 다그치지 마세요. 차분해진 다음에 '뭐가 나를 건드렸나'를 짧게 돌아보면, 그게 진짜 회복이에요."
+  },
+  "c06_5": {
+    "complaint": "감정 표현을 잘 못해서 속으로만 쌓다가 한 번에 터져요.",
+    "voiceKo": "참고 참다가 한 번에 터지는 거, 그 패턴이 본인을 가장 힘들게 하죠. 감정을 안으로만 눌러두면 사라지는 게 아니라 쌓여요. 터지기 전에 작게 자주 흘려보내는 연습이 필요해요 — 하루에 한 번, '지금 내 기분은 ___' 한 줄만 적어보는 것도 출발이에요. 작게 자주 비우면 크게 터질 일이 줄어요."
+  },
+  "c07_1": {
+    "complaint": "계획은 잘 세우는데 그대로 실행이 안 돼요. 계획과 실행 사이가 멀어요.",
+    "voiceKo": "계획은 멀쩡한데 실행이 안 따라오는 거, 그 간극이 답답하시죠. 그건 의지박약이 아니라 실행 기능 — 계획을 행동으로 옮기는 그 기능 — 이 ADHD에서 약한 거예요. 그러니 계획을 더 잘 세우려 하지 말고, 첫 단계를 아주 작게 쪼개세요. '운동하기'가 아니라 '운동화 신기'처럼요. 실행은 거창함이 아니라 작음에서 시작돼요."
+  },
+  "c07_2": {
+    "complaint": "일의 우선순위를 못 정해요. 다 중요해 보이고 다 급해 보여요.",
+    "voiceKo": "다 중요하고 다 급해 보여서 못 고르는 거, 그 상태가 사람을 마비시키죠. ADHD 뇌는 일들의 '무게'를 비교하는 게 어려워요. 그럴 땐 완벽한 우선순위를 찾으려 하지 말고, 그냥 '딱 하나'만 골라보세요 — 틀려도 괜찮아요. 멈춰 있는 것보다 아무거나 시작하는 게 거의 항상 나아요."
+  },
+  "c07_3": {
+    "complaint": "하던 일에서 다른 일로 전환이 잘 안 돼요. 한참 붕 떠 있어요.",
+    "voiceKo": "일과 일 사이에서 붕 뜨는 그 시간, 본인도 답답하실 거예요. 전환은 ADHD 뇌한테 그 자체로 에너지가 드는 일이에요 — 게으른 게 아니에요. 그러니 다음 일을 미리 '눈에 보이게' 준비해두면 전환이 쉬워져요. 끝난 자리에 다음 할 일의 첫 한 줄을 적어두는 식으로요. 터널에 나갈 곳이 보이게요."
+  },
+  "c07_4": {
+    "complaint": "머릿속이 항상 복잡해요. 생각이 너무 많아서 정작 행동을 못 해요.",
+    "voiceKo": "머릿속이 꽉 차서 행동할 자리가 없는 느낌, 그 과부하 상태 정말 힘들어요. 생각이 많은 건 머리가 나빠서가 아니라 정리될 곳이 없어서 다 떠다니는 거예요. 그럴 땐 머릿속 걸 일단 다 밖으로 쏟아내세요 — 종이든 메모든. 머리는 생각하는 곳이지 저장하는 곳이 아니에요. 비우면 행동할 공간이 생겨요."
+  },
+  "c07_5": {
+    "complaint": "시작은 하는데 끝을 못 봐요. 벌여놓은 일만 잔뜩이에요.",
+    "voiceKo": "시작한 일들이 끝맺음 없이 쌓이는 거, 그걸 볼 때마다 마음이 무겁죠. 마무리가 안 되는 건 끈기 부족이 아니라, 새로운 자극에 뇌가 끌려가서 그래요. 새 일을 벌이기 전에 '지금 열려 있는 것 중 하나만 닫고' 시작하는 규칙을 만들어보면 어떨까요? 닫는 경험이 쌓이면 그것도 습관이 돼요."
+  },
+  "c08_1": {
+    "complaint": "중요한 일일수록 더 미뤄요. 마감 직전까지 안 건드려요.",
+    "voiceKo": "중요한 일일수록 더 피하게 되는 거, 이상하게 들리지만 흔한 패턴이에요. 중요하니까 '잘해야 한다'는 부담이 커지고, 그 부담이 회피를 부르는 거예요. 게을러서가 아니에요. 그 일을 '잘하기' 말고 '아주 조금 건드리기'로 목표를 낮춰보세요. 5분만, 엉성하게. 시작의 문턱을 낮추는 게 핵심이에요."
+  },
+  "c08_2": {
+    "complaint": "미루는 동안 죄책감은 계속 쌓이는데 그게 더 못 하게 만들어요.",
+    "voiceKo": "미루면서 죄책감이 쌓이고, 그 죄책감이 다시 발목을 잡는 거 — 정말 악순환이죠. 죄책감은 동기를 주지 않아요, 오히려 더 무겁게 짓눌러요. 그러니 지금까지 미룬 자신을 탓하는 데 에너지를 쓰지 말고, '지금 이 순간 할 수 있는 가장 작은 것'에만 집중해보세요. 과거가 아니라 다음 한 걸음이요."
+  },
+  "c08_3": {
+    "complaint": "하기 싫은 일을 앞두면 갑자기 딴 일(청소, 정리)이 하고 싶어져요.",
+    "voiceKo": "정작 할 일을 앞두고 갑자기 청소가 하고 싶어지는 거 — 그거 '생산적인 미루기'라고 불러요. 뇌가 부담스러운 일을 피하려고 더 만만한 일로 도망가는 거죠. 나무랄 일은 아니에요. 다만 그 신호를 알아차리면 '아, 지금 내가 그 일을 피하고 있구나' 하고 본래 일의 아주 작은 조각 하나로 돌아와 보세요."
+  },
+  "c08_4": {
+    "complaint": "'내일부터 해야지'가 매일 반복돼요. 내일이 안 와요.",
+    "voiceKo": "'내일부터'가 매일 미뤄지는 거, 그 반복 속에서 스스로한테 실망도 쌓이셨겠어요. '내일'은 부담이 없으니까 뇌가 자꾸 거기로 미루는 거예요. 그래서 '내일'이 아니라 '오늘, 딱 2분'으로 바꿔보세요. 2분은 너무 작아서 거절할 이유가 없거든요. 그 2분이 내일을 오늘로 데려와요."
+  },
+  "c08_5": {
+    "complaint": "미루다가 막판에 몰아서 하면 결과가 별로라 또 자책해요.",
+    "voiceKo": "막판에 몰아쳐서 한 결과가 만족스럽지 않고, 그게 또 자책으로 이어지는 거 — 그 고리를 끊고 싶으시겠죠. 막판 스퍼트는 ADHD 뇌가 마감의 압박을 받아야 시동이 걸려서 그래요. 의지 문제가 아니에요. 큰 마감 하나 말고, 중간에 작은 '가짜 마감'들을 만들어두면 그 압박을 미리미리 나눠 쓸 수 있어요."
+  },
+  "c09_1": {
+    "complaint": "아무것도 안 했는데 늘 지쳐 있어요. 쉬어도 회복이 안 돼요.",
+    "voiceKo": "한 것도 없는 것 같은데 늘 지쳐 있는 거, 그게 ADHD 번아웃의 특징이에요. 겉으로 안 보여도 뇌는 하루 종일 과부하로 돌아가고 있었던 거예요 — 그러니 게으른 게 아니에요. 진짜 회복은 '아무것도 안 하기'가 아니라 '자극을 줄이기'예요. 쉴 때 폰이나 화면을 같이 쉬게 해주면, 그제야 뇌가 진짜로 쉬어요."
+  },
+  "c09_2": {
+    "complaint": "열심히 하다가 갑자기 완전히 방전돼요. 그 패턴이 반복돼요.",
+    "voiceKo": "확 달리다가 갑자기 멈춰버리는 그 패턴, 본인도 예측이 안 돼서 더 불안하시죠. ADHD 뇌는 '적당히'가 어려워서 에너지를 한 번에 다 써버리곤 해요. 그건 의지의 문제가 아니라 조절의 문제예요. 완전히 방전되기 전에 멈추는 연습 — '아직 할 수 있을 때 멈추기'가 길게 보면 더 멀리 가게 해줘요."
+  },
+  "c09_3": {
+    "complaint": "일상 자체가 버거워요. 남들 다 하는 걸 나는 왜 이렇게 힘들어할까요.",
+    "voiceKo": "남들은 쉽게 하는 걸 나만 버겁게 느낄 때, 그 비교가 제일 아프죠. 그런데 ADHD 뇌는 같은 일상에도 더 많은 에너지를 써요 — 그러니 '왜 나만'이 아니라 '나는 더 많은 걸 쓰고 있다'가 맞아요. 약한 게 아니라 더 애쓰고 있는 거예요. 그 사실을 인정하는 것만으로도 자책이 조금 줄어요."
+  },
+  "c09_4": {
+    "complaint": "의욕이 완전히 바닥났어요. 좋아하던 것도 시들해요.",
+    "voiceKo": "좋아하던 것까지 시들해진 거, 그건 단순한 게으름이 아니라 소진의 신호일 수 있어요. 뇌의 에너지 탱크가 비면 흥미를 느끼는 기능도 같이 꺼져요. 지금은 '의욕을 끌어내야 한다'가 아니라 '회복할 때다'로 봐주세요. 그리고 만약 이게 오래간다면, 혼자 견디지 말고 전문가의 도움을 받아보는 것도 좋은 선택이에요."
+  },
+  "c09_5": {
+    "complaint": "쉬어야 하는 걸 아는데 쉬면 불안해서 제대로 못 쉬어요.",
+    "voiceKo": "쉬는 동안에도 불안해서 진짜로 쉬질 못하는 거, 그럼 쉬어도 회복이 안 되죠. ADHD 뇌는 '멈춤'을 불편해해서 쉬는 중에도 계속 뭔가를 찾아요. 그럴 땐 '아무것도 안 하기'보다 '낮은 자극의 다른 활동'이 쉬기엔 더 나아요 — 산책, 단순한 손작업처럼요. 텅 빈 시간보다 부드러운 활동이 뇌를 진짜로 쉬게 해요."
+  },
+  "c10_1": {
+    "complaint": "작은 일도 최악의 시나리오까지 상상해요. 머릿속이 항상 시끄러워요.",
+    "voiceKo": "작은 일 하나에도 최악까지 그려지는 거, 그 머릿속 소음 속에 사는 게 얼마나 피곤하겠어요. ADHD와 불안은 자주 같이 와요 — 뇌가 빈틈을 나쁜 시나리오로 채우거든요. 그 생각이 떠오를 때 '이건 사실일까, 가능성일까?'를 한 번 물어봐 주세요. 대부분은 '가능성'일 뿐, 아직 일어난 일이 아니에요."
+  },
+  "c10_2": {
+    "complaint": "걱정이 시작되면 꼬리에 꼬리를 물어요. 멈추는 법을 모르겠어요.",
+    "voiceKo": "걱정이 한번 시작되면 끝없이 이어지는 거, 그 소용돌이에서 빠져나오기 정말 힘들죠. 그 생각의 고리는 '생각으로' 멈추기가 어려워요 — 같은 회로니까요. 그래서 몸을 쓰는 게 도움이 돼요. 일어나서 걷거나, 찬물에 손을 담그거나, 주변 사물 다섯 개를 소리내어 세어보는 것. 몸의 신호가 생각의 고리를 끊어줘요."
+  },
+  "c10_3": {
+    "complaint": "잠자리에 누우면 그날 한 실수들이 다 떠올라서 잠이 안 와요.",
+    "voiceKo": "하루를 마치고 누웠는데 실수들이 줄줄이 떠오르는 거, 그래서 잠까지 못 드는 거 정말 괴롭죠. 조용해진 밤엔 뇌가 낮 동안 미뤄둔 걱정들을 다 꺼내요. 자기 전에 그 걱정들을 종이에 미리 꺼내두면 도움이 돼요 — '머릿속 말고 여기 적어뒀으니 됐다'고 뇌한테 알려주는 거죠."
+  },
+  "c10_4": {
+    "complaint": "불확실한 상황을 못 견뎌요. 답을 모르면 계속 초조해요.",
+    "voiceKo": "답이 안 정해진 상태를 견디는 게 그렇게 힘든 거, 그 초조함 이해해요. ADHD 뇌는 불확실함을 특히 불편해해요 — 그래서 자꾸 결론을 내려고 하죠. 모든 걸 지금 확실하게 만들 순 없어요. '지금 내가 통제할 수 있는 한 가지'에만 집중하고, 나머지는 '아직 모른다'로 잠시 놔두는 연습이 도움이 돼요."
+  },
+  "c10_5": {
+    "complaint": "불안하면 일을 더 못 하게 되고, 그래서 더 불안해지는 악순환이에요.",
+    "voiceKo": "불안해서 일이 안 되고, 안 되니까 더 불안해지는 거 — 그 쳇바퀴 안에 있으면 정말 지치죠. 이 고리를 끊으려면 '불안을 없애고 일하자'가 아니라 '불안한 채로 아주 작은 것 하나만 하자'로 가야 해요. 불안이 다 가라앉길 기다리면 시작을 못 하거든요. 작은 행동 하나가 오히려 불안을 조금 낮춰줘요."
+  },
+  "c11_1": {
+    "complaint": "아침에 일어나는 것조차 너무 무거워요. 하루를 시작할 힘이 없어요.",
+    "voiceKo": "아침에 몸을 일으키는 것부터가 큰 일처럼 느껴지는 거, 그 무거움 정말 힘들어요. 그럴 땐 '하루를 잘 시작해야 한다'는 생각을 잠시 내려놓고, 딱 한 가지 작은 동작만 정해보세요 — 침대에서 발을 바닥에 딛기 같은. 그리고 이 무거움이 며칠 이상 계속된다면, 혼자 버티지 말고 꼭 전문가와 이야기해보세요."
+  },
+  "c11_2": {
+    "complaint": "뭘 해도 즐겁지가 않아요. 감정이 그냥 무뎌진 느낌이에요.",
+    "voiceKo": "즐거움이 느껴지지 않고 감정이 무뎌진 그 상태, 본인이 제일 답답하고 막막하실 거예요. 이건 의지로 끌어올릴 수 있는 게 아니에요. 지금은 '즐거움을 되찾아야 한다'는 목표를 잠시 내려놓아도 괜찮아요. 그리고 이 무딤이 계속된다면, 그건 전문가의 도움이 필요하다는 신호일 수 있어요 — 그 도움을 받는 건 약함이 아니에요."
+  },
+  "c11_3": {
+    "complaint": "의욕이 없어서 아무것도 안 하고, 아무것도 안 하니까 더 가라앉아요.",
+    "voiceKo": "안 움직이니까 더 가라앉고, 가라앉으니까 더 못 움직이는 거 — 그 바닥에서는 빠져나올 길이 안 보이죠. 그 고리에선 '의욕이 생기면 움직이자'가 아니라 '아주 작게 움직여서 의욕을 조금 깨우자'가 맞아요. 거창한 거 말고, 창문 열기나 물 한 잔처럼요. 그리고 이 상태가 길어지면 전문가의 손을 잡는 걸 권하고 싶어요."
+  },
+  "c11_4": {
+    "complaint": "내가 쓸모없는 사람 같다는 생각이 자꾸 들어요.",
+    "voiceKo": "'쓸모없다'는 생각이 자꾸 찾아오는 거, 그 말이 얼마나 자신을 아프게 하는지 알아요. 그런데 그건 사실이 아니라 지친 뇌가 만들어낸 가혹한 이야기예요 — 우울은 늘 거짓말을 해요. 지금 그 생각을 믿지 마세요. 그리고 이런 생각이 자주 든다면 꼭 전문가나 믿을 만한 사람에게 이야기해주세요. 혼자 감당할 일이 아니에요."
+  },
+  "c11_5": {
+    "complaint": "예전엔 잘하던 것들이 이제 다 버겁게 느껴져요.",
+    "voiceKo": "예전엔 해내던 일들이 지금은 다 무겁게 느껴지는 거, 그 변화를 본인이 가장 먼저 느끼고 있으니 더 불안하시겠어요. 그건 능력을 잃은 게 아니라 지금 에너지가 바닥에 있다는 신호예요. 잘하던 때와 비교하지 말고, 지금 할 수 있는 가장 작은 것 하나에만 집중해보세요. 그리고 이 무거움이 계속되면 전문가와 꼭 이야기 나눠보시길 바라요."
+  },
+  "c12_1": {
+    "complaint": "밤이 되면 오히려 정신이 또렷해져요. 잘 시간인데 머리가 안 꺼져요.",
+    "voiceKo": "잘 시간에 오히려 머리가 또렷해지는 거, ADHD에서 정말 흔한 패턴이에요 — 뇌의 리듬이 늦게 도는 거죠. 게으르거나 의지가 없어서가 아니에요. 잠들기 한두 시간 전부터 자극을 단계적으로 줄여주면 도움이 돼요 — 밝은 화면 끄기, 조명 낮추기처럼. 뇌한테 '이제 내려갈 시간'이라는 신호를 미리미리 주는 거예요."
+  },
+  "c12_2": {
+    "complaint": "자야 하는 걸 아는데 자기 싫어서 폰을 계속 봐요. 그러다 새벽이에요.",
+    "voiceKo": "자야 하는 걸 알면서도 폰을 놓지 못하는 거 — 그거 '취침 시간 미루기'라고 불러요. 하루 종일 내 시간이 없었으니 밤에라도 붙잡고 싶은 마음, 충분히 이해돼요. 그걸 탓하기보다, 낮에 '나만의 시간'을 조금이라도 만들어보면 밤에 매달릴 이유가 줄어요. 그리고 잘 시간엔 폰을 손이 안 닿는 곳에 두는 것도 도움이 돼요."
+  },
+  "c12_3": {
+    "complaint": "잠은 드는데 자다가 자꾸 깨요. 아침에 잔 것 같지가 않아요.",
+    "voiceKo": "자긴 자는데 중간에 깨서 잔 것 같지 않은 거, 그럼 다음 날이 더 힘들죠. 수면의 질이 떨어지면 ADHD 증상도 같이 심해져서 악순환이 돼요. 잠자리 환경을 조금 점검해보면 도움이 될 수 있어요 — 빛, 소리, 온도요. 그래도 계속 깬다면 수면 전문가와 한번 상담해보시는 걸 권해요. 수면은 다른 모든 것의 토대예요."
+  },
+  "c12_4": {
+    "complaint": "아침에 못 일어나요. 알람을 여러 개 맞춰도 다 꺼버려요.",
+    "voiceKo": "알람을 다 끄고 다시 잠드는 거, 본인도 답답하시겠지만 이건 의지의 문제만은 아니에요 — ADHD 뇌가 아침에 깨어나는 데 더 오래 걸려요. 알람을 손이 안 닿는 곳에 두거나, 일어나야만 끌 수 있게 만드는 게 도움이 돼요. 그리고 무엇보다 잠드는 시간을 조금씩 앞당기는 게 근본적인 해결에 가까워요."
+  },
+  "c12_5": {
+    "complaint": "주말에 몰아서 자는데 오히려 더 피곤하고 리듬이 다 깨져요.",
+    "voiceKo": "주말에 몰아 자고 나서 더 피곤하고 리듬이 흐트러지는 거, 그 경험 많이들 하세요. 수면은 '양'보다 '규칙성'이 더 중요해서, 몰아 자면 오히려 몸의 시계가 헷갈려요. 주말에도 평일과 비슷한 시간에 일어나 보면 — 처음엔 아쉬워도 — 전체적인 컨디션이 더 안정돼요. 부족한 잠은 짧은 낮잠으로 채우는 게 나아요."
+  },
+  "c13_1": {
+    "complaint": "끼니를 자주 걸러요. 집중하다 보면 배고픈 것도 못 느껴요.",
+    "voiceKo": "집중하다 보면 배고픔조차 못 느끼는 거, 과집중의 흔한 부작용이에요 — 몸의 신호가 잘 안 들리는 거죠. 그런데 끼니를 거르면 뇌의 연료가 떨어져서 ADHD 증상이 더 심해져요. 배고픔을 '느끼길' 기다리지 말고, 식사 시간에 알람을 맞춰두세요. 몸이 못 보내는 신호를 알람이 대신 보내주는 거예요."
+  },
+  "c13_2": {
+    "complaint": "뭘 먹을지 정하는 것 자체가 피곤해서 그냥 대충 때우거나 안 먹어요.",
+    "voiceKo": "'뭘 먹지'를 정하는 것조차 에너지가 드는 거, 그 결정 피로 정말 지치죠. 선택지가 많으면 ADHD 뇌는 더 막막해져요. 그래서 매번 새로 정하지 말고, '기본 메뉴' 몇 개를 미리 정해두면 편해요. 고민 없이 손이 가는 것들로요. 결정을 줄이는 게 곧 에너지를 아끼는 거예요."
+  },
+  "c13_3": {
+    "complaint": "규칙적인 식사 시간을 못 지켜요. 먹는 시간이 매일 들쭉날쭉이에요.",
+    "voiceKo": "식사 시간이 매일 달라서 몸의 리듬이 잡히지 않는 거, 그게 컨디션 기복으로도 이어져요. 완벽하게 규칙적일 필요는 없어요 — 다만 하루 한 끼라도 '같은 시간'에 먹는 닻을 만들어보세요. 그 한 끼가 기준점이 되어주면, 나머지도 조금씩 자리를 잡아가요."
+  },
+  "c13_4": {
+    "complaint": "아침을 거의 못 먹어요. 아침엔 입맛도 없고 시간도 없어요.",
+    "voiceKo": "아침에 입맛도 없고 시간도 없어서 거르게 되는 거, 무리도 아니에요 — 아침은 ADHD 뇌한테 제일 분주한 시간이니까요. 다만 뇌가 오전을 버티려면 약간의 연료가 필요해요. '아침 식사'라는 큰 그림 말고, 손에 쥐고 나갈 수 있는 아주 간단한 것 하나부터 시작해보면 어떨까요?"
+  },
+  "c13_5": {
+    "complaint": "스트레스 받으면 폭식하거나 반대로 아예 안 먹어요. 식사가 감정에 휘둘려요.",
+    "voiceKo": "감정 상태에 따라 식사가 널뛰는 거, 그만큼 감정과 몸이 가깝게 연결돼 있다는 뜻이에요. 그걸 '잘못'이라고 탓하진 마세요. 다만 식사가 감정에 크게 휘둘린다면, 그건 감정 조절을 함께 돌봐야 한다는 신호일 수 있어요. 식사 패턴이 많이 힘들다면 이 부분은 전문가와 함께 다뤄보시길 권해요."
+  },
+  "c14_1": {
+    "complaint": "약 먹는 걸 자꾸 까먹어요. 정작 집중에 도움 되는 약인데 챙기는 걸 잊어요.",
+    "voiceKo": "집중을 도와주는 약인데 정작 그 약 챙기는 걸 까먹는 거 — 아이러니하지만 작업 기억의 한계라 충분히 그럴 수 있어요. 약을 '기억'에 맡기지 말고 '환경'에 맡기세요. 매일 보는 자리 — 칫솔 옆, 커피잔 옆 — 에 약을 두면 행동과 묶여서 덜 잊어요. 복용 관련해서 궁금한 건 처방해주신 의사선생님과 꼭 상의하시고요."
+  },
+  "c14_2": {
+    "complaint": "약을 먹는 날과 안 먹는 날 차이가 커서 들쭉날쭉한 게 불안해요.",
+    "voiceKo": "먹는 날과 안 먹는 날의 차이가 크게 느껴져서 불안한 거, 그 마음 이해해요. 규칙적인 복용이 그 기복을 줄여줄 수 있는데, 그 '규칙성'을 만드는 게 ADHD한테 어려운 일이죠. 복용을 일정한 시간에 고정하는 장치를 만들어보세요. 그리고 복용 패턴이나 효과에 대한 걱정은 반드시 의사선생님과 나눠보시는 게 중요해요."
+  },
+  "c14_3": {
+    "complaint": "약 효과가 예전 같지 않은 것 같은데 어떻게 해야 할지 모르겠어요.",
+    "voiceKo": "약 효과가 달라진 것 같아서 막막하신 거, 그 걱정 충분히 이해돼요. 다만 이건 제가 판단하거나 조언할 수 있는 영역이 아니에요 — 용량이나 약에 대한 건 반드시 처방 의사선생님과 상의하셔야 해요. 다음 진료 전에 '언제, 어떤 변화를 느꼈는지' 메모해 두시면, 선생님과 더 정확하게 이야기 나눌 수 있어요."
+  },
+  "c14_4": {
+    "complaint": "약에 의존하는 것 같아서 거부감이 들어요. 약 없이 해보고 싶어요.",
+    "voiceKo": "약에 기대는 것 같아 마음이 불편한 거, 그 감정 자체는 자연스러워요. 다만 약을 줄이거나 끊는 결정은 혼자 내리면 안 되고, 꼭 의사선생님과 함께 정해야 해요. 그 거부감이 어디서 오는지 — 부작용인지, 정체성의 문제인지 — 를 정리해서 진료 때 솔직하게 이야기해보세요. 그게 안전한 첫걸음이에요."
+  },
+  "c14_5": {
+    "complaint": "약 먹는 시간에 따라 하루 컨디션이 달라져서 일정 잡기가 어려워요.",
+    "voiceKo": "복용 시간에 따라 컨디션이 달라져서 하루 계획이 흔들리는 거, 실질적으로 불편하시겠어요. 약효가 잘 도는 시간대를 파악해서 중요한 일을 그때로 모으는 건 도움이 될 수 있어요. 다만 복용 시간 자체를 조정하는 건 의사선생님과 상의가 필요한 부분이니, 관찰한 패턴을 메모해서 진료 때 같이 의논해보세요."
+  },
+  "c15_1": {
+    "complaint": "약속을 자꾸 까먹어서 친구들이 서운해해요. 일부러 그런 게 아닌데.",
+    "voiceKo": "일부러 그런 게 아닌데 자꾸 약속을 놓쳐서 관계가 상하는 거, 그게 제일 억울하고 속상하시죠. 까먹는 건 작업 기억의 문제지 그 사람을 소홀히 여겨서가 아니에요 — 그건 본인이 제일 잘 알죠. 약속을 '기억'이 아니라 '알림'에 맡기고, 가까운 사람에겐 '내가 깜빡할 수 있으니 알려달라'고 솔직하게 말해두는 것도 방법이에요."
+  },
+  "c15_2": {
+    "complaint": "대화 중에 끼어들거나 말을 끊는다고 지적받아요. 나도 모르게 그래요.",
+    "voiceKo": "나도 모르게 말을 끊게 되고 그걸 지적받는 거, 본인도 당황스럽고 미안하시죠. 그건 무례해서가 아니라 충동 조절이 순간적으로 어려운 거예요 — 떠오른 말이 사라질까 봐 급해지는 거죠. 대화할 때 떠오른 생각을 한 단어만 메모해두면, '말이 사라질까 봐'서 끼어드는 게 줄어요. 차례를 기다릴 여유가 생기거든요."
+  },
+  "c15_3": {
+    "complaint": "가까운 사람한테 감정 기복을 자주 쏟아내요. 그게 미안하면서도 잘 안 고쳐져요.",
+    "voiceKo": "가까운 사람한테 감정을 쏟고 나서 미안해지는 거, 그 마음이 반복되면 본인도 지치죠. 감정이 올라올 때 바로 쏟는 건 조절 기능의 문제지, 그 사람을 함부로 대해서가 아니에요. 욱하는 게 느껴질 때 '지금은 말할 때가 아니다'를 신호로 삼고 잠깐 자리를 옮겨보세요. 진정된 다음에 이야기하면 관계도 나를 덜 다쳐요."
+  },
+  "c15_4": {
+    "complaint": "상대방 말을 끝까지 못 듣고 딴생각을 해요. 듣고 있냐고 자주 들어요.",
+    "voiceKo": "들으려 하는데 자꾸 딴 데로 가는 거, 본인도 답답하실 거예요. 그건 관심이 없어서가 아니라 주의가 한곳에 머무는 게 어려운 거예요. 중요한 대화일 땐 '듣고 있다'는 걸 작은 반응으로 표현해보세요 — 고개를 끄덕이거나 들은 걸 짧게 되짚는 것. 그 행동이 오히려 내 주의를 대화에 붙잡아두는 데도 도움이 돼요."
+  },
+  "c15_5": {
+    "complaint": "갈등이 생기면 회피해버려요. 그래서 문제가 더 커질 때가 많아요.",
+    "voiceKo": "갈등 앞에서 피하게 되고 그래서 문제가 더 커지는 거, 그 패턴을 본인도 알면서 못 멈추는 게 답답하시겠어요. 회피는 비겁해서가 아니라, 갈등이 주는 감정 부하가 너무 커서 뇌가 도망가는 거예요. 한 번에 다 풀려고 하지 말고, '이 한 가지만 짧게 말하기'처럼 아주 작은 조각부터 다뤄보세요. 작게 다루면 피할 이유가 줄어요."
+  },
+  "c16_1": {
+    "complaint": "회의 내용을 놓쳐서 나중에 다시 물어봐야 해요. 그게 민망해요.",
+    "voiceKo": "회의 내용을 놓치고 다시 물어보는 게 민망하신 거, 그 마음 이해해요. 그런데 회의 중에 '듣기'와 '기억하기'를 동시에 하는 건 ADHD 뇌한테 정말 부담스러운 일이에요. 회의 때 키워드만이라도 메모하는 습관을 들여보세요. 다시 묻는 건 흠이 아니라, 정확하게 일하려는 책임감이에요."
+  },
+  "c16_2": {
+    "complaint": "멀티태스킹을 못 해요. 일이 동시에 오면 다 멈춰버려요.",
+    "voiceKo": "여러 일이 한꺼번에 오면 다 멈춰버리는 거, 그 마비 상태 정말 답답하죠. 사실 멀티태스킹은 누구한테도 어렵고, ADHD 뇌엔 특히 더 그래요. 동시에 하려 하지 말고, 들어온 일들을 일단 다 적어서 눈앞에 펼친 뒤 '딱 하나'만 골라 거기만 보세요. 한 번에 하나가 가장 빠른 길이에요."
+  },
+  "c16_3": {
+    "complaint": "마감을 자주 놓쳐서 신뢰를 잃는 것 같아요.",
+    "voiceKo": "마감을 놓쳐서 신뢰가 흔들릴까 봐 걱정되는 거, 그 불안 이해해요. 마감을 놓치는 건 무책임해서가 아니라 시간 감각과 시작의 어려움이 겹친 거예요. 큰 마감 하나를 작은 중간 마감들로 쪼개고, 각각을 알림으로 걸어두세요. 그리고 늦어질 것 같으면 '미리' 알리는 것 — 그게 오히려 신뢰를 지켜요."
+  },
+  "c16_4": {
+    "complaint": "단순 반복 업무에서 실수가 잦아요. 지루하면 집중이 풀려요.",
+    "voiceKo": "지루한 일에서 실수가 잦은 거, 게을러서가 아니라 ADHD 뇌가 자극이 낮으면 집중을 못 켜서 그래요. 반복 업무를 조금 더 자극적으로 만들어보세요 — 타이머로 시간을 재거나, 작게 나눠서 하나 끝낼 때마다 체크하거나. 그리고 중요한 반복 작업은 끝나고 한 번 더 확인하는 단계를 루틴으로 넣으면 실수가 줄어요."
+  },
+  "c16_5": {
+    "complaint": "일을 시작하면 끝없이 완벽하게 다듬느라 정작 제출을 못 해요.",
+    "voiceKo": "끝없이 다듬느라 제출을 못 하는 거, 잘하고 싶은 마음이 그만큼 크다는 뜻이에요. 다만 ADHD 뇌는 '여기서 그만'이라는 선을 잡기가 어려워요. 그래서 시작할 때 '제출 시각'을 미리 정해두는 게 도움이 돼요 — 완성도가 아니라 시간으로 끝을 정하는 거죠. '충분히 좋음'에서 손을 떼는 연습이에요."
+  },
+  "c17_1": {
+    "complaint": "책상에 앉아도 책이 안 펴져요. 공부를 시작하는 게 제일 힘들어요.",
+    "voiceKo": "책상엔 앉았는데 거기서 더 못 나아가는 거, 시작의 장벽이 그만큼 높은 거예요. '공부하기'는 너무 큰 동작이라 뇌가 멈춰요. 그러니 '공부'가 아니라 '책 펴기', 그것도 어려우면 '책 위에 손 올리기'처럼 동작을 잘게 쪼개보세요. 몸이 먼저 작게 움직이면 뇌가 따라와요."
+  },
+  "c17_2": {
+    "complaint": "공부하다가 딴 생각으로 빠져요. 정신 차리면 한참 지나 있어요.",
+    "voiceKo": "공부하다 정신이 다른 데로 새는 거, 그걸 알아챘을 땐 이미 시간이 흘러 있고 — 답답하시죠. 주의가 흩어지는 건 의지의 문제가 아니에요. 짧은 시간(예: 15분)만 집중하고 잠깐 쉬는 식으로 끊어가면, 길게 붙들려 애쓰는 것보다 오히려 더 많이 해내요. 타이머로 그 리듬을 만들어보세요."
+  },
+  "c17_3": {
+    "complaint": "시험 범위가 넓으면 어디서 손대야 할지 막막해서 아예 못 시작해요.",
+    "voiceKo": "범위가 넓으면 압도돼서 시작조차 못 하는 거, 큰 덩어리를 통째로 보면 누구라도 막막해요. 전체를 다 보려 하지 말고, 오늘 할 '아주 작은 한 조각'만 정하세요 — '1단원의 첫 페이지'처럼요. 멀리 있는 산 전체가 아니라 바로 앞의 한 걸음만 보는 거예요."
+  },
+  "c17_4": {
+    "complaint": "벼락치기로만 공부해요. 미리미리가 안 돼요.",
+    "voiceKo": "벼락치기로만 되는 거, 그건 ADHD 뇌가 마감의 압박을 받아야 시동이 걸려서 그래요 — 게을러서가 아니에요. 그 압박을 미리 나눠 쓰려면, 큰 시험 하나 말고 작은 '가짜 마감'들을 만들어보세요. '이 단원은 수요일까지'처럼요. 작은 마감이 여러 개면 압박이 분산돼서 미리미리가 가능해져요."
+  },
+  "c17_5": {
+    "complaint": "열심히 했는데 막상 시험에서 배운 게 기억이 안 나요.",
+    "voiceKo": "분명 공부했는데 시험장에서 안 떠오르는 거, 그 허탈함 정말 크죠. 읽기만 하면 ADHD 뇌엔 잘 안 남아요 — 기억은 '꺼내보는' 연습으로 단단해지거든요. 그러니 읽은 다음 책을 덮고 '방금 뭐였지?'를 스스로 답해보세요. 읽는 시간보다 꺼내보는 시간이 시험에서 더 힘을 발휘해요."
+  },
+  "c18_1": {
+    "complaint": "집이 항상 어질러져 있어요. 치워도 금방 다시 엉망이 돼요.",
+    "voiceKo": "치워도 금방 다시 어질러지는 거, 그 반복에 지치셨겠어요. ADHD에서는 물건이 '제자리'로 안 돌아가는 게 핵심 문제예요 — 기억이 자리를 안 잡아주거든요. 자주 쓰는 물건마다 '집'을 딱 정해두고, 쓰고 나면 무조건 거기. 완벽한 정리가 아니라 '제자리 한 개씩'부터 시작해보세요."
+  },
+  "c18_2": {
+    "complaint": "설거지나 빨래 같은 일을 계속 미뤄요. 쌓이면 더 손대기 싫어져요.",
+    "voiceKo": "쌓일수록 더 손대기 싫어지는 거, 그 마음 이해해요 — 더미가 커지면 뇌가 더 압도되니까요. 그러니 '다 하기'를 목표로 잡지 마세요. '컵 하나만 닦기', '양말 한 켤레만 개기'처럼 우습게 작은 걸로 시작하세요. 그 하나가 다음 동작을 끌어내요. 다 못 해도 시작한 게 어디예요."
+  },
+  "c18_3": {
+    "complaint": "물건을 못 버려요. 정리하려고 하면 결정이 안 돼서 그냥 둬요.",
+    "voiceKo": "버릴지 말지 결정이 안 돼서 정리가 멈추는 거, ADHD 뇌엔 그 결정 하나하나가 다 에너지예요. 그래서 '버릴까 말까'를 매번 고민하지 말고, 기준을 미리 하나 정해두세요 — '1년 동안 안 썼으면' 같은. 결정을 미리 만들어두면 그 자리에서 고민할 일이 줄어요."
+  },
+  "c18_4": {
+    "complaint": "정리를 시작하면 완벽하게 하려다 지쳐서 중간에 포기해요.",
+    "voiceKo": "완벽하게 하려다 지쳐서 포기하는 거, 그러면 시작 전보다 더 어질러져 있기도 하죠. ADHD 뇌는 '여기까지'라는 선을 잡기 어려워서 끝없이 가다 방전돼요. 그러니 시작할 때 '15분만' 또는 '이 한 칸만'처럼 범위를 먼저 정하세요. 작게 끝내는 경험이 쌓이면 그게 습관이 돼요."
+  },
+  "c18_5": {
+    "complaint": "집안일이 눈에 안 보이면 존재 자체를 잊어버려요.",
+    "voiceKo": "눈에 안 보이면 잊어버리는 거 — 그게 ADHD의 'out of sight, out of mind'예요. 게으른 게 아니라 뇌가 안 보이는 걸 안 떠올려서 그래요. 그러니 중요한 집안일은 '눈에 보이게' 만들어두세요 — 빨래 바구니를 동선에 두거나, 체크리스트를 잘 보이는 곳에 붙이거나. 보이면 기억나요."
+  },
+  "c19_1": {
+    "complaint": "고지서 내는 걸 자꾸 까먹어서 연체료를 내요.",
+    "voiceKo": "낼 돈이 있는데도 깜빡해서 연체료까지 무는 거, 그 억울함 이해해요. 이건 무책임이 아니라 작업 기억의 한계예요. 납부를 '기억'에 맡기지 말고 자동이체나 알림으로 옮기세요. 시스템한테 맡길 수 있는 건 시스템한테 — 그게 ADHD 뇌를 위한 가장 현실적인 해결이에요."
+  },
+  "c19_2": {
+    "complaint": "충동구매를 자주 해요. 사고 나서 후회하는 일이 많아요.",
+    "voiceKo": "사고 나서 후회하는 충동구매, 그 패턴이 반복되면 자책도 쌓이죠. 이건 의지박약이 아니라 '지금 사고 싶다'와 '실제 결제' 사이의 간격이 짧아서 그래요. 그 간격을 일부러 늘려보세요 — 장바구니에 담고 하루 기다리기, 카드 정보를 저장 안 하기처럼요. 한 박자만 벌어도 충동의 상당수는 가라앉아요."
+  },
+  "c19_3": {
+    "complaint": "내 통장에 돈이 얼마 있는지 정확히 몰라요. 보는 게 무서워요.",
+    "voiceKo": "통장을 들여다보는 게 무서워서 피하게 되는 거, 그 회피의 마음 이해해요 — 모르는 게 차라리 편하니까요. 그런데 안 보면 불안은 더 커져요. 한 번에 다 정리하려 하지 말고, 그냥 '잔액 한 번 확인하기'까지만 해보세요. 보는 것 자체가 통제감의 시작이에요. 작게, 자주 보면 무서움이 줄어요."
+  },
+  "c19_4": {
+    "complaint": "예산을 세워도 며칠 못 가요. 가계부가 작심삼일이에요.",
+    "voiceKo": "예산이나 가계부가 며칠 못 가는 거, 그건 의지가 약해서가 아니라 시스템이 너무 복잡해서일 수 있어요. ADHD엔 '완벽한 가계부'보다 '단순해서 계속 되는 것'이 훨씬 나아요. 모든 지출을 적으려 하지 말고, 한 가지만 — 예를 들어 외식비만 — 추적해보세요. 작고 단순한 게 오래가요."
+  },
+  "c19_5": {
+    "complaint": "돈 관련 결정을 미루다가 더 큰 손해를 봐요.",
+    "voiceKo": "돈 결정을 미루다 손해가 커지는 거, 그 막막함과 후회가 겹치면 정말 힘들죠. 돈 문제는 감정 부하가 커서 뇌가 더 회피하게 돼요. 큰 결정 하나를 통째로 마주하지 말고, '관련 서류 하나 열어보기'처럼 가장 작은 첫 동작만 정하세요. 그리고 복잡한 재정 문제는 혼자 끙끙대지 말고 도움을 구하는 것도 현명한 선택이에요."
+  },
+  "c20_1": {
+    "complaint": "일하다가 무의식적으로 폰을 집어요. 정신 차리면 SNS를 보고 있어요.",
+    "voiceKo": "나도 모르게 폰을 집고 있는 거, 그건 의지가 약해서가 아니라 폰이 ADHD 뇌가 원하는 빠른 자극을 주기 때문이에요. 의지로 참으려 하면 지쳐요. 대신 폰을 '손이 안 닿는 곳', '안 보이는 곳'에 두세요. 환경을 바꾸는 게 의지로 누르는 것보다 훨씬 덜 힘들고 더 잘 돼요."
+  },
+  "c20_2": {
+    "complaint": "알림이 울릴 때마다 하던 일이 끊겨요. 다시 집중하는 데 한참 걸려요.",
+    "voiceKo": "알림 하나에 흐름이 끊기고 다시 돌아오는 데 오래 걸리는 거 — ADHD 뇌는 한번 끊기면 재진입 비용이 커요. 그러니 집중할 땐 알림을 통째로 꺼두세요. '혹시 중요한 게 오면'이 걱정되겠지만, 정해진 시간에 몰아서 확인하면 돼요. 끊기지 않는 30분이 끊긴 2시간보다 나아요."
+  },
+  "c20_3": {
+    "complaint": "영상이나 콘텐츠를 끊임없이 봐요. 멈춰야 하는 걸 알면서도 못 멈춰요.",
+    "voiceKo": "멈춰야 하는 걸 알면서도 다음 영상으로 계속 넘어가는 거 — 그 콘텐츠들은 멈추기 어렵게 설계돼 있어요. 본인 의지가 약한 게 아니에요. 자동재생을 꺼두고, 볼 양을 미리 정하고(예: 2개만), 타이머를 맞춰두세요. 멈추는 '신호'를 밖에 만들어두면, 의지 하나에만 기대지 않아도 돼요."
+  },
+  "c20_4": {
+    "complaint": "탭을 수십 개 열어놓고 이것저것 옮겨다녀요. 하나도 제대로 못 끝내요.",
+    "voiceKo": "탭을 잔뜩 열고 이리저리 옮겨다니는 거, 머릿속이 그만큼 여러 갈래로 끌린다는 뜻이에요. 그게 산만함의 모습이에요. 지금 안 쓰는 탭은 일단 다 닫거나 따로 저장해두고, 화면에 '지금 하는 하나'만 남기세요. 눈에 보이는 게 줄면 뇌가 끌려갈 데도 줄어요."
+  },
+  "c20_5": {
+    "complaint": "자기 전에 폰을 보다가 잠을 놓쳐요. 끊어야 하는 걸 아는데 안 돼요.",
+    "voiceKo": "자기 전 폰을 못 놓아서 잠을 놓치는 거, 하루 종일 못 가진 '내 시간'을 밤에라도 붙잡고 싶은 마음일 수 있어요. 그 마음을 탓하기보다, 잘 시간엔 폰을 침실 밖이나 손이 안 닿는 곳에 두세요. 그리고 낮에 짧게라도 '내 시간'을 만들면 밤에 매달릴 이유가 줄어요."
+  },
+  "c21_1": {
+    "complaint": "말을 하다가 주제에서 자꾸 벗어나요. 결국 무슨 말 하려 했는지 잊어요.",
+    "voiceKo": "말하다 주제가 옆길로 새고 결국 본론을 잊는 거, 본인도 답답하실 거예요. ADHD 뇌는 떠오르는 연결들을 다 따라가서 그래요 — 생각이 풍부한 거지만 길을 잃기도 쉽죠. 중요한 이야기를 할 땐 핵심 키워드 한두 개를 미리 적어두세요. 길을 잃어도 그 단어를 보면 본론으로 돌아올 수 있어요."
+  },
+  "c21_2": {
+    "complaint": "하고 싶은 말이 너무 많아서 한꺼번에 쏟아내요. 상대가 따라오기 힘들어해요.",
+    "voiceKo": "하고 싶은 말이 한꺼번에 쏟아져 나오는 거, 그건 머릿속에 그만큼 많은 게 동시에 떠올라서예요 — 무례한 게 아니에요. 다만 듣는 사람은 따라오기 벅찰 수 있죠. 말하기 전에 '제일 중요한 한 가지가 뭐지?'를 잠깐 정하고, 거기서 시작해보세요. 다 말하지 않아도 핵심은 전달돼요."
+  },
+  "c21_3": {
+    "complaint": "상대방 표정이나 말투를 잘못 읽어서 오해할 때가 많아요.",
+    "voiceKo": "상대의 표정이나 말투를 자꾸 다르게 읽어서 오해가 생기는 거, 그게 거절 민감성과 겹치면 더 힘들죠. 모호한 신호를 봤을 때 바로 결론 내리지 말고, '내가 읽은 게 맞나?' 하고 한 번 확인해보세요 — 가볍게 물어봐도 괜찮아요. 추측을 사실로 굳히기 전에 한 번 멈추는 거예요."
+  },
+  "c21_4": {
+    "complaint": "중요한 대화에서 핵심을 놓치고 엉뚱한 데 반응할 때가 있어요.",
+    "voiceKo": "중요한 대화에서 핵심을 놓치는 거, 듣는 동안 주의가 한곳에 머물기 어려워서 그래요 — 관심이 없어서가 아니에요. 상대 말이 끝나면 '그러니까 ___라는 거지?' 하고 들은 걸 짧게 되짚어보세요. 그 한 번의 확인이 오해를 막고, 내 주의도 대화에 다시 붙잡아줘요."
+  },
+  "c21_5": {
+    "complaint": "말을 꺼내기 전에 너무 오래 생각하다가 타이밍을 놓쳐요.",
+    "voiceKo": "말할 타이밍을 재다가 결국 못 꺼내는 거, 그 아쉬움 이해해요. 완벽한 순간과 완벽한 문장을 기다리면 대화는 이미 지나가 있죠. 떠오른 생각을 짧게라도 '지금' 꺼내보는 연습을 해보세요 — 완벽하지 않아도 괜찮아요. 말은 다듬는 것보다 꺼내는 게 먼저예요."
+  },
+  "c22_1": {
+    "complaint": "실수할 때마다 '나는 왜 이 모양일까' 하고 자신을 깎아내려요.",
+    "voiceKo": "실수 하나에 '나는 왜 이러지' 하고 자신을 깎아내리는 거 — 그 말이 본인을 얼마나 아프게 하는지 알아요. 실수한 건 사실이지만, '나는 이 모양'이라는 건 지친 뇌가 만든 가혹한 이야기예요. 그 둘은 달라요. 실수는 ADHD 뇌의 기능 차이지, 사람 됨됨이의 문제가 아니에요."
+  },
+  "c22_2": {
+    "complaint": "남들은 쉽게 하는 걸 못 하는 내가 부끄러워요.",
+    "voiceKo": "남들은 쉽게 하는 걸 못 한다고 느낄 때의 그 부끄러움, 정말 무겁죠. 그런데 ADHD 뇌는 같은 일에 더 많은 에너지를 써요 — 본인은 보이지 않는 데서 훨씬 더 애쓰고 있는 거예요. 부끄러워할 일이 아니라, 더 큰 노력을 하고 있다는 사실로 봐주세요. 비교의 기준이 애초에 공평하지 않았어요."
+  },
+  "c22_3": {
+    "complaint": "과거의 실수들이 불쑥불쑥 떠올라서 혼자 이불킥을 해요.",
+    "voiceKo": "지난 실수들이 불쑥 떠올라서 혼자 괴로워하는 거, 그 장면들이 반복 재생되면 정말 지치죠. ADHD 뇌는 부정적인 기억을 더 생생하게 붙잡아두는 경향이 있어요. 그 기억이 떠오를 때 '이건 이미 지난 일이고, 그때의 나는 그때의 최선을 했다'고 한 번 말해주세요. 자신에게 조금 너그러워지는 연습이에요."
+  },
+  "c22_4": {
+    "complaint": "칭찬을 받아도 '운이 좋았을 뿐'이라며 못 받아들여요.",
+    "voiceKo": "칭찬을 '운'으로 돌리며 못 받아들이는 거, 그만큼 자신에 대한 평가가 박해졌다는 뜻이에요. ADHD로 살면서 '못한다'는 피드백을 많이 들어온 탓일 수 있어요. 칭찬을 들으면 바로 깎아내리지 말고, 그냥 '고맙습니다' 하고 잠시 그 자리에 머물러보세요. 받아들이는 것도 연습이 필요해요."
+  },
+  "c22_5": {
+    "complaint": "'더 노력했어야 했는데'라는 생각을 매일 해요.",
+    "voiceKo": "'더 노력했어야 했다'는 생각을 매일 한다는 건, 자신한테 늘 부족하다는 판정을 내리고 있다는 거예요 — 그건 정말 지치는 일이에요. 그런데 ADHD의 어려움은 노력의 양으로 해결되는 게 아니에요. 노력이 부족했던 게 아니라 도구와 환경이 안 맞았던 거예요. 자신을 다그치는 대신, 다음에 바꿀 한 가지를 찾아보세요."
+  },
+  "c23_1": {
+    "complaint": "괜찮은 척, 잘하는 척하느라 하루가 끝나면 완전히 방전돼요.",
+    "voiceKo": "괜찮은 척을 유지하느라 하루 끝에 방전되는 거 — 그 '가면'을 쓰는 데 들어가는 에너지가 어마어마하죠. 남들 눈엔 안 보여도 본인은 종일 연기를 하고 있었던 거예요. 모든 자리에서 가면을 벗을 순 없겠지만, 적어도 안전한 한 사람, 한 공간에서는 그냥 나로 있어보세요. 그 틈이 회복의 숨구멍이 돼요."
+  },
+  "c23_2": {
+    "complaint": "진짜 내 모습을 보이면 사람들이 실망할까 봐 늘 긴장해 있어요.",
+    "voiceKo": "진짜 모습을 보이면 실망할까 봐 늘 긴장 상태인 거, 그렇게 사는 게 얼마나 지치겠어요. 그 두려움은 거절 민감성과도 닿아 있어요 — '있는 그대로의 나'가 거절당할까 봐서요. 그런데 모두에게 완벽할 필요는 없어요. 가장 안전한 사람에게 아주 작은 진짜 모습부터 보여보세요. 받아들여지는 경험이 그 긴장을 조금씩 풀어줘요."
+  },
+  "c23_3": {
+    "complaint": "사람들 사이에 있으면 에너지가 빨리 닳아요. 혼자 충전할 시간이 꼭 필요해요.",
+    "voiceKo": "사람들 사이에서 에너지가 빨리 닳는 거, 그건 사회적 상황에서 끊임없이 신호를 읽고 맞추느라 뇌가 풀가동되기 때문이에요 — 본인 잘못이 아니에요. 혼자 충전할 시간이 필요한 건 이기적인 게 아니라 정당한 필요예요. 그 시간을 죄책감 없이, 일정에 미리 넣어두세요."
+  },
+  "c23_4": {
+    "complaint": "남들 앞에선 밝은데 집에 오면 완전히 무너져요.",
+    "voiceKo": "밖에선 밝다가 집에 오면 무너지는 거, 그 낙차가 본인을 더 지치게 하죠. 그건 위선이 아니라, 종일 쓴 에너지가 안전한 곳에 와서야 바닥을 드러내는 거예요. 무너지는 자신을 탓하지 말고, '오늘도 가면을 쓰고 버텼구나' 하고 인정해주세요. 그리고 가능하면 가면을 덜 쓰는 시간을 조금씩 늘려가요."
+  },
+  "c23_5": {
+    "complaint": "나답게 사는 게 뭔지 모르겠어요. 늘 남에게 맞추기만 했어요.",
+    "voiceKo": "늘 맞추기만 하다 보니 '나답게'가 뭔지 모르겠다는 거 — 그 막막함, 오래 가면을 써온 사람들이 자주 느껴요. 한 번에 '진짜 나'를 찾으려 하지 말고, 아주 작은 것부터 시작해보세요. '지금 내가 진짜 원하는 건 뭐지?'를 사소한 선택에서 물어보는 것. 작은 진짜들이 모여서 나다움이 돼요."
+  },
+  "c24_1": {
+    "complaint": "생각하기 전에 말이나 행동이 먼저 나가요. 나중에 후회할 때가 많아요.",
+    "voiceKo": "생각보다 말과 행동이 먼저 나가는 거, 그건 충동과 행동 사이의 간격이 짧아서예요 — 인성의 문제가 아니에요. 그 간격을 늘리는 연습이 필요해요. 중요한 자리에선 '말하기 전에 한 번 숨 쉬기'를 작은 규칙으로 정해보세요. 한 박자의 멈춤이 후회를 많이 줄여줘요."
+  },
+  "c24_2": {
+    "complaint": "갑자기 새로운 일을 벌여놓고 기존 일은 다 던져둬요.",
+    "voiceKo": "새로운 일에 끌려서 벌여놓고 기존 일을 놓는 거, ADHD 뇌가 '새 자극'에 강하게 반응해서 그래요. 그 추진력 자체는 나쁜 게 아니에요 — 다만 방향이 자꾸 바뀌는 게 문제죠. 새 일을 시작하고 싶을 때 '지금 열려 있는 것 중 하나를 닫고' 시작하는 규칙을 만들어보세요."
+  },
+  "c24_3": {
+    "complaint": "화나거나 답답하면 즉흥적인 결정을 내려버려요.",
+    "voiceKo": "감정이 올라올 때 즉흥적인 결정을 내려버리는 거, 그 순간엔 그게 최선처럼 느껴지지만 나중에 후회가 따라오죠. 감정이 격할 땐 결정하기 가장 나쁜 때예요. '중요한 결정은 진정된 다음에'를 스스로의 규칙으로 정해두세요. 24시간만 미뤄도 다른 답이 보일 때가 많아요."
+  },
+  "c24_4": {
+    "complaint": "자극적인 걸 계속 찾아요. 가만히 있는 걸 못 견뎌요.",
+    "voiceKo": "가만히 있는 걸 못 견디고 자극을 계속 찾는 거, 그건 ADHD 뇌가 낮은 자극 상태를 불편해해서예요 — 의지의 문제가 아니에요. 그 욕구를 억누르기보다, 해롭지 않은 방향으로 자극을 주는 게 나아요 — 몸을 움직이거나, 손을 쓰는 활동처럼. 자극이 필요한 뇌라는 걸 인정하고 안전한 출구를 만들어주는 거예요."
+  },
+  "c24_5": {
+    "complaint": "말을 내뱉고 나서 '아 그 말 하지 말걸' 하는 일이 잦아요.",
+    "voiceKo": "내뱉고 나서 후회하는 일이 잦은 거, 그 패턴이 반복되면 관계에서도 위축되죠. 떠오른 말이 사라질까 봐 급하게 내뱉는 경우가 많아요. 그럴 땐 그 말을 한 단어로 메모해두면 '사라질까 봐'서 급해지는 게 줄어요. 메모해두면 차례를 기다릴 여유가 생겨요."
+  },
+  "c25_1": {
+    "complaint": "계획이 갑자기 바뀌면 머리가 하얗게 돼요. 적응하는 데 시간이 걸려요.",
+    "voiceKo": "계획이 갑자기 바뀌면 머리가 하얘지는 거, ADHD 뇌가 한번 잡은 흐름을 바꾸는 데 에너지가 크게 들어서 그래요 — 융통성이 없어서가 아니에요. 변화가 닥쳤을 때 바로 반응하려 하지 말고, '잠깐, 새 상황을 보고 다시 정리하자' 하고 짧게 멈출 시간을 자신에게 주세요. 그 멈춤이 적응을 도와요."
+  },
+  "c25_2": {
+    "complaint": "하던 일을 멈추고 다른 일로 넘어가는 게 너무 어려워요.",
+    "voiceKo": "하던 일에서 다른 일로 못 넘어가는 거, 전환 자체가 ADHD 뇌한테 부담스러운 작업이에요. 다음 일을 미리 '눈에 보이게' 준비해두면 전환이 한결 쉬워져요 — 끝난 자리에 다음 일의 첫 줄을 적어두는 식으로요. 그리고 전환 전에 '이제 5분 뒤에 바꿀 거야'라고 미리 신호를 주는 것도 도움이 돼요."
+  },
+  "c25_3": {
+    "complaint": "예상치 못한 일이 생기면 그날 하루 계획이 다 무너져요.",
+    "voiceKo": "돌발 상황 하나에 하루 전체가 무너지는 느낌, 그 막막함 이해해요. ADHD 뇌는 계획이 흐트러지면 '전부 다 망했다'로 느끼기 쉬워요. 그런데 한 가지가 어긋난 거지 전부가 무너진 건 아니에요. 무너진 부분 말고 '아직 할 수 있는 한 가지'를 찾아 거기서 다시 시작해보세요."
+  },
+  "c25_4": {
+    "complaint": "루틴이 깨지면 다시 제자리로 돌아오기가 너무 힘들어요.",
+    "voiceKo": "루틴이 한번 깨지면 되돌아오기 힘든 거, 그래서 작은 흐트러짐이 길게 이어지곤 하죠. ADHD 뇌는 멈춘 데서 다시 시동 거는 게 어려워요. 완벽하게 복귀하려 하지 말고, 루틴의 '제일 작은 한 조각'만 다시 해보세요. 그 하나가 나머지를 다시 끌어와요. 처음부터 다 갖추려 하지 않아도 돼요."
+  },
+  "c25_5": {
+    "complaint": "새로운 환경이나 변화에 적응하는 데 남들보다 오래 걸려요.",
+    "voiceKo": "새 환경에 적응하는 데 오래 걸리는 거, 그동안 본인도 불안하고 지치셨겠어요. 그건 둔해서가 아니라 ADHD 뇌가 익숙한 패턴을 새로 만드는 데 시간이 더 필요해서예요. 자신에게 '적응할 시간'을 미리 넉넉히 허락해주세요. 남들 속도와 비교하지 말고, 내 속도대로 한 조각씩 익숙해지면 돼요."
+  },
+  "c26_1": {
+    "complaint": "해야 하는 건 아는데 마음이 안 움직여요. 의욕이 안 생겨요.",
+    "voiceKo": "해야 하는 걸 알면서도 마음이 안 움직이는 거 — ADHD 뇌는 '중요함'만으로는 시동이 잘 안 걸려요. 의욕이 생기길 기다리면 시작을 못 해요. 그러니 '의욕이 나면 한다'를 뒤집어서, '아주 작게 움직여서 의욕을 깨운다'로 가보세요. 작은 행동이 먼저고, 의욕은 따라와요."
+  },
+  "c26_2": {
+    "complaint": "처음엔 의욕이 넘치다가 금방 식어버려요.",
+    "voiceKo": "처음의 의욕이 금방 식는 거, 그래서 '나는 끈기가 없나' 싶으셨을 수도 있어요. 그런데 그건 끈기의 문제가 아니라 ADHD 뇌가 '새로움'의 자극으로 움직여서예요 — 새것이 익숙해지면 자극이 줄죠. 그러니 익숙해진 일에 새 자극을 더해주세요 — 환경을 바꾸거나, 게임 요소를 넣거나. 식는 걸 탓하기보다 자극을 다시 채우는 거예요."
+  },
+  "c26_3": {
+    "complaint": "보상이 멀리 있으면 동기가 안 생겨요. 당장 결과가 안 보이면 못 해요.",
+    "voiceKo": "먼 보상엔 동기가 안 생기는 거, ADHD 뇌가 '지금'에 강하게 묶여 있어서 그래요 — 미래의 보상이 잘 안 느껴지죠. 그러니 먼 목표를 가까운 작은 보상들로 쪼개보세요. 큰 일을 끝낼 때마다가 아니라, 작은 한 조각을 끝낼 때마다 바로 작은 보상을 주는 거예요. 보상을 '지금'으로 당겨오는 거죠."
+  },
+  "c26_4": {
+    "complaint": "내가 뭘 원하는지조차 모르겠어요. 그래서 동기를 못 찾겠어요.",
+    "voiceKo": "내가 뭘 원하는지 모르겠어서 동기조차 못 찾는 거, 그 막막함 이해해요. 큰 '인생의 목표'를 찾으려 하면 더 막막해져요. 그러니 거창한 것 말고, 아주 작은 데서 시작해보세요 — '오늘 하루 중 그나마 덜 싫었던 순간은 언제였지?' 같은. 작은 끌림들을 모으다 보면 방향이 조금씩 보여요."
+  },
+  "c26_5": {
+    "complaint": "남들은 척척 해내는 걸 보면 의욕이 생기기는커녕 더 작아져요.",
+    "voiceKo": "남들이 해내는 걸 보면 자극이 되기는커녕 더 작아지는 거, 그 비교가 의욕을 갉아먹죠. 남의 결과물은 보이지만 그 사람의 뇌도, 과정도 나와 달라요. 비교의 대상은 '어제의 나'예요. 어제보다 아주 조금 나아간 게 있으면, 그게 진짜 진전이에요. 남의 속도가 아니라 내 방향만 보세요."
+  },
+  "c27_1": {
+    "complaint": "오늘 미루던 일을 드디어 시작했어요. 별거 아닌데 좀 뿌듯해요.",
+    "voiceKo": "미루던 걸 드디어 시작한 거, 그거 절대 별거 아닌 게 아니에요 — ADHD 뇌한테 '시작'은 가장 큰 산이거든요. 그 산을 오늘 넘은 거예요. 그 뿌듯함, 충분히 느껴도 돼요. 그리고 이 경험을 기억해두세요 — '아, 나도 시작할 수 있구나'라는 그 감각이 다음 시작을 조금 더 쉽게 만들어줘요."
+  },
+  "c27_2": {
+    "complaint": "집중이 잘 된 날이 있었어요. 이런 날도 있다는 게 신기해요.",
+    "voiceKo": "집중이 잘 된 날을 경험한 거, 그거 정말 소중한 데이터예요. '이런 날도 있다'는 건 본인 안에 그 능력이 분명히 있다는 뜻이거든요. 그날 뭐가 달랐는지 — 잠, 환경, 시간대, 컨디션 — 가볍게 떠올려보세요. 그 조건을 알면 그런 날을 조금씩 더 만들 수 있어요. 좋았던 날은 그냥 운이 아니라 단서예요."
+  },
+  "c27_3": {
+    "complaint": "힘든 일이었는데 끝까지 해냈어요. 제 자신이 좀 대견해요.",
+    "voiceKo": "힘든 일을 끝까지 해낸 거, 그리고 그런 자신을 대견해하는 거 — 그 마음 정말 귀해요. ADHD로 살면서 '해냈다'보다 '또 못 했다'를 더 많이 들어왔을 텐데, 오늘은 해낸 거예요. 그 성취를 충분히 누리세요. 그리고 '나는 끝까지 할 수 있는 사람'이라는 이 증거를 마음에 잘 새겨두세요."
+  },
+  "c27_4": {
+    "complaint": "실수했지만 예전처럼 자책에 빠지지 않고 넘어갔어요.",
+    "voiceKo": "실수하고도 자책의 늪에 안 빠지고 넘어간 거 — 이거 정말 큰 성장이에요. 실수 자체보다 그 뒤의 자기비난이 늘 더 아팠잖아요. 그 고리를 오늘 끊은 거예요. '실수는 했지만 나는 괜찮다'를 해낸 거고요. 이런 순간들이 쌓이면 실수가 더 이상 무섭지 않아져요."
+  },
+  "c27_5": {
+    "complaint": "작은 거지만 오늘 계획한 걸 지켰어요. 이런 날이 늘었으면 좋겠어요.",
+    "voiceKo": "계획한 걸 지킨 날, 그게 작아 보여도 ADHD한테는 정말 의미 있는 일이에요. '이런 날이 늘었으면'이라는 바람도 좋고요. 그러려면 오늘 뭐가 통했는지 기억해두세요 — 계획이 작아서? 알림을 걸어서? 그 통한 방법을 다음에도 쓰면, 이런 날은 운이 아니라 패턴이 돼요."
+  },
+  "c28_1": {
+    "complaint": "요즘 너무 힘들어서 다 그만두고 싶다는 생각이 들어요.",
+    "voiceKo": "다 그만두고 싶다는 생각이 들 만큼 힘드시군요. 그 말을 꺼내준 것만으로도 큰 용기예요. 지금 느끼는 그 무게, 혼자 감당하지 않으셨으면 해요. 저는 곁에서 이야기를 들을 수 있지만, 지금 같은 마음일 땐 전문가나 위기 상담의 도움을 꼭 받으셨으면 좋겠어요. 당장 이야기 나눌 수 있는 곳을 함께 찾아볼까요?"
+  },
+  "c28_2": {
+    "complaint": "아무도 날 이해 못 하는 것 같고 너무 외로워요.",
+    "voiceKo": "아무도 이해 못 한다는 느낌 속에서 외로움까지 겹치면, 정말 견디기 힘들죠. 그 외로움을 여기서 꺼내준 것 자체가 의미 있어요. ADHD로 사는 건 자주 외롭지만, 그 느낌이 곧 사실인 건 아니에요 — 이해할 수 있는 사람들이 분명 있어요. 지금 마음이 많이 무겁다면, 믿을 만한 사람이나 전문가에게 이 마음을 꼭 전해보세요. 혼자 두기엔 너무 무거운 마음이에요."
+  },
+  "c28_3": {
+    "complaint": "감정이 통제가 안 될 만큼 휘몰아쳐서 무서워요.",
+    "voiceKo": "감정이 통제 안 될 만큼 휘몰아쳐서 무섭다고 느끼시는군요. 그 두려움 속에서 이렇게 말해준 것, 잘하셨어요. 지금은 무엇보다 안전이 먼저예요 — 혼자 있지 마시고, 곁에 있어 줄 수 있는 사람에게 연락하거나 위기 상담에 닿아보세요. 이런 순간엔 도움을 청하는 게 가장 강하고 현명한 행동이에요."
+  },
+  "c28_4": {
+    "complaint": "앞으로 나아질 거라는 희망이 안 보여요.",
+    "voiceKo": "앞이 안 보이고 희망이 잡히지 않는 그 느낌, 지금 정말 깊이 지쳐 계신 거예요. 그 무거운 마음을 말로 꺼내준 게 고마워요. 지금 희망이 안 보이는 건 상황이 정말 가망 없어서가 아니라, 지친 마음이 시야를 좁혀놓은 거예요. 이 마음은 혼자 견딜 게 아니에요 — 전문가의 도움을 꼭 받으시길, 진심으로 권하고 싶어요. 함께 다음 한 걸음을 찾아봐요."
+  },
+  "c28_5": {
+    "complaint": "내가 없어지면 다들 편해질 것 같다는 생각이 들어요.",
+    "voiceKo": "그런 생각이 들 만큼 지금 많이 힘드시군요. 이 말을 꺼내주셔서 정말 감사하고, 또 걱정돼요. 지금 드는 그 생각은 사실이 아니라 깊은 고통이 만들어낸 거예요 — 당신은 누구에게도 짐이 아니에요. 지금 이 순간 혼자 있지 않으셨으면 해요. 위기 상담 전화나 가까운 사람에게 지금 바로 연락해주세요. 저도 함께 그 연결을 도울게요. 당신의 안전이 무엇보다 중요해요."
+  },
+  "c29_1": {
+    "complaint": "아이한테 짜증을 냈다가 자책해요. 좋은 부모가 못 되는 것 같아요.",
+    "voiceKo": "아이한테 짜증 내고 자책하는 그 마음, 그건 좋은 부모가 되고 싶다는 마음이 그만큼 크다는 증거예요. ADHD가 있으면 감정 조절이 더 어렵고, 양육은 그 어려움을 매일 시험하죠 — 본인이 부족해서가 아니에요. 완벽한 부모는 없어요. 짜증 낸 뒤에 아이에게 '아까 미안했어'라고 말해주는 것, 그게 좋은 부모의 모습이에요."
+  },
+  "c29_2": {
+    "complaint": "집안일과 육아를 동시에 감당하는 게 버거워요. 늘 뭔가 놓쳐요.",
+    "voiceKo": "집안일과 육아를 동시에 감당하느라 늘 뭔가 놓치는 느낌, 그 버거움 정말 이해해요. ADHD 뇌한테 여러 일을 동시에 굴리는 건 가장 어려운 일이에요 — 게을러서 놓치는 게 아니에요. 다 잘하려 하지 말고, '오늘 꼭 되어야 하는 한 가지'만 정하세요. 나머지는 놓쳐도 괜찮은 걸로 두고요. 도움을 청할 수 있으면 청하세요."
+  },
+  "c29_3": {
+    "complaint": "부모님이 내 어려움을 '핑계'라고 해서 상처받아요.",
+    "voiceKo": "가장 가까운 부모님이 어려움을 '핑계'로 들으실 때, 그 상처가 얼마나 깊겠어요. ADHD는 핑계가 아니라 실재하는 뇌의 차이예요 — 본인은 그걸 매일 몸으로 겪고 있죠. 모두를 이해시키긴 어려울 수 있어요. 다만 본인만큼은 그 말을 믿지 마세요. 그리고 이해받을 수 있는 다른 관계와 공간을 찾는 것도 자신을 지키는 방법이에요."
+  },
+  "c29_4": {
+    "complaint": "아이가 나랑 비슷한 어려움을 겪는 것 같아서 마음이 무거워요.",
+    "voiceKo": "아이가 나와 비슷한 어려움을 겪는 것 같아 마음이 무거우신 거, 그 걱정 깊이 이해돼요. 그런데 한 가지는 분명해요 — 본인은 그 어려움이 어떤 건지 누구보다 잘 알잖아요. 그게 아이한테는 큰 자산이에요. 비난 대신 이해받는 게 어떤 건지 보여줄 수 있으니까요. 걱정되는 부분이 있으면 전문가와 함께 일찍 살펴보는 것도 좋아요."
+  },
+  "c29_5": {
+    "complaint": "가족들 일정과 필요를 챙기다 보면 정작 나를 돌볼 시간이 없어요.",
+    "voiceKo": "가족을 챙기느라 정작 자신을 돌볼 시간이 없는 거, 많은 부모가 그렇게 자신을 뒤로 미루죠. 그런데 본인이 방전되면 결국 가족을 챙길 힘도 사라져요 — 나를 돌보는 건 이기적인 게 아니라 필요한 일이에요. 하루에 단 10분이라도 '내 시간'을 일정에 미리 넣어두세요. 죄책감 없이요."
+  },
+  "c30_1": {
+    "complaint": "진단을 받고 나니 안심도 되고 동시에 혼란스럽기도 해요.",
+    "voiceKo": "진단을 받고 안심과 혼란이 동시에 오는 거, 그건 아주 자연스러운 반응이에요. '이유가 있었구나' 하는 안도와, '이제 어떻게 살아야 하지' 하는 막막함이 같이 오는 거죠. 둘 다 느껴도 괜찮아요. 진단은 끝이 아니라 시작이고, 한 번에 다 정리할 필요 없어요. 천천히, 하나씩 알아가면 돼요."
+  },
+  "c30_2": {
+    "complaint": "'진작 알았더라면' 하는 생각에 지난 시간이 아까워요.",
+    "voiceKo": "'진작 알았더라면' 하는 그 마음, 진단받은 많은 분들이 똑같이 느껴요 — 그 아쉬움 충분히 이해돼요. 그런데 그때의 나는 몰랐던 채로도 어떻게든 버텨온 거예요. 그건 아까운 시간이 아니라, 도구 없이도 살아낸 시간이에요. 지금부터는 도구를 가지고 가는 거고요. 과거를 아까워하기보다, 지금 가진 걸 써보세요."
+  },
+  "c30_3": {
+    "complaint": "나라는 사람이 ADHD에 다 설명되는 것 같아서 좀 이상해요.",
+    "voiceKo": "내가 ADHD라는 한 단어로 다 설명되는 것 같은 그 느낌, 이상하고 불편할 수 있어요. 그런데 ADHD는 본인을 '설명'하는 게 아니라, 본인의 일부를 '이해'하게 도와주는 거예요. 본인은 ADHD보다 훨씬 크고 많은 사람이에요 — 유머, 관심사, 따뜻함, 그 모든 게 다 본인이죠. 진단은 그중 한 조각을 비춰주는 거지, 전부가 아니에요."
+  },
+  "c30_4": {
+    "complaint": "ADHD라는 걸 남들에게 말해야 할지 말지 늘 고민돼요.",
+    "voiceKo": "ADHD를 밝힐지 말지 고민되는 거, 그건 정답이 없는 문제라 더 어렵죠. 모두에게 말할 필요도 없고, 꼭 숨길 필요도 없어요 — 그건 전적으로 본인이 정할 수 있는 거예요. '이 사람에게, 이만큼' 하는 식으로 상대와 상황에 따라 다르게 정해도 괜찮아요. 안전하다고 느끼는 곳에서, 본인이 편한 만큼만요."
+  },
+  "c30_5": {
+    "complaint": "ADHD를 '극복'해야 하는 건지, '받아들여야' 하는 건지 모르겠어요.",
+    "voiceKo": "ADHD를 극복해야 할지 받아들여야 할지 헷갈리는 거, 사실 그건 둘 중 하나가 아니에요. 없애야 할 적이 아니라, 같이 살아갈 방식을 찾아가는 거예요 — 어려운 부분엔 도구를 쓰고, 강점인 부분은 살리면서요. '고쳐서 남들처럼'이 아니라 '나에게 맞는 방식으로'가 목표예요. 그게 받아들임이면서 동시에 나아가는 거예요."
+  }
+};
+
+  // ════════════════════════════════════════════════════════
+  //  상태
+  // ════════════════════════════════════════════════════════
+  var STORAGE_PREFIX = 'tc_clinic_v2_';   // + botId
+  var SEEDED_PREFIX  = 'tc_clinic_seeded_v2_'; // + botId (초안 주입 1회 마킹)
+  var currentBot = 'adhd';
+  var data = {};   // 현재 봇의 데이터 { caseId: {complaint, voiceKo, voiceEn, status} }
+
+  function storageKey(botId){ return STORAGE_PREFIX + botId; }
+  function caseId(catId, n){ return catId + '_' + n; }
+
+  // ── 봇 데이터 로드 (+ ADHD는 첫 진입 시 초안 주입) ──
+  function loadBot(botId){
+    currentBot = botId;
+    data = {};
+    try {
+      var raw = localStorage.getItem(storageKey(botId));
+      if(raw) data = JSON.parse(raw) || {};
+    } catch(e){ data = {}; }
+
+    // ADHD — 아직 초안이 안 깔렸으면 빈 칸에 주입 (1회만)
+    if(botId === 'adhd'){
+      var seeded = false;
+      try { seeded = localStorage.getItem(SEEDED_PREFIX + 'adhd') === 'yes'; } catch(e){}
+      if(!seeded){
+        Object.keys(ADHD_SEED).forEach(function(id){
+          var rec = data[id];
+          var hasWork = rec && ((rec.complaint && rec.complaint.trim()) ||
+                                (rec.voiceKo && rec.voiceKo.trim()) ||
+                                (rec.voiceEn && rec.voiceEn.trim()));
+          if(!hasWork){
+            data[id] = {
+              complaint: ADHD_SEED[id].complaint,
+              voiceKo: ADHD_SEED[id].voiceKo,
+              voiceEn: '', status: ''
+            };
+          }
+        });
+        try { localStorage.setItem(SEEDED_PREFIX + 'adhd', 'yes'); } catch(e){}
+        saveBot();
+      }
+    }
+  }
+
+  var saveTimer = null;
+  function saveBot(){
+    try { localStorage.setItem(storageKey(currentBot), JSON.stringify(data)); } catch(e){}
+    showToast();
+  }
+  function saveDebounced(){
+    if(saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveBot, 600);
+  }
+
+  var toastTimer = null;
+  function showToast(){
+    var t = document.getElementById('savedToast');
+    t.classList.add('show');
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 1400);
+  }
+
+  function deriveStatus(rec){
+    if(!rec) return '';
+    if(rec.status === 'flag') return 'flag';
+    if(rec.voiceEn && rec.voiceEn.trim()) return 'en';
+    if(rec.voiceKo && rec.voiceKo.trim()) return 'ko';
+    return '';
+  }
+
+  // ── 특정 봇의 한글 작성 수 (칩 진척 표시용) ──
+  function botKoCount(botId){
+    var n = 0;
+    try {
+      var raw = localStorage.getItem(storageKey(botId));
+      if(!raw) return 0;
+      var d = JSON.parse(raw) || {};
+      Object.keys(d).forEach(function(id){
+        var st = deriveStatus(d[id]);
+        if(st === 'ko' || st === 'en') n++;
+      });
+    } catch(e){ return 0; }
+    return n;
+  }
+
+  // ════════════════════════════════════════════════════════
+  //  봇 칩 렌더
+  // ════════════════════════════════════════════════════════
+  function renderBotChips(){
+    var box = document.getElementById('botChips');
+    box.innerHTML = '';
+    BOTS.forEach(function(bot){
+      var chip = document.createElement('button');
+      chip.className = 'bot-chip' + (bot.id === currentBot ? ' active' : '');
+      var done = botKoCount(bot.id);
+      chip.innerHTML = bot.emoji + ' ' + bot.ko +
+        ' <span class="bot-prog">' + done + '/' + GOAL + '</span>';
+      chip.onclick = function(){
+        if(bot.id === currentBot) return;
+        switchBot(bot.id);
+      };
+      box.appendChild(chip);
+    });
+  }
+
+  function switchBot(botId){
+    loadBot(botId);
+    var bot = BOTS.filter(function(b){ return b.id === botId; })[0];
+    document.getElementById('botTitle').textContent = bot.en + ' TalkCatcher';
+    renderBotChips();
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ════════════════════════════════════════════════════════
+  //  카테고리 + 케이스 렌더
+  // ════════════════════════════════════════════════════════
+  function render(){
+    var list = document.getElementById('catList');
+    list.innerHTML = '';
+
+    CATEGORIES.forEach(function(cat, ci){
+      var catEl = document.createElement('div');
+      catEl.className = 'cat' + (ci === 0 ? ' open' : '');
+
+      var doneInCat = 0;
+      for(var n=1; n<=CASES_PER_CAT; n++){
+        var st = deriveStatus(data[caseId(cat.id, n)]);
+        if(st === 'ko' || st === 'en') doneInCat++;
+      }
+
+      var head = document.createElement('div');
+      head.className = 'cat-head';
+      head.innerHTML =
+        '<span class="cat-emoji">' + cat.emoji + '</span>' +
+        '<span class="cat-title">' + cat.ko +
+          '<span class="cat-en">' + cat.en + '</span></span>' +
+        '<span class="cat-count' + (doneInCat === CASES_PER_CAT ? ' done' : '') + '">' +
+          doneInCat + ' / ' + CASES_PER_CAT + '</span>' +
+        '<span class="chevron">\u25B6</span>';
+      head.onclick = function(){ catEl.classList.toggle('open'); };
+      catEl.appendChild(head);
+
+      var body = document.createElement('div');
+      body.className = 'cat-body';
+      for(var n2=1; n2<=CASES_PER_CAT; n2++){
+        body.appendChild(buildCase(cat, n2));
+      }
+      var catExportBtn = document.createElement('button');
+      catExportBtn.className = 'cat-export-btn';
+      catExportBtn.setAttribute('data-cat', cat.id);
+      catExportBtn.textContent = '\uD83D\uDCE4 ' + cat.ko + ' (이 카테고리만) 내보내기';
+      body.appendChild(catExportBtn);
+      catEl.appendChild(body);
+
+      list.appendChild(catEl);
+    });
+
+    updateProgress();
+  }
+
+  function buildCase(cat, n){
+    var id = caseId(cat.id, n);
+    var rec = data[id] || { complaint:'', voiceKo:'', voiceEn:'', status:'' };
+    var st = deriveStatus(rec);
+    var box = document.createElement('div');
+    box.className = 'case';
+    box.setAttribute('data-status', st);
+    var statusLabel = { '':'빈 칸', 'ko':'한글 작성됨', 'en':'영어 완료', 'flag':'\uD83D\uDEA9 수정 요청' }[st];
+
+    box.innerHTML =
+      '<div class="case-top">' +
+        '<span class="case-num">' + cat.ko + ' \u00B7 케이스 ' + n + '</span>' +
+        '<span class="case-status ' + st + '">' + statusLabel + '</span>' +
+      '</div>' +
+      '<div class="field ko-only">' +
+        '<label>호소 <span class="hint">\u00B7 사용자가 한 말 (한글)</span></label>' +
+        '<textarea data-id="' + id + '" data-f="complaint" ' +
+          'placeholder="예: 30분째 이메일 하나를 못 보내고 있어요...">' +
+          esc(rec.complaint) + '</textarea>' +
+      '</div>' +
+      '<div class="field ko-only">' +
+        '<label>마누라 답변 <span class="hint">\u00B7 3~4문장, 진짜 내 임상 voice (한글)</span></label>' +
+        '<textarea data-id="' + id + '" data-f="voiceKo" ' +
+          'placeholder="여기에 한글로만 쓰면 돼요. 영어는 나중에 Claude가 채웁니다.">' +
+          esc(rec.voiceKo) + '</textarea>' +
+      '</div>' +
+      '<div class="field en-only">' +
+        '<label>English <span class="hint">\u00B7 Claude 번역을 여기서 바로 고칠 수 있어요 \u00B7 어색하면 \uD83D\uDEA9</span></label>' +
+        '<div class="en-wrap">' +
+          '<textarea class="en-field" data-id="' + id + '" data-f="voiceEn" ' +
+            'placeholder="비어 있으면 Claude가 채워줘요. 직접 쓰거나 고쳐도 됩니다.">' +
+            esc(rec.voiceEn) + '</textarea>' +
+        '</div>' +
+      '</div>' +
+      '<div class="case-actions">' +
+        '<button class="cabtn flag' + (st === 'flag' ? ' active' : '') + '" ' +
+          'data-id="' + id + '" data-act="flag">\uD83D\uDEA9 이상함 / 수정 요청</button>' +
+        '<button class="cabtn clear" data-id="' + id + '" data-act="clear">지우기</button>' +
+      '</div>';
+    return box;
+  }
+
+  function esc(s){
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ════════════════════════════════════════════════════════
+  //  진척
+  // ════════════════════════════════════════════════════════
+  function updateProgress(){
+    var koDone = 0, enDone = 0, flagged = 0;
+    CATEGORIES.forEach(function(cat){
+      for(var n=1; n<=CASES_PER_CAT; n++){
+        var st = deriveStatus(data[caseId(cat.id, n)]);
+        if(st === 'flag') flagged++;
+        else if(st === 'en'){ enDone++; koDone++; }
+        else if(st === 'ko') koDone++;
+      }
+    });
+    document.getElementById('progCount').textContent = koDone + ' / ' + GOAL;
+    document.getElementById('progFill').style.width = (koDone / GOAL * 100) + '%';
+    var bits = ['한글 ' + koDone + '개'];
+    if(enDone > 0) bits.push('영어완료 ' + enDone + '개');
+    if(flagged > 0) bits.push('\uD83D\uDEA9 ' + flagged + '개');
+    document.getElementById('progGoal').textContent = bits.join(' \u00B7 ');
+  }
+
+  // ════════════════════════════════════════════════════════
+  //  입력 이벤트
+  // ════════════════════════════════════════════════════════
+  function ensureRec(id){
+    if(!data[id]) data[id] = { complaint:'', voiceKo:'', voiceEn:'', status:'' };
+    return data[id];
+  }
+
+  document.getElementById('catList').addEventListener('input', function(e){
+    var ta = e.target;
+    if(ta.tagName !== 'TEXTAREA') return;
+    var id = ta.getAttribute('data-id');
+    var f = ta.getAttribute('data-f');
+    var rec = ensureRec(id);
+    rec[f] = ta.value;
+    if((f === 'complaint' || f === 'voiceKo') && rec.status === 'flag') rec.status = '';
+    saveDebounced();
+    refreshCaseChrome(id);
+  });
+
+  document.getElementById('catList').addEventListener('click', function(e){
+    // 카테고리별 내보내기
+    var exBtn = e.target.closest('.cat-export-btn');
+    if(exBtn){
+      e.stopPropagation();
+      exportCases(exBtn.getAttribute('data-cat'));
+      return;
+    }
+    // 케이스 액션
+    var btn = e.target.closest('.cabtn');
+    if(!btn) return;
+    var id = btn.getAttribute('data-id');
+    var act = btn.getAttribute('data-act');
+    var rec = ensureRec(id);
+    if(act === 'flag'){
+      rec.status = (rec.status === 'flag') ? '' : 'flag';
+    } else if(act === 'clear'){
+      if(!confirm('이 케이스 내용을 다 지울까요?')) return;
+      data[id] = { complaint:'', voiceKo:'', voiceEn:'', status:'' };
+      saveBot(); render(); renderBotChips();
+      return;
+    }
+    saveBot();
+    refreshCaseChrome(id);
+  });
+
+  function refreshCaseChrome(id){
+    var rec = data[id];
+    var st = deriveStatus(rec);
+    var statusLabel = { '':'빈 칸', 'ko':'한글 작성됨', 'en':'영어 완료', 'flag':'\uD83D\uDEA9 수정 요청' }[st];
+    var ta = document.querySelector('textarea[data-id="' + id + '"]');
+    if(ta){
+      var box = ta.closest('.case');
+      if(box){
+        box.setAttribute('data-status', st);
+        var badge = box.querySelector('.case-status');
+        if(badge){ badge.className = 'case-status ' + st; badge.textContent = statusLabel; }
+        var flagBtn = box.querySelector('.cabtn.flag');
+        if(flagBtn) flagBtn.classList.toggle('active', st === 'flag');
+      }
+    }
+    var catId = id.split('_')[0];
+    var cat = CATEGORIES.filter(function(c){ return c.id === catId; })[0];
+    if(cat){
+      var doneInCat = 0;
+      for(var n=1; n<=CASES_PER_CAT; n++){
+        var s = deriveStatus(data[caseId(cat.id, n)]);
+        if(s === 'ko' || s === 'en') doneInCat++;
+      }
+      var heads = document.querySelectorAll('.cat-head');
+      heads.forEach(function(h){
+        var t = h.querySelector('.cat-title');
+        if(t && t.childNodes[0].textContent.trim() === cat.ko){
+          var cnt = h.querySelector('.cat-count');
+          cnt.textContent = doneInCat + ' / ' + CASES_PER_CAT;
+          cnt.className = 'cat-count' + (doneInCat === CASES_PER_CAT ? ' done' : '');
+        }
+      });
+    }
+    updateProgress();
+    renderBotChips();
+  }
+
+  // ════════════════════════════════════════════════════════
+  //  내보내기
+  // ════════════════════════════════════════════════════════
+  function downloadJSON(obj, filename){
+    var blob = new Blob([JSON.stringify(obj, null, 2)], { type:'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportCases(catFilter){
+    var cats = catFilter
+      ? CATEGORIES.filter(function(c){ return c.id === catFilter; })
+      : CATEGORIES;
+    var botObj = BOTS.filter(function(b){ return b.id === currentBot; })[0];
+    var out = {
+      _meta: {
+        type: 'talkcatcher_clinic_voice',
+        version: 2,
+        bot: currentBot,
+        botName: botObj ? botObj.en + ' TalkCatcher' : currentBot,
+        exported_at: new Date().toISOString(),
+        scope: catFilter || 'all',
+        note: 'Claude: voiceKo가 채워졌고 voiceEn이 비어있는 케이스를 영어로 채워주세요. ' +
+              'status가 flag인 케이스는 마누라가 영어 수정을 요청한 것입니다. ' +
+              'flag가 아니면 기존 영어를 존중하세요.'
+      },
+      categories: cats,
+      cases: {}
+    };
+    var count = 0;
+    cats.forEach(function(cat){
+      for(var n=1; n<=CASES_PER_CAT; n++){
+        var id = caseId(cat.id, n);
+        var rec = data[id];
+        if(rec && (rec.complaint || rec.voiceKo || rec.voiceEn || rec.status === 'flag')){
+          out.cases[id] = {
+            category: cat.ko + ' / ' + cat.en,
+            complaint: rec.complaint || '',
+            voiceKo: rec.voiceKo || '',
+            voiceEn: rec.voiceEn || '',
+            status: rec.status || deriveStatus(rec)
+          };
+          count++;
+        }
+      }
+    });
+    if(count === 0){
+      alert(catFilter ? '이 카테고리엔 아직 작성된 케이스가 없어요.' : '아직 작성된 케이스가 없어요.');
+      return;
+    }
+    var stamp = new Date().toISOString().slice(0,10);
+    var name = catFilter
+      ? 'voice_' + currentBot + '_' + catFilter + '_' + stamp + '.json'
+      : 'voice_' + currentBot + '_ALL_' + stamp + '.json';
+    downloadJSON(out, name);
+  }
+
+  document.getElementById('btnExport').onclick = function(){ exportCases(null); };
+
+  // ════════════════════════════════════════════════════════
+  //  불러오기 — Claude가 영어 채운 파일 흡수 (영어 + flag만 머지)
+  //  파일의 _meta.bot이 현재 봇과 다르면 경고.
+  // ════════════════════════════════════════════════════════
+  document.getElementById('btnImport').onclick = function(){
+    document.getElementById('fileInput').click();
+  };
+  document.getElementById('fileInput').onchange = function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      var imported;
+      try { imported = JSON.parse(ev.target.result); }
+      catch(err){ alert('파일을 읽지 못했어요. JSON 파일이 맞는지 확인해주세요.'); return; }
+      if(!imported || !imported.cases){
+        alert('이 파일에는 케이스 데이터가 없어요.'); return;
+      }
+      // 봇 일치 확인
+      var fileBot = imported._meta && imported._meta.bot;
+      if(fileBot && fileBot !== currentBot){
+        var botObj = BOTS.filter(function(b){ return b.id === fileBot; })[0];
+        var goAnyway = confirm(
+          '이 파일은 "' + (botObj ? botObj.ko : fileBot) + '" 봇의 파일이에요.\n' +
+          '지금 열려 있는 봇은 "' + currentBot + '" 입니다.\n\n' +
+          '그래도 지금 봇에 불러올까요? (취소를 권합니다)'
+        );
+        if(!goAnyway) return;
+      }
+      var n = 0;
+      Object.keys(imported.cases).forEach(function(id){
+        var inc = imported.cases[id];
+        var rec = ensureRec(id);
+        if(inc.voiceEn && inc.voiceEn.trim()){ rec.voiceEn = inc.voiceEn; n++; }
+        if(inc.status === 'flag') rec.status = 'flag';
+      });
+      saveBot();
+      render();
+      renderBotChips();
+      alert(n + '개 케이스에 영어를 불러왔어요. 한+영 토글로 확인해보세요.');
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  // ════════════════════════════════════════════════════════
+  //  언어 토글 — 한글 / 한+영 / 영어
+  // ════════════════════════════════════════════════════════
+  function setLangMode(mode){
+    document.body.classList.remove('show-ko','show-en','show-both');
+    document.body.classList.add('show-' + mode);
+    document.getElementById('tgKo').classList.toggle('active', mode === 'ko');
+    document.getElementById('tgBoth').classList.toggle('active', mode === 'both');
+    document.getElementById('tgEn').classList.toggle('active', mode === 'en');
+  }
+  document.getElementById('tgKo').onclick = function(){ setLangMode('ko'); };
+  document.getElementById('tgBoth').onclick = function(){ setLangMode('both'); };
+  document.getElementById('tgEn').onclick = function(){ setLangMode('en'); };
+
+  // ════════════════════════════════════════════════════════
+  //  작성 가이드 펼치기
+  // ════════════════════════════════════════════════════════
+  var guideBox = document.getElementById('guideBox');
+  var GUIDE_KEY = 'tc_clinic_guide_collapsed_v2';
+  try {
+    if(localStorage.getItem(GUIDE_KEY) !== 'yes') guideBox.classList.add('open');
+  } catch(e){ guideBox.classList.add('open'); }
+  document.getElementById('guideHead').onclick = function(){
+    guideBox.classList.toggle('open');
+    try {
+      localStorage.setItem(GUIDE_KEY, guideBox.classList.contains('open') ? 'no' : 'yes');
+    } catch(e){}
+  };
+
+  // ════════════════════════════════════════════════════════
+  //  시작 — ADHD 봇으로
+  // ════════════════════════════════════════════════════════
+  loadBot('adhd');
+  renderBotChips();
+  render();
+
+})();
+</script>
+</body>
+</html>

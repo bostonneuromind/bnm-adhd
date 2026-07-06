@@ -1,0 +1,103 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-05-10",
+  "license_note": "All assessments are public domain (ASRS-v1.1 by WHO) or proprietary BNM tools (attend_catcher_18). No copyrighted assessments (CAARS, etc.) are included.",
+  "assessments": {
+    "ASRS_v1_1": {
+      "id": "ASRS_v1_1",
+      "name_ko": "ASRS-v1.1 (성인 ADHD 자가보고)",
+      "name_en": "ASRS-v1.1 (Adult ADHD Self-Report Scale)",
+      "publisher": "World Health Organization (WHO)",
+      "publisher_year": 2003,
+      "license": "Public Domain",
+      "authority_note_ko": "WHO가 개발한 가장 보편적으로 사용되는 성인 ADHD 선별 도구. DSM-5 기준 18문항 + Part A 6문항 스크리너. 임상 cutoff: Part A ≥ 4점.",
+      "authority_note_en": "Most widely used adult ADHD screening tool, developed by WHO. 18 items based on DSM-5 + Part A 6-item screener. Clinical cutoff: Part A ≥ 4.",
+      "total_items": 18,
+      "score_range": [0, 72],
+      "clinical_cutoff": 24,
+      "target_score": null,
+      "subscales": [
+        {
+          "id": "inattention",
+          "name_ko": "주의력 결핍",
+          "name_en": "Inattention",
+          "items": [1, 2, 3, 4, 7, 8, 9, 10, 11],
+          "range": [0, 36]
+        },
+        {
+          "id": "hyperactivity_impulsivity",
+          "name_ko": "과잉행동·충동성",
+          "name_en": "Hyperactivity-Impulsivity",
+          "items": [5, 6, 12, 13, 14, 15, 16, 17, 18],
+          "range": [0, 36]
+        }
+      ],
+      "interpretation": {
+        "minimal_ko": "최소 (0-17): ADHD 증상이 두드러지지 않음",
+        "minimal_en": "Minimal (0-17): No prominent ADHD symptoms",
+        "mild_ko": "경미 (18-23): 경미한 증상",
+        "mild_en": "Mild (18-23): Mild symptoms",
+        "moderate_ko": "중등도 (24-35): 임상적 관심 필요",
+        "moderate_en": "Moderate (24-35): Clinical attention",
+        "severe_ko": "심함 (36+): 명확한 ADHD 패턴",
+        "severe_en": "Severe (36+): Clear ADHD pattern"
+      }
+    },
+    "attend_catcher_18": {
+      "id": "attend_catcher_18",
+      "name_ko": "Attend Catcher 18 (BNM 자체)",
+      "name_en": "Attend Catcher 18 (BNM proprietary)",
+      "publisher": "Boston Neuromind LLC",
+      "publisher_year": 2026,
+      "license": "BNM Proprietary",
+      "authority_note_ko": "Boston Neuromind 자체 개발 18문항 ADHD 평가. DSM-5-TR A1-A18 직접 매핑. 임상 cutoff: 24점.",
+      "authority_note_en": "BNM-developed 18-item ADHD assessment. Directly mapped to DSM-5-TR A1-A18. Clinical cutoff: 24.",
+      "total_items": 18,
+      "score_range": [0, 72],
+      "clinical_cutoff": 24,
+      "target_score": null,
+      "subscales": [
+        {
+          "id": "dsm_inattention",
+          "name_ko": "DSM-5 부주의 (A1-A9)",
+          "name_en": "DSM-5 Inattention (A1-A9)",
+          "items": [1,2,3,4,5,6,7,8,9],
+          "range": [0, 36]
+        },
+        {
+          "id": "dsm_hyperactivity",
+          "name_ko": "DSM-5 과잉행동·충동성 (A10-A18)",
+          "name_en": "DSM-5 Hyperactivity-Impulsivity (A10-A18)",
+          "items": [10,11,12,13,14,15,16,17,18],
+          "range": [0, 36]
+        }
+      ]
+    }
+  },
+  "mapping_formula": {
+    "version": "v0.1-heuristic",
+    "note_ko": "초기 가설 매핑. 실제 임상 데이터 누적 후 8주마다 재보정. AI 데이터 기반 점진 학습.",
+    "note_en": "Initial heuristic mapping. Recalibrated every 8 weeks with accumulated clinical data. AI data-driven progressive learning.",
+    "scenario_score_to_assessment_delta": {
+      "description_ko": "한 시나리오 점수(0-10)가 평가지에 미치는 추정 영향",
+      "description_en": "Estimated impact of one scenario score (0-10) on assessment",
+      "ASRS_v1_1": {
+        "delta_per_score_point": -0.08,
+        "max_delta_per_session": -0.8,
+        "decay_factor": 0.95,
+        "note": "Per scenario: ASRS estimated change = -0.08 × score. Max -0.8/session."
+      },
+      "attend_catcher_18": {
+        "delta_per_score_point": -0.10,
+        "max_delta_per_session": -1.0,
+        "decay_factor": 0.95,
+        "note": "Per scenario: attend_18 estimated change = -0.10 × score. Max -1.0/session."
+      }
+    },
+    "recalibration": {
+      "interval_weeks": 8,
+      "trigger_note_ko": "8주마다 실제 평가지 점수 재측정 → 추정치와 비교 → 공식 자동 보정",
+      "trigger_note_en": "Re-measure actual assessment every 8 weeks → compare with estimate → auto-recalibrate formula"
+    }
+  }
+}

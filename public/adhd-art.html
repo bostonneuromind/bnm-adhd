@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ADHD — 흩어진 집중을, 한곳으로 · Boston Neuromind</title>
+<!-- [황금 템플릿] peak 검증 헤더(흰 sticky + 폰 햄버거) + 명화 히어로. track/ 9증상 통일 틀(adhd 1번, 8개 복제용). 명화/텍스트/링크만 교체. -->
+<script src="../bnm-lang-sync.js"></script>
+<!-- [adhd-gate 로그인] Calm Blue 로그인/가입 + 동의/DOB (sepiera, source_site=adhd). adhd.html(옛 ServicePage)은 여기로 redirect — 로그인은 이 페이지가 담당. peak/learning/symptom 동일 스택. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.ADHD_GATE_MANUAL = true;</script>
+<script src="../shared/adhd-config.js?v=1"></script>
+<script src="../shared/adhd-db.js?v=1"></script>
+<script src="../shared/adhd-board.js?v=1"></script>
+<script src="../shared/adhd-consent.js?v=1"></script>
+<script src="../shared/adhd-auth.js?v=1"></script>
+<script src="../shared/adhd-session.js?v=1"></script>
+<script src="../shared/adhd-gate.js?v=1"></script>
+<script>
+  window.openGate = function (mode) {
+    try { if (mode) sessionStorage.setItem('adhd_gate_mode', mode); } catch (e) {}
+    if (window.AdhdGate && window.AdhdGate.require) { window.AdhdGate.require(); }
+  };
+  // recovery / 보호자 동의 토큰 자동 강제
+  (function () {
+    var tok = false, rec = false;
+    try { tok = !!new URLSearchParams(location.search).get('consent_token'); rec = (location.hash + location.search).indexOf('type=recovery') !== -1; } catch (e) {}
+    if ((tok || rec) && window.AdhdGate && window.AdhdGate.require) { window.AdhdGate.require(); }
+  })();
+  // ?login / ?signup 진입(헤더·adhd.html redirect) → 모달 자동열기 (DOM+스택 준비 후)
+  window.addEventListener('load', function () {
+    try { var q = new URLSearchParams(location.search); var m = q.has('signup') ? 'signup' : (q.has('login') ? 'login' : null); if (m) window.openGate(m); } catch (e) {}
+  });
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,12..72,400;0,12..72,500;0,12..72,600;1,12..72,400&family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f3efe9; --paper2:#e9e3da; --ink:#1f1a14; --muted:#6b6258; --line:#ddd5c9;
+    --accent:#e8702a; --accentSoft:#f7d6bd;          /* [복제 교체] 증상 색 = SVC_BRIGHT[adhd] */
+    --serif:"Newsreader","Georgia",serif;
+    --sans:"Pretendard","Inter",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.6}
+  body[data-lang="ko"] .en{display:none}
+  body[data-lang="en"] .ko{display:none}
+  a{color:inherit;text-decoration:none}
+
+  /* ── 흰 sticky 2단 헤더 (peak 검증본) ── */
+  header{position:sticky;top:0;z-index:40;background:var(--paper);border-bottom:1px solid var(--line)}
+  header.scrolled{background:rgba(243,239,233,.92);backdrop-filter:blur(8px)}
+  .util-bar{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:7px 30px 0;font-size:11px}
+  .util-bar>a{color:var(--muted);font-weight:600;padding:3px 6px}
+  .util-bar>a:hover{color:var(--ink)}
+  .util-bar .sep{width:1px;height:12px;background:var(--line)}
+  .util-bar .lang{display:flex;gap:2px}
+  .util-bar .lang button{background:none;border:0;cursor:pointer;color:var(--muted);font-weight:700;font-size:11px;padding:3px 7px;border-radius:999px}
+  .util-bar .lang button.on{background:var(--ink);color:#fff}
+  .util-bar .admin{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--muted);font-weight:700}
+  .util-bar .admin .d{width:4px;height:4px;border-radius:50%;background:var(--accent)}
+  .mainrow{display:flex;align-items:center;flex-wrap:wrap;padding:12px 24px 14px;gap:8px 12px}
+  .mainrow .brand{flex:0 0 auto;font-family:var(--serif);font-size:22px;font-weight:600;display:flex;align-items:center;gap:9px}
+  .co-logo-img{height:30px;width:auto;display:block}
+  .codiv{width:1px;height:16px;background:var(--line);margin:0 2px}
+  .pills{display:flex;gap:6px;align-items:center;justify-content:center;flex:1 1 auto;flex-wrap:wrap;min-width:0}
+  .navlink{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+  .navlink:hover{color:var(--ink)}
+  .navdrop{position:relative;display:inline-flex;align-items:center;z-index:45}
+  /* ADHD 풀다운 = 왼쪽 다른 navlink와 동일 색/형태(주황 알약 제거). ▾ + nav-panel만 유지 */
+  .nav-panel{position:absolute;top:100%;margin-top:10px;left:50%;transform:translateX(-50%) translateY(6px);background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 46px rgba(40,40,40,.16);padding:8px;min-width:210px;display:flex;flex-direction:column;gap:2px;opacity:0;visibility:hidden;transition:opacity .2s,transform .2s;z-index:60}
+  .navdrop::after{content:"";position:absolute;top:100%;left:0;right:0;height:14px}
+  .navdrop:hover .nav-panel{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+  .nav-panel a{display:block;padding:9px 13px;border-radius:9px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;transition:background .12s}
+  .nav-panel a:hover{background:var(--paper2)}
+  .nav-panel a.soon{color:var(--muted);cursor:default}
+  .nav-panel a.soon:hover{background:none}
+  .navcta{flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-left:auto}
+  .cta{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;cursor:pointer;border:0;font-family:var(--sans);white-space:nowrap;transition:transform .15s}
+  #authBtns{display:contents}   /* auth-reactive 슬롯 — 버튼이 navcta 직속 flex item(간격 일치) */
+  .cta:hover{transform:translateY(-2px)}
+  .cta.line{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+  .cta.line:hover{background:var(--ink);color:#fff}
+  /* [hamburger] 중간폭+폰(≤1024) 메뉴 — 분과(pills)+상위(util-bar) ☰로. 전환점 1024(8 pills+navcta 3개라 760은 늦어 줄바꿈). 데스크탑 >1024 무영향. */
+  #navtoggle{display:none;background:none;border:0;font-size:26px;line-height:1;cursor:pointer;color:var(--accent);padding:2px 8px;flex:0 0 auto;order:9;margin-left:auto}
+  @media(max-width:1200px){
+    .pills{display:none}        /* ★ 숨김(접힘) — pills 줄바꿈 방지. 전환점 1200(영어 기본이 ko보다 길어 1024 부족) */
+    .util-bar{display:none}     /* ★ 숨김(접힘) */
+    #navtoggle{display:inline-flex}
+    body.navopen .pills{display:flex;flex-direction:column;align-items:flex-start;gap:12px;flex-basis:100%;order:10;padding:14px 6px}
+    body.navopen .util-bar{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px 14px;padding:10px 24px 2px}
+  }
+
+  /* ── 명화 히어로 (peak 검증본: 이미지 배경 + 스크림 + 좌측 텍스트) ── */
+  .wrap{max-width:1280px;margin:0 auto;padding:0 28px}
+  .hero{position:relative;min-height:82vh;display:flex;align-items:center;overflow:hidden}
+  .hero .bg{position:absolute;inset:0;z-index:0}
+  .hero .bg img{width:100%;height:100%;object-fit:cover;object-position:center}
+  .hero .scrim{position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(12,9,6,.86) 0%,rgba(12,9,6,.58) 34%,rgba(12,9,6,.16) 60%,rgba(12,9,6,0) 100%)}
+  .hero .inner{position:relative;z-index:2;width:100%}
+  .hero .col{max-width:560px;color:#fff}
+  .label{font-size:12px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;margin-bottom:22px;color:var(--accentSoft)}
+  .hero h1{font-family:var(--serif);font-weight:500;font-size:58px;line-height:1.08;letter-spacing:-.02em;color:#fff}
+  .hero h1 em{font-style:italic;color:var(--accentSoft)}
+  .hero p.lead{margin:24px 0 34px;font-size:18px;line-height:1.7;color:rgba(255,255,255,.9);max-width:460px}
+  .hero .row{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+  .hero .cta{padding:11px 20px;font-size:14.5px}
+  .hero .row a.more{white-space:nowrap;font-size:14.5px;font-weight:700;border-bottom:1px solid var(--accentSoft);padding-bottom:3px;color:#fff}
+  .plate{position:absolute;right:26px;bottom:20px;z-index:2;font-family:var(--serif);font-style:italic;font-size:13px;color:rgba(255,255,255,.82);text-align:right}
+
+  footer{padding:40px 0;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+  .frow{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+  @media(max-width:760px){ .hero h1{font-size:40px} }
+</style>
+</head>
+<body data-lang="en">
+<a id="top"></a>
+<header id="hdr">
+  <div class="util-bar">
+    <a href="https://bostonneuromind.com#contact"><span class="ko">문의</span><span class="en">Contact</span></a>
+    <span class="sep"></span>
+    <div class="lang"><button data-l="ko" onclick="window.bnmSetLang&&window.bnmSetLang('ko')">KO</button><button data-l="en" onclick="window.bnmSetLang&&window.bnmSetLang('en')">EN</button></div>
+    <span class="sep"></span>
+    <a class="admin" href="adhd-super.html"><span class="d"></span><span class="ko">슈퍼</span><span class="en">Super</span></a>
+    <a class="admin" href="adhd-admin.html"><span class="d"></span><span class="ko">관리자</span><span class="en">Admin</span></a>
+  </div>
+  <div class="mainrow">
+    <!-- [.brand = peak 복제] Boston Neuromind LLC 로고(공통, 8복제 시 그대로) + 구분선 + 사이트명(복제 시 이것만 교체) -->
+    <div class="brand"><a href="https://bostonneuromind.com" style="display:inline-flex;align-items:center"><img class="co-logo-img" src="assets/logo-adhd.svg" alt="Boston Neuromind" /></a><span class="codiv"></span>ADHDCatcher</div>
+    <button id="navtoggle" aria-label="menu" aria-expanded="false">&#9776;</button>
+    <nav class="pills">
+      <a class="navlink" href="https://bostonneuromind.com"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2,7 L8,2 L14,7 L14,14 L10,14 L10,10 L6,10 L6,14 L2,14 Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="ko">홈</span><span class="en">Home</span></a>
+      <a class="navlink" href="https://attention.neurocatchers.com/index.html"><span class="ko">주의력</span><span class="en">Attention</span></a>
+      <a class="navlink" href="https://decision.neurocatchers.com/learning/index.html"><span class="ko">학습</span><span class="en">Learning</span></a>
+      <a class="navlink" href="https://peak.neurocatchers.com/index.html"><span class="ko">최고수행</span><span class="en">Peak</span></a>
+      <a class="navlink" href="https://talkcatcher.com"><span class="ko">상담봇캐쳐</span><span class="en">TalkCatcher</span></a>
+      <a class="navlink" href="https://neurocatchers.com/symptomcatcher.html"><span class="ko">증상판별캐쳐</span><span class="en">SymptomCatcher</span></a>
+      <a class="navlink" href="https://neurocatchers.com/track"><span class="ko">개별증상캐쳐</span><span class="en">TrackCatcher</span></a>
+      <a class="navlink" href="https://modalitycatcher.com"><span class="ko">치료방법캐쳐</span><span class="en">ModalityCatcher</span></a>
+      <div class="navdrop">
+        <a class="navlink">ADHD <span style="font-size:8px;opacity:.6">▾</span></a>
+        <div class="nav-panel">
+          <a class="soon"><span class="ko">곧 제공</span><span class="en">Coming soon</span></a>
+          <a class="soon"><span class="ko">곧 제공</span><span class="en">Coming soon</span></a>
+          <a class="soon"><span class="ko">곧 제공</span><span class="en">Coming soon</span></a>
+        </div>
+      </div>
+    </nav>
+    <!-- navcta = peak 패턴: 소개 · 로그인(ghost) · 회원가입(accent). 로그인/회원가입 → adhd.html(주 시스템 게이트) -->
+    <div class="navcta"><a class="navlink" href="https://bostonneuromind.com#about"><span class="ko">소개</span><span class="en">About</span></a><span id="authBtns"></span></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="bg"><img src="art/adhd.jpg" alt="" /></div>
+  <div class="scrim"></div>
+  <div class="inner wrap">
+    <div class="col">
+      <div class="label"><span class="ko">ADHD 케어</span><span class="en">ADHD care</span></div>
+      <h1><span class="ko">흩어진 집중을, <em>한곳으로.</em></span><span class="en">Scattered focus, <em>gathered in.</em></span></h1>
+      <p class="lead"><span class="ko">집중을 트래킹하고, 작은 계획으로 진짜 시작하게 관리해요.</span><span class="en">Track focus and start with tiny plans that actually move you.</span></p>
+      <div class="row">
+        <a class="cta" href="adhd.html?signup" onclick="if(window.adhdStart){window.adhdStart();return false;}"><span class="ko">시작하기</span><span class="en">Start tracking</span></a>
+      </div>
+    </div>
+  </div>
+  <div class="plate">Wassily Kandinsky, <span class="ko">『구성 VIII』 · 1923</span><span class="en">Composition VIII · 1923</span></div>
+</section>
+
+<footer style="padding:14px 0;border-top:1px solid rgba(46,90,122,0.15)"><div class="wrap" style="display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;gap:10px;font-size:12px;color:#2E5A7A;white-space:nowrap;overflow-x:auto">
+  <span><span class="ko">ADHDCatcher는 교육용 도구이며 의료 행위가 아니에요 · 위기? 988</span><span class="en">ADHDCatcher is an educational tool, not medical care or diagnosis · Crisis? 988</span></span>
+  <span style="opacity:0.4">·</span>
+  <a href="https://bostonneuromind.com/legal/terms.html?from=https%3A%2F%2Fbostonneuromind.com%2Ftrack%2Fadhd-art.html" target="_blank" rel="noopener"><span class="ko">약관</span><span class="en">Terms</span></a>
+  <a href="https://bostonneuromind.com/legal/privacy.html?from=https%3A%2F%2Fbostonneuromind.com%2Ftrack%2Fadhd-art.html" target="_blank" rel="noopener"><span class="ko">개인정보</span><span class="en">Privacy</span></a>
+  <a href="https://bostonneuromind.com/legal/refunds.html?from=https%3A%2F%2Fbostonneuromind.com%2Ftrack%2Fadhd-art.html" target="_blank" rel="noopener"><span class="ko">환불</span><span class="en">Refunds</span></a>
+  <a href="https://bostonneuromind.com/legal/subscriptions.html?from=https%3A%2F%2Fbostonneuromind.com%2Ftrack%2Fadhd-art.html" target="_blank" rel="noopener"><span class="ko">구독</span><span class="en">Subscriptions</span></a>
+  <a href="https://bostonneuromind.com/legal/contact.html?from=https%3A%2F%2Fbostonneuromind.com%2Ftrack%2Fadhd-art.html" target="_blank" rel="noopener"><span class="ko">연락처</span><span class="en">Contact</span></a>
+  <span style="opacity:0.4">·</span>
+  <span style="opacity:0.7">© 2026 Boston Neuromind LLC · 866 Washington St, Canton MA 02021</span>
+</div></footer>
+
+<script>
+  // 헤더 스크롤 효과 (peak 패턴)
+  var hdr=document.getElementById('hdr');
+  if(hdr){ var onScroll=function(){hdr.classList.toggle('scrolled',window.scrollY>30)}; onScroll(); window.addEventListener('scroll',onScroll,{passive:true}); }
+</script>
+<script>(function(){var b=document.getElementById('navtoggle');if(b&&!b._w){b._w=1;b.onclick=function(){document.body.classList.toggle('navopen');b.setAttribute('aria-expanded',document.body.classList.contains('navopen'));};}})();</script>
+<script>
+  // [KO/EN .on 동기] bnm-lang-sync는 .on 안 건드림 → 현재 언어로 lang 버튼 하이라이트 토글 (peak 패턴)
+  function syncLangBtns(){var l=window.bnmGetLang?window.bnmGetLang():'en';document.querySelectorAll('.lang button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-l')===l);});}
+  window.addEventListener('bnm-lang-change',syncLangBtns); syncLangBtns();
+</script>
+<script>
+  // ★ [auth-reactive 헤더] 비로그인 → 로그인/가입, 로그인 → Sign out (peak 패턴, AdhdAuth 구독). service.jsx 무관.
+  (function(){
+    var mount = document.getElementById('authBtns');
+    if (!mount) return;
+    function loggedOut(){
+      mount.innerHTML = '<a class="cta line" href="adhd.html?login" onclick="if(window.openGate){window.openGate(\'login\');return false;}"><span class="ko">로그인</span><span class="en">Log in</span></a>'
+        + '<a class="cta" href="adhd.html?signup" onclick="if(window.openGate){window.openGate(\'signup\');return false;}"><span class="ko">가입</span><span class="en">Sign up</span></a>';
+    }
+    function loggedIn(){
+      mount.innerHTML = '<button class="cta line" id="agLogout"><span class="ko">로그아웃</span><span class="en">Sign out</span></button>';
+      var lo = document.getElementById('agLogout');
+      if (lo) lo.onclick = async function(){
+        try { if (window.AdhdSession && window.AdhdSession.logout) await window.AdhdSession.logout(); } catch(e){}
+        try { if (window.AdhdAuth && window.AdhdAuth.signOut) await window.AdhdAuth.signOut(); } catch(e){}
+        location.reload();
+      };
+    }
+    async function init(){
+      var user = null;
+      try { user = (window.AdhdAuth && window.AdhdAuth.configured()) ? await window.AdhdAuth.getUser() : null; } catch(e){}
+      if (user && window.AdhdAuth.isVerified(user)) loggedIn(); else loggedOut();
+    }
+    loggedOut();   // 초기 기본(비로그인) 즉시 표시
+    try { if (window.AdhdAuth && window.AdhdAuth.configured()) window.AdhdAuth.onChange(function(){ setTimeout(init, 0); }); } catch(e){}
+    init();        // 현재 로그인 상태 반영
+
+    // ★ [Start tracking 복구] auth-aware: 로그인 → 앱(adhd-hub), 비로그인 → 가입 모달. (오늘 ServicePage 죽이며 끊긴 앱 경로 복구. service.jsx 무관.)
+    window.adhdStart = async function(){
+      var user = null;
+      try { user = (window.AdhdAuth && window.AdhdAuth.configured()) ? await window.AdhdAuth.getUser() : null; } catch(e){}
+      if (user && window.AdhdAuth.isVerified(user)) { location.href = '../symptom_catcher/adhd-hub.html'; }
+      else if (window.openGate) { window.openGate('signup'); }
+    };
+  })();
+</script>
+</body>
+</html>
