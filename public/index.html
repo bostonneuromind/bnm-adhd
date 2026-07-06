@@ -2247,6 +2247,228 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 
 </script>
 <script>
+/* ===== CrossEngine 층위1 — z지문·교차판별·norm블렌딩 (증상 무관, rules 주도) — AdhdCross ===== */
+(function(){
+  function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function KE(k,e){ return '<span class="ko-text">'+esc(k)+'</span><span class="en-text">'+esc(e)+'</span>'; }
+  function getGM(){ return (window._ADHD_RULES&&window._ADHD_RULES.game_module)||null; }
+  var LOG_KEY='adhd_norm_real_v1'; // 실측 누적 (블렌딩용, 로컬)
+
+  // ── 블렌딩된 norm 얻기 (문헌 + 실측 자동 혼합) ──
+  function blendedNorm(metric){
+    var GM=getGM(); if(!GM||!GM.norms||!GM.norms.metrics[metric]) return null;
+    var nm=GM.norms.metrics[metric];
+    var pol=(GM.norms._meta&&GM.norms._meta.blend_policy)||{K:50,cap:0.95};
+    // 로컬 실측 누적 읽기
+    var real={n:0,sum:0,sumsq:0};
+    try{ var all=JSON.parse(localStorage.getItem(LOG_KEY)||'{}'); if(all[metric]) real=all[metric]; }catch(e){}
+    var n=real.n||0;
+    var lit=nm.healthy; // 건강 코호트 기준으로 z 산출
+    if(n<3) return { mean:lit.mean, sd:lit.sd, source:'literature', n_real:n, w_real:0 };
+    var rMean=real.sum/n;
+    var rVar=Math.max(0.0001,(real.sumsq/n)-(rMean*rMean));
+    var rSd=Math.sqrt(rVar);
+    var w=Math.min(pol.cap, n/(n+(pol.K||50)));
+    return { mean: lit.mean*(1-w)+rMean*w, sd: lit.sd*(1-w)+rSd*w,
+             source: w>0.5?'empirical-leaning':'blended', n_real:n, w_real:Math.round(w*100)/100 };
+  }
+
+  // ── 실측 누적 (게임 결과 유입 시 호출 = 진화 루프의 데이터 걷기) ──
+  function feedReal(metric, value){
+    if(value==null||isNaN(value)) return;
+    try{
+      var all=JSON.parse(localStorage.getItem(LOG_KEY)||'{}');
+      var r=all[metric]||{n:0,sum:0,sumsq:0};
+      r.n++; r.sum+=value; r.sumsq+=value*value;
+      all[metric]=r; localStorage.setItem(LOG_KEY, JSON.stringify(all));
+    }catch(e){}
+  }
+
+  // ── z지문: 게임 측정값 → 또래(norm) 대비 z점수들 ──
+  function zFingerprint(metrics){
+    var GM=getGM(); if(!GM) return {};
+    var z={};
+    Object.keys(metrics||{}).forEach(function(mk){
+      var nm=GM.norms&&GM.norms.metrics[mk]; if(!nm) return;
+      var bn=blendedNorm(mk); if(!bn||!bn.sd) return;
+      var raw=(metrics[mk]-bn.mean)/bn.sd;
+      // "이탈" 방향으로 부호 정규화: 문제 방향이 +가 되게
+      var dev = nm.higher_better ? -raw : raw;
+      z[mk]={ z:Math.round(raw*100)/100, deviation:Math.round(dev*100)/100, source:bn.source, n_real:bn.n_real, w_real:bn.w_real };
+      feedReal(mk, metrics[mk]); // 측정 유입 = 실측 누적 (진화)
+    });
+    return z;
+  }
+
+  // ── 교차 판별: 설문 축 vs 행동 z (rules의 cross_rules 적용) ──
+  function crossJudge(surveyAxes, zfp, gameAxis){
+    var GM=getGM(); if(!GM||!GM.norms) return [];
+    var rules=GM.norms.cross_rules||[];
+    // 해당 축의 행동 z 대표값 = 그 축에 속한 지표들의 최대 이탈
+    var BM=GM.behavioral_markers||{};
+    var axisDev={};
+    Object.keys(zfp).forEach(function(mk){
+      var ax=(BM[mk]&&BM[mk].axis)||gameAxis; if(!ax) return;
+      var d=zfp[mk].deviation;
+      if(axisDev[ax]==null||d>axisDev[ax]) axisDev[ax]=d;
+    });
+    var findings=[];
+    Object.keys(axisDev).forEach(function(ax){
+      var sv=surveyAxes?surveyAxes[ax]:null; if(sv==null) return;
+      var bz=axisDev[ax];
+      rules.forEach(function(r){
+        var w=r.when, hit=true;
+        if(w.survey_axis_gte!=null && !(sv>=w.survey_axis_gte)) hit=false;
+        if(w.survey_axis_below!=null && !(sv<w.survey_axis_below)) hit=false;
+        if(w.behavior_z_gte!=null && !(bz>=w.behavior_z_gte)) hit=false;
+        if(w.behavior_z_below!=null && !(bz<w.behavior_z_below)) hit=false;
+        if(hit) findings.push({ rule:r.id, axis:ax, survey:sv, behaviorZ:Math.round(bz*100)/100, ko:r.ko, en:r.en });
+      });
+    });
+    return findings;
+  }
+
+  // ── 전시: z지문 + 교차판별 HTML (게임 결과에 추가) ──
+  function renderCross(game, metrics, surveyAxes){
+    var GM=getGM(); if(!GM||!GM.norms) return '';
+    var zfp=zFingerprint(metrics);
+    if(!Object.keys(zfp).length) return '';
+    var BM=GM.behavioral_markers||{};
+    var h='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:18px;margin-top:12px">';
+    h+='<div style="font-weight:800;color:#2E5A7A;font-size:1.05em;margin-bottom:4px">🧭 '+KE('또래 대비 위치 (z 분석)','Versus Peers (z-analysis)')+'</div>';
+    h+='<div style="font-size:12px;color:#8FA9BC;margin-bottom:12px">'+KE('당신의 측정값이 문헌 기반 또래 분포에서 어디에 있는지입니다. |z|>1이면 뚜렷한 이탈입니다.','Where your measures sit vs literature-based peer distribution. |z|>1 is a clear deviation.')+'</div>';
+    Object.keys(zfp).forEach(function(mk){
+      var m=BM[mk]||{}, zi=zfp[mk];
+      var mag=Math.min(Math.abs(zi.deviation),3)/3*100; // 0~3σ → 0~100%
+      var strong=Math.abs(zi.deviation)>=1;
+      var barColor=zi.deviation>=0?(strong?'#2E5A7A':'#7BAFD0'):'#BDD7E7';
+      h+='<div style="margin:9px 0"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px">'+
+        '<span style="color:#3A5566;font-weight:600">'+KE(m.ko||mk,m.en||mk)+'</span>'+
+        '<span style="font-weight:800;color:'+(strong?'#2E5A7A':'#8FA9BC')+'">'+(zi.deviation>=0?'+':'')+zi.deviation+'σ</span></div>'+
+        '<div style="height:10px;background:#E8F1F8;border-radius:5px;overflow:hidden"><div style="height:100%;width:'+mag+'%;background:'+barColor+';border-radius:5px"></div></div></div>';
+    });
+    // 데이터 소스 표시 (진화 상태 노출 — 정직)
+    var anyZ=zfp[Object.keys(zfp)[0]];
+    h+='<div style="font-size:10.5px;color:#9DB2C0;margin-top:8px">'+
+      KE('기준: '+(anyZ.source==='literature'?'문헌 norm (실측 '+anyZ.n_real+'건 누적 중 — 쌓일수록 정밀해집니다)':'문헌+실측 혼합 (실측 가중 '+Math.round((anyZ.w_real||0)*100)+'%)'),
+         'Norm: '+(anyZ.source==='literature'?'literature (accumulating real data: '+anyZ.n_real+')':'blended (real weight '+Math.round((anyZ.w_real||0)*100)+'%)'))+'</div>';
+    // 교차 판별
+    var findings=crossJudge(surveyAxes, zfp, (GM.games[game]||{}).axis);
+    if(findings.length){
+      h+='<div style="font-weight:800;color:#2E5A7A;font-size:1.0em;margin:14px 0 8px">🔀 '+KE('교차 판별 — 설문 × 행동','Cross-Source Judgment')+'</div>';
+      findings.forEach(function(f){
+        var A=GM.axes[f.axis]||{};
+        h+='<div style="background:#F0F6FB;border-left:4px solid #4A90C2;border-radius:0 10px 10px 0;padding:10px 14px;margin-bottom:8px">'+
+          '<div style="font-size:11px;color:#4A90C2;font-weight:700;margin-bottom:3px">'+KE(A.ko||f.axis,A.en||f.axis)+' · '+KE('설문 ','survey ')+f.survey+' vs '+KE('행동 ','behavior ')+(f.behaviorZ>=0?'+':'')+f.behaviorZ+'σ</div>'+
+          '<div style="font-size:12.5px;color:#374151;line-height:1.6">'+KE(f.ko,f.en)+'</div></div>';
+      });
+    }
+    h+='</div>';
+    return h;
+  }
+
+  window.AdhdCross={ zFingerprint:zFingerprint, crossJudge:crossJudge, renderCross:renderCross, blendedNorm:blendedNorm, feedReal:feedReal };
+})();
+
+</script>
+<script>
+/* ===== AdaptEngine 층위2 — 반응곡선·적응처방 (증상 무관, rules 주도) — AdhdAdapt ===== */
+(function(){
+  function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function KE(k,e){ return '<span class="ko-text">'+esc(k)+'</span><span class="en-text">'+esc(e)+'</span>'; }
+  function getGM(){ return (window._ADHD_RULES&&window._ADHD_RULES.game_module)||null; }
+
+  // ── 궤적 분석: 세션 추이 vs 기대 곡선 ──
+  function analyzeTrajectory(game){
+    var GM=getGM(); if(!GM||!GM.adaptation||!window.AdhdProgram) return null;
+    var pr=window.AdhdProgram.progress(game); if(!pr||!pr.history||pr.history.length<2) return null;
+    var AD=GM.adaptation;
+    var hist=pr.history, n=hist.length;
+    // 세션당 향상률 (%): 방향 정규화
+    var first=hist[0], last=hist[n-1];
+    var gain = pr.direction==='higher' ? (last-first) : (first-last);
+    var gainPctPerSession = first!==0 ? (gain/Math.abs(first))*100/(n-1) : 0;
+    var expected=AD.expected_gain_per_session_pct||1.5;
+    // 정체 감지: 최근 plateau_sessions 동안 향상 < threshold
+    var plat=false;
+    var ps=AD.plateau_sessions||4;
+    if(n>=ps){
+      var recent=hist.slice(-ps);
+      var rGain = pr.direction==='higher' ? (recent[recent.length-1]-recent[0]) : (recent[0]-recent[recent.length-1]);
+      var rPct = recent[0]!==0 ? (rGain/Math.abs(recent[0]))*100 : 0;
+      if(rPct < (AD.plateau_threshold_pct||1.0)) plat=true;
+    }
+    // 규칙 적용 (priority 순)
+    var rules=(AD.rules||[]).slice().sort(function(a,b){return (a.priority||9)-(b.priority||9);});
+    var verdict=null;
+    for(var i=0;i<rules.length;i++){
+      var r=rules[i], id=r.id;
+      if(id==='goal_reached' && pr.reachedGoal){ verdict=r; break; }
+      if(id==='fast' && gainPctPerSession>=expected*2){ verdict=r; break; }
+      if(id==='on_track' && gainPctPerSession>=expected){ verdict=r; break; }
+      if(id==='plateau' && plat){ verdict=r; break; }
+      if(id==='slow' && gainPctPerSession<expected*0.5){ verdict=r; break; }
+    }
+    if(!verdict) verdict={ id:'on_track', action:'continue', ko:'꾸준히 진행 중입니다.', en:'Progressing steadily.' };
+    return { game:game, sessions:n, gainPctPerSession:Math.round(gainPctPerSession*10)/10, expected:expected,
+             plateau:plat, reachedGoal:pr.reachedGoal, verdict:verdict, pctToGoal:pr.pctToGoal };
+  }
+
+  // ── 적응 파라미터: 판정 → 난이도 조정값 ──
+  function adaptParams(game, verdict){
+    var GM=getGM(); if(!GM||!GM.adaptation) return null;
+    var g=GM.games[game]; if(!g) return null;
+    var steps=GM.adaptation.difficulty_steps[g.engine]; if(!steps) return null;
+    var dir = verdict.action==='harder'?'harder' : (verdict.action==='easier_or_switch'?'easier':null);
+    if(!dir) return null;
+    var delta=steps[dir]||{};
+    var tuned=Object.assign({}, g.params);
+    Object.keys(delta).forEach(function(k){
+      if(typeof tuned[k]==='number') tuned[k]=Math.max(0, Math.round((tuned[k]+delta[k])*100)/100);
+    });
+    return { direction:dir, params:tuned };
+  }
+
+  // ── 같은 축 대체 게임 (정체 시 전환 제안) ──
+  function alternativeGame(game){
+    var GM=getGM(); if(!GM) return null;
+    var g=GM.games[game]; if(!g) return null;
+    var list=(GM.axis_game_map&&GM.axis_game_map[g.axis])||[];
+    for(var i=0;i<list.length;i++){ if(list[i]!==game) return list[i]; }
+    return null;
+  }
+
+  // ── 전시: 적응 판정 카드 (게임 결과 아래) ──
+  function renderAdaptation(game){
+    var GM=getGM(); var tr=analyzeTrajectory(game); if(!tr) return '';
+    var icons={ fast:'🚀', on_track:'✅', plateau:'🔄', slow:'🐢', goal_reached:'🏆' };
+    var icon=icons[tr.verdict.id]||'📊';
+    var h='<div style="background:#fff;border:2px solid #4A90C2;border-radius:14px;padding:16px 18px;margin-top:12px">';
+    h+='<div style="font-weight:800;color:#2E5A7A;font-size:1.05em;margin-bottom:6px">'+icon+' '+KE('적응 판정 — 다음에 어떻게 할까','Adaptive Verdict — What Next')+'</div>';
+    h+='<div style="font-size:12px;color:#8FA9BC;margin-bottom:8px">'+
+      KE('세션 '+tr.sessions+'회 · 세션당 향상 '+tr.gainPctPerSession+'% (기대 '+tr.expected+'%) · 목표까지 '+tr.pctToGoal+'%',
+         tr.sessions+' sessions · gain '+tr.gainPctPerSession+'%/session (expected '+tr.expected+'%) · '+tr.pctToGoal+'% to goal')+'</div>';
+    h+='<div style="font-size:13.5px;color:#374151;line-height:1.7;background:#F0F6FB;border-radius:10px;padding:12px 14px">'+KE(tr.verdict.ko,tr.verdict.en)+'</div>';
+    // 행동 가능한 제안 버튼
+    var ad=adaptParams(game, tr.verdict);
+    var alt=(tr.verdict.action==='switch_game'||tr.verdict.action==='easier_or_switch')?alternativeGame(game):null;
+    if(ad||alt){
+      h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
+      if(ad) h+='<button class="adapt-retry" data-game="'+esc(game)+'" data-params=\''+JSON.stringify(ad.params).replace(/'/g,"&#39;")+'\' style="flex:1;min-width:140px;padding:10px;border:0;border-radius:9px;background:#4A90C2;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">'+(ad.direction==='harder'?KE('난이도 올려 다시','Retry harder'):KE('난이도 낮춰 다시','Retry easier'))+'</button>';
+      if(alt){ var ag=GM.games[alt]; h+='<button class="adapt-switch" data-game="'+esc(alt)+'" style="flex:1;min-width:140px;padding:10px;border:1px solid #4A90C2;border-radius:9px;background:#fff;color:#4A90C2;font-weight:700;cursor:pointer;font-family:inherit">'+KE('전환: ','Switch: ')+esc(ko()?ag.ko:ag.en)+'</button>'; }
+      h+='</div>';
+    }
+    h+='</div>';
+    return h;
+  }
+
+  window.AdhdAdapt={ analyzeTrajectory:analyzeTrajectory, adaptParams:adaptParams, alternativeGame:alternativeGame, renderAdaptation:renderAdaptation };
+})();
+
+</script>
+<script>
 /* ===== AI Treatment UI v2 — 영한토글·네비·처방select·보고서·게임설명 (rules 주도) — AdhdTreatment ===== */
 (function(){
   function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
@@ -2626,6 +2848,13 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
         window.AdhdProgram.saveSession(game, last.metrics, _sessionCounts[game]);
         // 게임 후: 측정 → 축 상태 판단 전시
         if(window.AdhdProbe&&AdhdProbe.renderInterpretation){ inner.insertAdjacentHTML('beforeend', AdhdProbe.renderInterpretation(game, last.metrics)); }
+        // 층위1: 또래 대비 z + 교차 판별
+        if(window.AdhdCross&&AdhdCross.renderCross){ inner.insertAdjacentHTML('beforeend', AdhdCross.renderCross(game, last.metrics, STATE.L2||null)); }
+        // 층위2: 적응 판정 (다음에 어떻게)
+        if(window.AdhdAdapt&&AdhdAdapt.renderAdaptation){ inner.insertAdjacentHTML('beforeend', AdhdAdapt.renderAdaptation(game));
+          inner.querySelectorAll('.adapt-retry').forEach(function(b){ b.onclick=function(){ var pr={}; try{ pr=JSON.parse(b.getAttribute('data-params')); }catch(e){} playGame(b.getAttribute('data-game'), pr); }; });
+          inner.querySelectorAll('.adapt-switch').forEach(function(b){ b.onclick=function(){ showGameDetail(b.getAttribute('data-game')); }; });
+        }
         renderDash(); } }, 500);
     setTimeout(function(){ clearInterval(poll); }, 600000);
   }
