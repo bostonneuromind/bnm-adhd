@@ -376,6 +376,7 @@ body[data-lang="en"] .ko-text{display:none}body[data-lang="en"] .en-text{display
       <button data-t="s-meas"><span class="ko-text">QEEG</span><span class="en-text">QEEG</span></button>
       <button data-t="s-algo"><span class="ko-text">📊 알고리즘 리포트</span><span class="en-text">📊 Algorithm Report</span></button>
       <button data-t="s-ai"><span class="ko-text">🤖 AI 심층분석</span><span class="en-text">🤖 AI Deep Analysis</span></button>
+      <button data-t="s-trt"><span class="ko-text">🎮 AI 치료훈련</span><span class="en-text">🎮 AI Treatment</span></button>
       <button data-t="s-nf"><span class="ko-text">뉴로피드백</span><span class="en-text">Neurofeedback</span></button>
       <!-- [제거] 추적 탭 — 통합결과는 알고리즘 리포트가 담당 -->
     </div>
@@ -530,6 +531,7 @@ body[data-lang="en"] .ko-text{display:none}body[data-lang="en"] .en-text{display
         <span class="ko-text">상단에서 EC/EO 뇌파(EDF/xdfx/CSV) 파일을 올리고 [분석 시작]을 누르면 결과가 표시됩니다.</span><span class="en-text">Upload EC/EO EEG files (EDF/xdfx/CSV) in the strip above and click [Run] to see results.</span>
         <div class="ph"><span class="ko-text">19채널 밴드파워 · Z-스코어 · QEEG표 · EO/EC 알파 감쇠 — 무료, 서버 없이 브라우저 내 분석.</span><span class="en-text">19-channel band powers · Z-scores · QEEG table · EO/EC alpha attenuation — free, fully in-browser.</span></div>
       </div>
+      <div id="eeg-default-report"></div>
       <div class="qeeg-slots">
         <div class="qeeg-slot"><div id="eeg-upload-status-ec"></div></div>
         <div class="qeeg-slot"><div id="eeg-upload-status-eo"></div></div>
@@ -580,6 +582,16 @@ body[data-lang="en"] .ko-text{display:none}body[data-lang="en"] .en-text{display
       </div>
       <div id="ai2-lock" class="ai-lk-over"><div style="color:var(--primary-dark);opacity:.7;font-size:13px">…</div></div>
     </div></div>
+
+    <!-- ===== AI Treatment 탭 ===== -->
+    <div id="tab-s-trt" class="rtab">
+      <div class="pat" style="background:#fff">
+        <div class="h">🎮 <span class="ko-text">AI 치료훈련 — 게임 매칭</span><span class="en-text">AI Treatment — Game Matching</span></div>
+        <span class="ko-text">간단한 설문으로 5개 조절축을 분석하고, 당신에게 맞는 인지훈련 게임을 매칭합니다. QEEG가 있으면 자동 통합됩니다.</span><span class="en-text">A short survey analyzes 5 regulation axes and matches cognitive-training games to you. QEEG auto-integrates if present.</span>
+        <div id="trt-survey" style="margin-top:14px"></div>
+        <div id="trt-result" style="margin-top:16px"></div>
+      </div>
+    </div>
 
     <div id="tab-s-nf" class="rtab">
       <div class="pat">
@@ -1380,6 +1392,64 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 
 </script>
 <script>
+/* ===== QEEG 탭 default 리포트 (데이터 없어도 뿌림 — 빈화면 방지) — AdhdQeegView ===== */
+(function(){
+  function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
+  function T(k,e){ return ko()?k:e; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function $(id){ return document.getElementById(id); }
+
+  function hasData(){ return window.state && (state.eegQeegData || (state.objectiveData && Object.keys(state.objectiveData).length)); }
+
+  function render(){
+    var host=$('eeg-default-report'); if(!host) return;
+    if(hasData()){ host.innerHTML=''; return; } // 실측 있으면 기존 렌더가 담당
+    var res=(window.adhdScore&&window.adhdScore())||null;
+    var h='';
+    // 헤더
+    h+='<div style="background:linear-gradient(135deg,#3A5566,#5B7B94);color:#fff;border-radius:14px;padding:18px 20px;margin-bottom:14px">'+
+      '<div style="font-size:12px;opacity:.85;font-weight:700">🧠 '+T('QEEG 분석','QEEG ANALYSIS')+'</div>'+
+      '<div style="font-size:1.3rem;font-weight:900;margin-top:2px">'+T('무료 QEEG 리포트','Free QEEG Report')+'</div>'+
+      '<div style="font-size:13px;opacity:.92;margin-top:4px">'+T('상단에서 EC/EO EDF를 올리고 [분석 시작]을 누르면 19채널 밴드파워·Z스코어·토포맵이 실측으로 표시됩니다.','Upload EC/EO EDF above and click [Run] to see measured 19-channel band powers, Z-scores, and topomap.')+'</div></div>';
+
+    // 설문 기반 예상 QEEG 프로파일 (측정 전이라도 뭔가 보여줌)
+    if(res && res.profiles && res.profiles.length){
+      var top=res.profiles[0];
+      // 예상 지표 (프로파일 기반 typical QEEG signature)
+      var sig = top.id==='adhd_hyperactive'
+        ? [['Theta/Beta Ratio (Cz)',T('상승 예상','elevated'),'2.5–4.0',T('과활동형: 전두 세타 상승','Hyperactive: frontal theta↑')]]
+        : [['Theta/Beta Ratio (Cz)',T('상승 예상','elevated'),'2.8–4.5',T('주의저하형: Monastra 지표 상승','Inattentive: Monastra↑')],
+           ['Frontal Alpha Asymmetry',T('편측 예상','lateralized'),'F3<F4',T('정서·동기 조절 관련','emotion/motivation')]];
+      h+='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px 18px;margin-bottom:14px">'+
+        '<div style="font-weight:800;color:#3A5566;margin-bottom:4px">📊 '+T('설문 기반 예상 QEEG 프로파일','Predicted QEEG Profile (from survey)')+'</div>'+
+        '<div style="font-size:12px;color:#8FA9BC;margin-bottom:10px">'+T('현재 프로파일: ','Current profile: ')+esc(top.name)+' ('+top.pct+'%) · '+T('실측하면 아래 예상이 검증됩니다.','Measure to verify these predictions.')+'</div>'+
+        '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
+        '<tr style="border-bottom:2px solid #EEF2F4;color:#8FA9BC"><th style="text-align:left;padding:6px">'+T('지표','Marker')+'</th><th style="text-align:left;padding:6px">'+T('예상','Predicted')+'</th><th style="text-align:left;padding:6px">'+T('범위','Range')+'</th><th style="text-align:left;padding:6px">'+T('해석','Meaning')+'</th></tr>'+
+        sig.map(function(r){ return '<tr style="border-bottom:1px solid #F1F2F4"><td style="padding:7px;font-weight:700;color:#3A5566">'+esc(r[0])+'</td><td style="padding:7px;color:#D97706;font-weight:700">'+esc(r[1])+'</td><td style="padding:7px;color:#4A6472">'+esc(r[2])+'</td><td style="padding:7px;color:#8FA9BC;font-size:12px">'+esc(r[3])+'</td></tr>'; }).join('')+
+        '</table></div>';
+    } else {
+      h+='<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:12px;padding:14px 16px;margin-bottom:14px;font-size:13px;color:#C2410C">'+T('설문을 먼저 채점하면 예상 QEEG 프로파일이 여기 표시됩니다. 실측 EDF를 올리면 실제 값으로 대체됩니다.','Score the survey to see a predicted QEEG profile here. Upload EDF to replace with measured values.')+'</div>';
+    }
+
+    // QEEG가 보여줄 것들 미리보기 (측정 유도)
+    h+='<div style="background:#F5FAFE;border:1px dashed #8AA5B5;border-radius:14px;padding:16px 18px">'+
+      '<div style="font-weight:800;color:#3A5566;margin-bottom:8px">'+T('EDF 측정 시 제공되는 분석','What EDF measurement provides')+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12.5px;color:#4A6472">'+
+        ['🧠 '+T('19채널 밴드파워 (delta~gamma)','19-ch band powers'),'📊 '+T('Z-스코어 게이지 (정상범위 대비)','Z-score gauges'),'🗺️ '+T('토포맵 (채널별 색상)','Topomap'),'👁️ '+T('EO/EC 알파 감쇠','EO/EC alpha attenuation'),'📈 Monastra θ/β · Busy-Brain','🔷 '+T('NF 프로토콜 매칭','NF protocol match')].map(function(x){ return '<div style="background:#fff;border:1px solid #E4ECF1;border-radius:8px;padding:8px 10px">'+esc(x)+'</div>'; }).join('')+
+      '</div></div>';
+
+    host.innerHTML=h;
+  }
+
+  window.AdhdQeegView={ render: render };
+  // QEEG 탭 열릴 때 렌더
+  document.addEventListener('DOMContentLoaded', function(){
+    document.addEventListener('click', function(ev){ var b=ev.target&&ev.target.closest&&ev.target.closest('.rpt-tabbar button[data-t="s-meas"]'); if(b) setTimeout(render, 60); });
+  });
+})();
+
+</script>
+<script>
 /* ===== ADHD 플로우: 채점→QEEG물음→알고리즘리포트 통합 유도 — AdhdFlow ===== */
 (function(){
   function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
@@ -1405,7 +1475,7 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
       +'</div></div>';
     document.body.appendChild(m);
     document.getElementById('qeeg-ask-no').addEventListener('click', function(){ m.style.display='none'; toAlgo(); });
-    document.getElementById('qeeg-ask-yes').addEventListener('click', function(){ m.style.display='none'; go('s-meas');
+    document.getElementById('qeeg-ask-yes').addEventListener('click', function(){ m.style.display='none'; go('s-meas'); setTimeout(function(){ if(window.AdhdQeegView) window.AdhdQeegView.render(); },80);
       var st=document.getElementById('edf-status'); if(st) st.textContent=T('상단에서 EC/EO EDF를 올리고 [분석 시작] · 또는 아래 수동입력 후 [측정값 저장] → 다시 알고리즘 리포트로','Upload EC/EO EDF & Run · or enter manual values & Save → then Algorithm Report');
     });
     m.addEventListener('click', function(e){ if(e.target===m){ m.style.display='none'; } });
@@ -1435,222 +1505,919 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 
 </script>
 <script>
-/* ===== ADHD AI 심층분석 (샘플급 풍부 리포트, 실행 눌러야 로딩) — AdhdAIDeep ===== */
+/* ===== ADHD AI 심층분석 (진짜 API 호출, 결제 없이 실행) — AdhdAIDeep ===== */
 (function(){
-  var BOT='adhd_ai';
+  var FN_URL="https://sepierapapsansprurpr.supabase.co/functions/v1/adhd-ai-deep";
+  var SB_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"; // placeholder; anon 키는 adhd-config에서 가져옴
   function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
   function T(k,e){ return ko()?k:e; }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function $(id){ return document.getElementById(id); }
-  function authClient(){ return (window.AdhdAuth && AdhdAuth.configured&&AdhdAuth.configured()) ? AdhdAuth.client() : null; }
-  async function token(){ var c=authClient(); if(!c)return null; try{ var s=await c.auth.getSession(); return (s&&s.data&&s.data.session)?s.data.session.access_token:null; }catch(e){ return null; } }
-  async function checkAccess(){ var c=authClient(); if(!c)return {access:false}; if(!(await token()))return {access:false,reason:'login'};
-    try{ var r=await c.functions.invoke('check-access',{body:{bot:BOT}}); return r.error?{access:false}:(r.data||{access:false}); }catch(e){ return {access:false}; } }
+  function anonKey(){ try{ if(window.ADHD_CONFIG&&ADHD_CONFIG.SUPABASE_ANON_KEY) return ADHD_CONFIG.SUPABASE_ANON_KEY; if(window.ADHD_CONFIG&&ADHD_CONFIG.anonKey) return ADHD_CONFIG.anonKey; }catch(e){} return null; }
+  function authClient(){ try{ return (window.AdhdAuth && AdhdAuth.configured&&AdhdAuth.configured()) ? AdhdAuth.client() : null; }catch(e){ return null; } }
 
-  var PRICE={consumer:{monthly:'$15',yearly:'$100'},owner:{monthly:'$30',yearly:'$300'}};
-  var _plan='consumer_monthly', _type='consumer';
-  async function startCheckout(){ var msg=$('ai2CkMsg'); function show(s){ if(msg)msg.textContent=s; }
-    if(!(await token())){ show(T('구독하려면 로그인이 필요해요.','Sign in to subscribe.')); return; }
-    show(T('결제창 여는 중…','Opening checkout…'));
-    try{ var c=authClient(); var r=await c.functions.invoke('create-checkout',{body:{bot:BOT,plan:_plan,return_url:location.href.split('?')[0]}});
-      if(r.error){ show(T('결제창 오류: ','Checkout error: ')+(r.error.message||'')); return; }
-      var d=r.data||{}; if(d.url){ location.href=d.url; return; }
-      if(d.comp){ show(T('이미 이용권이 있어요. 새로고침…','Access active. Reloading…')); setTimeout(function(){location.reload();},1200); return; }
-      show(T('결제창을 열지 못했어요: ','Could not open checkout: ')+(d.error||''));
-    }catch(e){ show(T('네트워크 오류: ','Network error: ')+(e&&e.message||e)); } }
-  function pcard(type,cycle){ var amt=PRICE[type][cycle], per=cycle==='monthly'?T('/월','/mo'):T('/년','/yr'); var on=(_plan===type+'_'+cycle);
-    var save=cycle==='yearly'?'<div style="font-size:11px;color:#5E35B1;font-weight:700;margin-top:3px">'+T('2개월 무료','2 mo free')+'</div>':'';
-    return '<button class="ai2-pcard" data-plan="'+type+'_'+cycle+'" data-type="'+type+'" style="flex:1;min-width:108px;border-radius:12px;padding:10px 8px;cursor:pointer;font-family:inherit;border:2px solid '+(on?'#7C3AED':'#CAD6DE')+';background:'+(on?'#F3EEFB':'#fff')+';'+(type!==_type?'display:none;':'')+'">'+
-      '<div style="font-size:12px;color:#3A5566;font-weight:700">'+(cycle==='monthly'?T('월간','Monthly'):T('연간','Yearly'))+'</div>'+
-      '<div style="font-size:20px;font-weight:900;color:#7C3AED;line-height:1.2">'+amt+'<span style="font-size:11px;color:#3A5566;font-weight:600">'+per+'</span></div>'+save+'</button>';
-  }
-  function renderLock(){ var lk=$('ai2-lock'); if(!lk)return;
-    lk.innerHTML='<div style="font-size:17px;font-weight:800;color:#3A5566;margin-bottom:6px">'+T('AI 심층 분석은 구독 후 열람','Unlock AI Deep Analysis')+'</div>'+
-      '<p style="color:#3A5566;opacity:.8;font-size:13px;max-width:320px;margin:0 auto 12px">'+T('감별진단·공병 분해·개인화 NF 프로토콜·4주 훈련 계획이 열립니다.','Differential, comorbidity, personalized NF protocol, and a 4-week plan unlock.')+'</p>'+
-      '<div id="ai2Toggle" style="display:inline-flex;border:1px solid #CAD6DE;border-radius:999px;overflow:hidden;margin-bottom:10px">'+
-        '<button data-pt="consumer" style="border:0;background:#7C3AED;color:#fff;padding:6px 15px;font-weight:700;cursor:pointer;font-family:inherit">'+T('개인','Individual')+'</button>'+
-        '<button data-pt="owner" style="border:0;background:transparent;color:#3A5566;padding:6px 15px;font-weight:700;cursor:pointer;font-family:inherit">'+T('임상가','Clinician')+'</button></div>'+
-      '<div id="ai2Cards" style="display:flex;gap:8px;flex-wrap:wrap;max-width:320px;margin:0 auto 12px">'+pcard('consumer','monthly')+pcard('consumer','yearly')+pcard('owner','monthly')+pcard('owner','yearly')+'</div>'+
-      '<button id="ai2SubBtn" style="border:none;border-radius:9px;background:#7C3AED;color:#fff;font-weight:800;font-size:15px;padding:11px 22px;cursor:pointer;font-family:inherit">'+T('구독','Subscribe')+' →</button>'+
-      '<div id="ai2CkMsg" style="font-size:12.5px;color:#3A5566;opacity:.8;margin-top:9px;min-height:16px"></div>';
-    function paint(){ lk.querySelectorAll('.ai2-pcard').forEach(function(c){ var on=c.getAttribute('data-plan')===_plan; c.style.border='2px solid '+(on?'#7C3AED':'#CAD6DE'); c.style.background=on?'#F3EEFB':'#fff'; }); }
-    lk.querySelectorAll('.ai2-pcard').forEach(function(c){ c.addEventListener('click',function(){ _plan=c.getAttribute('data-plan'); paint(); }); });
-    lk.querySelectorAll('#ai2Toggle button').forEach(function(b){ b.addEventListener('click',function(){ _type=b.getAttribute('data-pt'); lk.querySelectorAll('#ai2Toggle button').forEach(function(x){ var on=x===b; x.style.background=on?'#7C3AED':'transparent'; x.style.color=on?'#fff':'#3A5566'; }); lk.querySelectorAll('.ai2-pcard').forEach(function(c){ c.style.display=(c.getAttribute('data-type')===_type)?'':'none'; }); _plan=_type+'_monthly'; paint(); }); });
-    $('ai2SubBtn').addEventListener('click',startCheckout);
-  }
-  var _busy=false;
-  async function gate(){ var inner=$('ai2-inner'), lk=$('ai2-lock'); if(!inner||!lk||_busy)return; _busy=true;
-    var res=await checkAccess();
-    if(res&&res.access){ inner.classList.remove('ai-lk-blur'); lk.style.display='none'; lk.innerHTML=''; }
-    else{ inner.classList.add('ai-lk-blur'); lk.style.display='flex'; try{var _u=await AdhdAuth.getUser();var _dm=(_u&&_u.user_metadata&&_u.user_metadata.deploy_mode)==='professional'?'owner':'consumer';_type=_dm;_plan=_dm+'_monthly';}catch(e){} renderLock(); }
-    _busy=false; }
+  // 탭 열면 잠금 없이 바로 실행 버튼 노출
+  function gate(){ var inner=$('ai2-inner'), lk=$('ai2-lock'); if(inner) inner.classList.remove('ai-lk-blur'); if(lk){ lk.style.display='none'; lk.innerHTML=''; } }
 
-  // ── 실행: 눌러야만 로딩+분석 ──
-  var _running=false;
-  var _charts={};
+  // payload 빌드 — edge function 계약: {lang, patient, tier1{profiles,axes,states,features}, tier2_qeeg}
+  function buildPayload(){
+    var res=(window.adhdScore&&window.adhdScore())||null;
+    if(!res) return null;
+    var p={ lang: ko()?'ko':'en',
+      patient: (window.state&&state.patient)||{age:null,sex:null,handedness:null},
+      tier1: { profiles: res.profiles||[], axes: res.axes||{}, states: res.states||{}, features: res.features||{} } };
+    // QEEG 있으면 tier2
+    var q=null;
+    try{
+      if(window.state && state.eegQeegData){
+        q={present:true, bands:state.eegQeegData, zscores: state.eegZScores||null};
+      } else if(window.state && state.objectiveData && Object.keys(state.objectiveData).length){
+        q={present:true, ratios: state.objectiveData};
+      }
+    }catch(e){}
+    p.tier2_qeeg = q || {present:false};
+    return p;
+  }
+
+  var _running=false, _charts={};
   function destroyCharts(){ Object.keys(_charts).forEach(function(k){try{_charts[k].destroy();}catch(e){}}); _charts={}; }
+
   async function run(){
     if(_running) return; var btn=$('ai2-run'), box=$('ai2-result'); if(!box) return;
-    var resData=(window.adhdScore&&window.adhdScore())||null;
-    if(!resData||!resData.profiles||!resData.profiles.length){ box.innerHTML='<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:12px;padding:16px;color:#C2410C;font-size:14px">'+T('설문을 먼저 채점하세요. AI 분석은 알고리즘 결과를 근거로 합니다.','Score the survey first.')+'</div>'; return; }
+    var payload=buildPayload();
+    if(!payload){ box.innerHTML='<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:12px;padding:16px;color:#C2410C;font-size:14px">'+T('설문을 먼저 채점하세요. AI 분석은 알고리즘 결과를 근거로 합니다.','Score the survey first.')+'</div>'; return; }
     _running=true; if(btn) btn.disabled=true;
+
+    // 로딩 UI
     var eta=115, sec=0;
     box.innerHTML='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:22px"><div id="ai2-line" style="font-weight:700;color:#3A5566;font-size:14px">'+T('AI 심층 분석 시작…','Starting AI deep analysis…')+'</div><div style="height:10px;background:#EEF2F4;border-radius:6px;overflow:hidden;margin:12px 0"><div id="ai2-bar" style="height:100%;width:0;background:#7C3AED;border-radius:6px;transition:width .8s"></div></div><div id="ai2-steps" style="font-size:12.5px;color:#8FA9BC"></div></div>';
     var line=$('ai2-line'), bar=$('ai2-bar'), steps=$('ai2-steps');
     var stepMsgs = ko()
-      ? ['조절축·프로파일 데이터 수집','QEEG 전기생리 지표 통합','DSM-5-TR 감별진단 추론','공병 가능성 분해','개인화 NF 프로토콜 매칭','4주 훈련 계획 생성','종합 보고서 구성']
-      : ['Collecting axis & profile data','Integrating QEEG markers','DSM-5-TR differential reasoning','Comorbidity breakdown','Matching personalized NF protocols','Building 4-week plan','Composing report'];
+      ? ['조절축·프로파일 데이터 수집','QEEG 전기생리 지표 통합','DSM-5-TR 감별진단 추론','공병 가능성 분해','개인화 NF 프로토콜 매칭','통합(수렴/발산) 분석','종합 보고서 구성']
+      : ['Collecting axis & profile data','Integrating QEEG markers','DSM-5-TR differential reasoning','Comorbidity breakdown','Matching NF protocols','Convergence/divergence','Composing report'];
     var iv=setInterval(function(){
       sec++; var pct=Math.min(96, Math.round(sec/eta*100));
-      if(sec<=eta){ line.textContent=ko()?('AI 심층 분석 중 · 경과 '+sec+'초 / 예상 ~'+eta+'초'):('AI deep analysis… · '+sec+'s / ~'+eta+'s'); bar.style.background='#7C3AED'; }
-      else{ line.textContent=T('예상보다 길어지는 중 — 곧 완료','Taking longer — almost done'); bar.style.background='#8AA5B5'; pct=98; }
+      if(sec<=eta){ line.textContent=ko()?('AI 심층 분석 중 · 경과 '+sec+'초'):('AI deep analysis… · '+sec+'s'); bar.style.background='#7C3AED'; }
+      else{ line.textContent=T('마무리 중…','Finishing…'); bar.style.background='#8AA5B5'; pct=98; }
       bar.style.width=pct+'%';
       var si=Math.min(stepMsgs.length-1, Math.floor(sec/(eta/stepMsgs.length)));
       if(steps) steps.textContent='· '+stepMsgs[si];
     },1000);
 
-    // 실제 endpoint 시도, 없으면 풍부한 구조화 보고서 (단, 최소 로딩 시간 보장)
-    var report=null;
-    var minWait = new Promise(function(r){ setTimeout(r, 3500); }); // 최소 로딩감
+    // 실제 호출 — authClient 있으면 invoke, 없으면 직접 fetch(anon 키)
+    var data=null, errMsg=null;
     try{
       var c=authClient();
-      if(c){ var payload={ bot:BOT, axes:resData.axes, states:resData.states, profiles:resData.profiles, features:resData.features,
-        qeeg:(window.state&&state.eegQeegData)?true:false, patient:(window.state&&state.patient)||{} };
+      if(c && c.functions){
         var r=await c.functions.invoke('adhd-ai-deep',{body:payload});
-        if(!r.error && r.data && (r.data.report||r.data.text)) report=r.data.report||r.data.text;
+        if(r.error){ errMsg=r.error.message||'invoke error'; } else { data=r.data; }
+      } else {
+        var key=anonKey();
+        var headers={'content-type':'application/json'};
+        if(key){ headers['authorization']='Bearer '+key; headers['apikey']=key; }
+        var resp=await fetch(FN_URL,{method:'POST',headers:headers,body:JSON.stringify(payload)});
+        if(!resp.ok){ errMsg='HTTP '+resp.status; try{ var et=await resp.text(); errMsg+=' '+et.slice(0,120); }catch(e){} }
+        else { data=await resp.json(); }
       }
-    }catch(e){}
-    await minWait;
+    }catch(e){ errMsg=String(e&&e.message||e); }
+
     clearInterval(iv);
-    if(report){ box.innerHTML = renderMarkdownish(report); }
-    else { box.innerHTML = renderRich(resData); setTimeout(function(){ drawRichCharts(resData); },60); }
+    if(data && data.ok && data.report){ box.innerHTML=renderReport(data.report, data); setTimeout(function(){ drawCharts(); },60); }
+    else { box.innerHTML=renderError(errMsg, payload); }
     if(btn) btn.disabled=false; _running=false;
   }
 
-  // ================= 샘플급 풍부 보고서 =================
-  var STLABEL={ arousal:['피질 각성','Cortical Arousal'], attention:['주의 용량','Attention Capacity'], impulseControl:['충동 조절','Impulse Control'], autonomic:['자율신경 균형','Autonomic Balance'], emotional:['정서 안정','Emotional Stability'] };
-  var AXCOLOR={Bio:'#10B981',Psycho:'#8B5CF6',Social:'#3B82F6'};
-  function goodCol(v){ return v>=65?'#5C8A6B':v>=40?'#D97706':'#DC2626'; }
+  // ============ 응답 렌더 (Tier1/Tier2/Integrated/NF/differential) ============
+  function mdToHtml(md){
+    if(!md) return '';
+    var s=esc(md);
+    // GitHub 표 → html table
+    s=s.replace(/(?:^\|.*\|\s*$\n?)+/gm, function(block){
+      var rows=block.trim().split('\n').map(function(r){return r.trim();});
+      var out='<table style="width:100%;border-collapse:collapse;font-size:13px;margin:8px 0">';
+      rows.forEach(function(r,i){
+        if(/^\|[\s:|-]+\|$/.test(r)) return; // separator
+        var cells=r.replace(/^\||\|$/g,'').split('|').map(function(c){return c.trim();});
+        var tag=i===0?'th':'td';
+        var style=i===0?'padding:6px;text-align:left;border-bottom:2px solid #EEF2F4;color:#3A5566;font-weight:700':'padding:6px;border-bottom:1px solid #F1F2F4;color:#4A6472';
+        out+='<tr>'+cells.map(function(c){return '<'+tag+' style="'+style+'">'+c+'</'+tag+'>';}).join('')+'</tr>';
+      });
+      return out+'</table>';
+    });
+    s=s.replace(/^### (.*)$/gm,'<h4 style="color:#3A5566;margin:10px 0 5px">$1</h4>')
+       .replace(/^## (.*)$/gm,'<h3 style="color:#3A5566;margin:12px 0 6px">$1</h3>')
+       .replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')
+       .replace(/^- (.*)$/gm,'<div style="margin:3px 0 3px 12px">• $1</div>')
+       .replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
+    return s;
+  }
+  function card(title,inner){ return '<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px 18px;margin-bottom:14px"><div style="font-weight:800;color:#5E35B1;font-size:1.05em;margin-bottom:8px">'+title+'</div>'+inner+'</div>'; }
 
-  function renderRich(res){
-    var top=res.profiles[0];
+  var _reportData=null;
+  function renderReport(rep, full){
+    _reportData=rep;
     var h='<div id="ai2-report">';
     // 히어로
+    var top=(rep.differential&&rep.differential[0])||{};
     h+='<div style="background:linear-gradient(135deg,#5E35B1,#7C3AED);color:#fff;border-radius:16px;padding:22px 24px;margin-bottom:16px">'+
-      '<div style="font-size:12px;opacity:.85;font-weight:700;letter-spacing:.05em">🤖 '+T('AI 심층 분석 · DSM-5-TR 근거','AI DEEP ANALYSIS · DSM-5-TR')+'</div>'+
-      '<div style="font-size:1.7rem;font-weight:900;margin:4px 0">'+esc(top.name)+' · '+top.pct+'%</div>'+
-      '<div style="font-size:13px;opacity:.92;line-height:1.6;max-width:600px">'+T('자기보고 조절 프로파일과 신경생리 지표를 통합해 도출한 임상 해석입니다. 아래는 감별·조절축·공병·NF 처방·4주 계획의 종합입니다.','Clinical interpretation integrating self-report regulation profile with neurophysiological markers — differential, axes, comorbidity, NF prescription, and 4-week plan below.')+'</div></div>';
+      '<div style="font-size:12px;opacity:.85;font-weight:700">🤖 '+T('AI 심층 분석 · Anthropic API','AI DEEP · Anthropic API')+'</div>'+
+      '<div style="font-size:1.6rem;font-weight:900;margin-top:4px">'+esc(top.name||T('ADHD 스크리닝','ADHD Screening'))+'</div>'+
+      (full&&full.model?'<div style="font-size:12px;opacity:.8;margin-top:4px">model: '+esc(full.model)+(full.partial?' · partial':'')+'</div>':'')+'</div>';
 
-    // 1. 감별 진단 (확률 차트)
-    h+=sectionTitle('1',T('감별 진단 (Differential)','Differential Diagnosis'));
-    h+='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px 18px;margin-bottom:16px"><canvas id="ai2-diff" height="150"></canvas>';
-    h+='<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:10px">'+res.profiles.map(function(p,i){
-      var col=i===0?'#5E35B1':'#8AA5B5';
-      return '<tr style="border-bottom:1px solid #EEF2F4"><td style="padding:7px;color:#8FA9BC">'+(i+1)+'</td><td style="padding:7px;font-weight:700;color:#3A5566">'+esc(p.name)+'</td><td style="padding:7px;text-align:right;font-weight:800;color:'+col+'">'+p.pct+'%</td><td style="padding:7px;color:#8FA9BC">'+esc(p.level)+'</td></tr>';
-    }).join('')+'</table></div>';
+    // Tier1
+    if(rep.tier1) h+=card('① '+esc(rep.tier1.title||'Tier 1 — '+T('설문','Survey')), '<div style="font-size:13.5px;line-height:1.7;color:#374151">'+mdToHtml(rep.tier1.markdown)+'</div>');
+    // Tier2
+    if(rep.tier2) h+=card('② '+esc(rep.tier2.title||'Tier 2 — QEEG'), '<div style="font-size:13.5px;line-height:1.7;color:#374151">'+mdToHtml(rep.tier2.markdown)+'</div>');
+    // Integrated
+    if(rep.integrated) h+=card('③ '+esc(rep.integrated.title||T('통합 (수렴/발산)','Integrated')), '<div style="font-size:13.5px;line-height:1.7;color:#374151">'+mdToHtml(rep.integrated.markdown)+'</div>');
 
-    // 2. 조절축 레이더 + 해석
-    h+=sectionTitle('2',T('조절축 프로파일 (Regulation Axes)','Regulation Axes'));
-    h+='<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">'+
-      '<div style="flex:1;min-width:280px;background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px"><canvas id="ai2-radar" height="260"></canvas></div>'+
-      '<div style="flex:1;min-width:280px;background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px"><table style="width:100%;border-collapse:collapse;font-size:13px">'+
-      Object.keys(STLABEL).filter(function(k){return res.states[k]!=null;}).map(function(k){ var v=Math.round(res.states[k]); var col=goodCol(v); var judge=v>=65?T('양호','good'):v>=40?T('경계','borderline'):T('저하','reduced');
-        return '<tr><td style="padding:8px 4px;font-weight:700;color:#3A5566">'+(ko()?STLABEL[k][0]:STLABEL[k][1])+'</td><td style="padding:8px 4px;width:45%"><div style="height:12px;background:#EEF2F4;border-radius:5px;overflow:hidden"><div style="height:100%;width:'+v+'%;background:'+col+'"></div></div></td><td style="padding:8px 4px;text-align:right;font-weight:800;color:'+col+'">'+v+'</td><td style="padding:8px 4px;color:'+col+';font-size:11px">'+judge+'</td></tr>';
-      }).join('')+'</table></div></div>';
+    // 감별 진단
+    if(rep.differential&&rep.differential.length){
+      h+=card('④ '+T('감별 고려','Differential'), '<table style="width:100%;border-collapse:collapse;font-size:13px">'+rep.differential.map(function(d,i){
+        return '<tr style="border-bottom:1px solid #F1F2F4"><td style="padding:6px;color:#8FA9BC">'+(i+1)+'</td><td style="padding:6px;font-weight:700;color:#3A5566">'+esc(d.name)+'</td><td style="padding:6px;color:#8FA9BC">'+esc(d.note||'')+'</td></tr>';
+      }).join('')+'</table>');
+    }
 
-    // 3. QEEG 통합 (있으면 표, 없으면 안내)
-    h+=sectionTitle('3',T('QEEG 통합 소견','QEEG Integration'));
-    var hasQeeg = window.state && (state.eegQeegData || (state.objectiveData && Object.keys(state.objectiveData).length));
-    if(hasQeeg && window.renderQEEGRich){ var rich=window.renderQEEGRich(); h+='<div style="margin-bottom:16px">'+(rich||'')+'</div>'; }
-    else { h+='<div style="background:#F5FAFE;border:1px dashed #8AA5B5;border-radius:14px;padding:16px 18px;margin-bottom:16px;font-size:13px;color:#4A6472;line-height:1.6">'+T('QEEG 측정 데이터가 없어 자기보고 기반으로 분석했습니다. QEEG를 추가하면 전두 세타/베타 비율, 알파 비대칭, PAF 등 전기생리 지표가 통합되어 감별 정확도가 크게 향상됩니다.','No QEEG data — analysis is self-report based. Adding QEEG integrates theta/beta ratio, alpha asymmetry, and PAF for much higher differential accuracy.')+'</div>'; }
+    // NF 프로토콜 (뉴로피드백 탭 연결점)
+    if(rep.nf_protocols && rep.nf_protocols.protocols){
+      var nf=rep.nf_protocols;
+      var cards=(nf.protocols||[]).map(function(p){
+        return '<div style="border:1px solid #CAD6DE;border-radius:10px;padding:12px 14px;margin-bottom:8px;background:#F5FAFE">'+
+          '<div style="font-weight:800;color:#5E35B1;font-size:14px">'+esc(p.name||'')+(p.target_axis?' <span style="background:#EDE7F6;color:#5E35B1;padding:2px 8px;border-radius:99px;font-size:11px">'+esc(p.target_axis)+'</span>':'')+'</div>'+
+          '<div style="font-size:12.5px;color:#4A6472;margin-top:4px">'+
+            (p.montage?T('전극','Montage')+': '+esc(p.montage)+'<br>':'')+
+            (p.reward?'Reward: '+esc(p.reward)+' · ':'')+(p.inhibit?'Inhibit: '+esc(p.inhibit)+'<br>':'')+
+            (p.sessions?T('세션','Sessions')+': '+esc(p.sessions):'')+'</div>'+
+          (p.rationale?'<div style="font-size:12px;color:#8FA9BC;margin-top:4px">'+esc(p.rationale)+'</div>':'')+'</div>';
+      }).join('');
+      h+=card('⑤ '+T('개인화 NF 프로토콜 처방','Personalized NF Rx'), cards + (nf.summary_markdown?'<div style="font-size:13px;color:#374151;margin-top:8px;line-height:1.7">'+mdToHtml(nf.summary_markdown)+'</div>':''));
+      // 뉴로피드백 탭으로 전달 (전역 저장)
+      try{ window._ADHD_NF_RX = nf; }catch(e){}
+    }
 
-    // 4. NF 프로토콜 처방 (rules 기반 카드)
-    h+=sectionTitle('4',T('개인화 NF 프로토콜 처방','Personalized NF Protocol Rx'));
-    h+='<div id="ai2-nf" style="margin-bottom:16px">'+nfCards(res)+'</div>';
+    // strengths / next_steps
+    if(rep.strengths) h+=card('💪 '+T('강점·자원','Strengths'), '<div style="font-size:13.5px;line-height:1.7;color:#374151">'+mdToHtml(rep.strengths)+'</div>');
+    if(rep.next_steps) h+=card('👣 '+T('다음 단계','Next steps'), '<div style="font-size:13.5px;line-height:1.7;color:#374151">'+mdToHtml(rep.next_steps)+'</div>');
 
-    // 5. 4주 훈련 계획 (타임라인)
-    h+=sectionTitle('5',T('4주 훈련 계획','4-Week Training Plan'));
-    var weeks=ko()
-      ? [['1주','기저선 확립','QEEG 재측정 · HRV 바이오피드백 · 수면 위생 교육','#10B981'],['2주','핵심 조절 강화','SMR/Beta NF 시작 (주 2-3회) · 마음챙김 훈련','#8B5CF6'],['3주','프로토콜 조정','추세 확인 · 반응성 기반 대역 조정 · 인지과제 병행','#3B82F6'],['4주','재평가·검증','QEEG 재측정 · 목표 대비 검증 · 유지 전략','#D97706']]
-      : [['Wk 1','Baseline','QEEG re-measure · HRV biofeedback · sleep hygiene','#10B981'],['Wk 2','Core strengthening','Start SMR/Beta NF (2-3×/wk) · mindfulness','#8B5CF6'],['Wk 3','Protocol tuning','Trend check · band adjust · cognitive tasks','#3B82F6'],['Wk 4','Re-assess','QEEG re-measure · verify vs target · maintenance','#D97706']];
-    h+='<div style="margin-bottom:16px">'+weeks.map(function(w){
-      return '<div style="display:flex;gap:12px;margin-bottom:8px"><div style="min-width:70px;background:'+w[3]+';color:#fff;border-radius:10px;padding:10px;text-align:center;font-weight:800;font-size:13px">'+w[0]+'</div><div style="flex:1;background:#fff;border:1px solid #CAD6DE;border-radius:10px;padding:10px 14px"><b style="color:#3A5566">'+w[1]+'</b><div style="font-size:12.5px;color:#4A6472;margin-top:2px">'+w[2]+'</div></div></div>';
-    }).join('')+'</div>';
-
-    // 6. 추천 개입 + 경고
-    var recHtml=recRows(res), warnHtml=warnRows(res);
-    if(recHtml){ h+=sectionTitle('6',T('추천 개입','Recommended Interventions'))+'<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px 18px;margin-bottom:16px">'+recHtml+'</div>'; }
-    if(warnHtml){ h+='<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:14px;padding:16px 18px;margin-bottom:16px"><b style="color:#C2410C">'+T('임상 주의사항','Clinical Cautions')+'</b>'+warnHtml+'</div>'; }
-
-    h+='<div style="font-size:11px;color:#8FA9BC;margin-top:14px;border-top:1px solid #EEF2F4;padding-top:8px">'+T('AI 분석은 참고용입니다. 임상 진단·처방은 전문가와 상의하세요. · Boston Neuromind','AI analysis is for reference. Consult a professional. · Boston Neuromind')+'</div>';
-    h+='</div><div style="margin-top:12px"><button onclick="AdhdAIDeep.savePDF()" style="padding:10px 18px;border:0;border-radius:9px;background:#5B7B94;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">📄 '+T('PDF 저장','Save PDF')+'</button></div>';
+    // disclaimer
+    if(rep.disclaimer) h+='<div style="font-size:11.5px;color:#8FA9BC;border-top:1px solid #EEF2F4;padding-top:8px;margin-top:6px">'+esc(rep.disclaimer)+'</div>';
+    h+='</div>';
+    h+='<div style="margin-top:12px"><button onclick="AdhdAIDeep.savePDF()" style="padding:10px 18px;border:0;border-radius:9px;background:#5B7B94;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">📄 '+T('PDF 저장','Save PDF')+'</button>';
+    if(rep.nf_protocols) h+=' <button onclick="AdhdAIDeep.toNF()" style="padding:10px 18px;border:0;border-radius:9px;background:#5E35B1;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">'+T('뉴로피드백 세션으로 →','To NF session →')+'</button>';
+    h+='</div>';
     return h;
   }
-  function sectionTitle(n,t){ return '<div style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><div style="width:26px;height:26px;border-radius:7px;background:#5E35B1;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px">'+n+'</div><div style="font-weight:800;color:#3A5566;font-size:1.05em">'+t+'</div></div>'; }
+  function drawCharts(){ /* API 응답은 마크다운 표 위주 — 차트는 옵션. 필요 시 확장 */ }
 
-  function nfCards(res){
-    var R=(window.AdhdEngine&&window.AdhdEngine._rules)||window._ADHD_RULES||null;
-    // rules 접근이 어려우면 캐시된 것 사용 시도
-    try{ if(!R && window.adhdScore){ /* rules not directly exposed; use inline defaults */ } }catch(e){}
-    var top=res.profiles[0];
-    // 프로파일별 우선 프로토콜 (rules nf_training_response와 동일 매핑)
-    var protos = top.id==='adhd_hyperactive'
-      ? [['Alpha-Theta training',T('정서·충동 조절','Emotion/impulse'),55],['SMR training',T('주의·감각운동','Attention/SMR'),65]]
-      : [['SMR training',T('주의·감각운동 리듬 강화','Attention/SMR uptraining'),65],['Beta training',T('피질 각성·집중','Cortical activation'),60]];
-    return protos.map(function(p){
-      return '<div style="border:1px solid #CAD6DE;border-radius:12px;padding:14px 16px;margin-bottom:8px;background:#F5FAFE">'+
-        '<div style="font-weight:800;color:#5E35B1;font-size:14px">'+esc(p[0])+' <span style="background:#EDE7F6;color:#5E35B1;padding:2px 8px;border-radius:99px;font-size:11px;margin-left:4px">'+T('반응률 ','resp ')+p[2]+'%</span></div>'+
-        '<div style="font-size:12.5px;color:#4A6472;margin-top:4px">'+esc(p[1])+' · Cz/C3/C4 · 20-40 '+T('세션','sessions')+'</div></div>';
-    }).join('');
-  }
-  function recRows(res){
-    var R=window._ADHD_RULES; if(!R) return '';
-    function m(c){ if(!c)return true; try{ if(c.axis!=null&&res.axes){var v=res.axes[c.axis];if(v==null)return false;if(c.less_than!=null)return v<c.less_than;if(c.greater_than!=null)return v>c.greater_than;} if(c.feature!=null&&res.features){var f=res.features[c.feature];if(f==null)return false;if(c.less_than!=null)return f<c.less_than;if(c.greater_than!=null)return f>c.greater_than;} if(c.profile!=null&&res.profiles){var p=res.profiles[0];return p&&p.id===c.profile;} }catch(e){} return true; }
-    var recs=(R.recommendations||[]).filter(function(r){return m(r.condition);});
-    if(!recs.length) return '';
-    return recs.map(function(r,i){ return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #EEF2F4"><div style="min-width:22px;height:22px;border-radius:50%;background:#5B7B94;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px">'+(i+1)+'</div><div style="font-size:13px;color:#3A5566;line-height:1.6">'+esc(ko()?r.general:r.clinician)+'</div></div>'; }).join('');
-  }
-  function warnRows(res){
-    var R=window._ADHD_RULES; if(!R) return '';
-    function m(c){ if(!c)return false; try{ if(c.feature!=null&&res.features){var f=res.features[c.feature];if(f==null)return false;if(c.less_than!=null)return f<c.less_than;if(c.greater_than!=null)return f>c.greater_than;} if(c.axis!=null&&res.axes){var v=res.axes[c.axis];if(v==null)return false;if(c.less_than!=null)return v<c.less_than;} }catch(e){} return false; }
-    var ws=(R.warnings||[]).filter(function(w){return m(w.condition);});
-    if(!ws.length) return '';
-    return ws.map(function(w){ return '<div style="font-size:13px;color:#8A4A2C;line-height:1.6;margin-top:6px">⚠️ '+esc(ko()?w.general:w.clinician)+'</div>'; }).join('');
-  }
-
-  function drawRichCharts(res){
-    destroyCharts();
-    if(!window.Chart) return;
-    var dc=$('ai2-diff');
-    if(dc){
-      _charts.diff=new Chart(dc.getContext('2d'),{
-        type:'bar',
-        data:{ labels:res.profiles.map(function(p){return p.name;}), datasets:[{ data:res.profiles.map(function(p){return p.pct;}), backgroundColor:['#5E35B1','#8AA5B5','#CAD6DE'], borderRadius:6 }] },
-        options:{ indexAxis:'y', responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ max:100, ticks:{ color:'#8FA9BC' } }, y:{ ticks:{ color:'#3A5566', font:{ weight:'700' } } } } }
-      });
-    }
-    var rc=$('ai2-radar');
-    if(rc){
-      var keys=Object.keys(STLABEL).filter(function(k){return res.states[k]!=null;});
-      _charts.radar=new Chart(rc.getContext('2d'),{
-        type:'radar',
-        data:{ labels:keys.map(function(k){return ko()?STLABEL[k][0]:STLABEL[k][1];}), datasets:[{ data:keys.map(function(k){return Math.round(res.states[k]);}), borderColor:'#7C3AED', backgroundColor:'rgba(124,58,237,.2)', borderWidth:2, pointBackgroundColor:'#5E35B1' }] },
-        options:{ responsive:true, scales:{ r:{ min:0, max:100, ticks:{ stepSize:20, font:{ size:9 }, color:'#8FA9BC' }, pointLabels:{ font:{ size:11, weight:'700' }, color:'#3A5566' }, grid:{ color:'#E4ECF1' } } }, plugins:{ legend:{ display:false } } }
-      });
-    }
-  }
-  function renderMarkdownish(txt){
-    var html=esc(txt).replace(/^### (.*)$/gm,'<h3 style="color:#3A5566;margin:12px 0 6px">$1</h3>').replace(/^## (.*)$/gm,'<h2 style="color:#3A5566;margin:14px 0 8px">$1</h2>').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
-    return '<div id="ai2-report" style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:18px;font-size:13.5px;line-height:1.7">'+html+'</div><div style="margin-top:12px"><button onclick="AdhdAIDeep.savePDF()" style="padding:10px 18px;border:0;border-radius:9px;background:#5B7B94;color:#fff;font-weight:700;cursor:pointer">📄 '+T('PDF 저장','Save PDF')+'</button></div>';
+  function renderError(msg, payload){
+    return '<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:12px;padding:18px;color:#C2410C;font-size:14px">'+
+      '<b>'+T('AI 분석을 완료하지 못했습니다.','Could not complete AI analysis.')+'</b><br>'+
+      '<span style="font-size:12.5px">'+esc(msg||'unknown')+'</span><br><br>'+
+      '<span style="font-size:12px;color:#8A4A2C">'+T('함수 배포·API 키·인증을 확인하세요. 잠시 후 다시 시도해 주세요.','Check function deploy / API key / auth, then retry.')+'</span></div>';
   }
 
   window.AdhdAIDeep={ run:run,
-    savePDF:function(){ var el=$('ai2-report'); if(!el){ alert(T('먼저 분석을 실행하세요.','Run the analysis first.')); return; }
-      if(window.html2pdf){ window.html2pdf().set({margin:8,filename:'adhd_ai_deep.pdf',html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4'}}).from(el).save(); } else { window.print(); } } };
+    savePDF:function(){ var el=$('ai2-report'); if(!el){ alert(T('먼저 분석을 실행하세요.','Run first.')); return; }
+      if(window.html2pdf){ window.html2pdf().set({margin:8,filename:'adhd_ai_deep.pdf',html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4'}}).from(el).save(); } else { window.print(); } },
+    toNF:function(){ if(typeof switchSymptomTab==='function') switchSymptomTab('s-nf'); setTimeout(function(){ if(window.AdhdNF&&window.AdhdNF.applyRx&&window._ADHD_NF_RX) window.AdhdNF.applyRx(window._ADHD_NF_RX); },80); } };
 
-  // 탭 열면 gate만 (blur/잠금), 결과는 실행 눌러야
   function wire(){ var b=document.querySelector('.rpt-tabbar button[data-t="s-ai"]'); if(b)b.addEventListener('click',function(){ setTimeout(gate,0); }); }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wire); else wire();
+})();
+
+</script>
+<script>
+/* ===== 범용 게임 엔진 5타입 — 파라미터로 무한 게임 생성 (rules 주도) — AdhdGames v3 ===== */
+(function(){
+  function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
+  function T(k,e){ return ko()?k:e; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function mean(a){ return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:0; }
+  function sd(a){ if(a.length<2)return 0; var m=mean(a); return Math.sqrt(mean(a.map(function(x){return (x-m)*(x-m);}))); }
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  function saveResult(game, metrics){
+    try{
+      window._ADHD_GAME_LAST={ game:game, metrics:metrics, ts:Date.now() };
+      var db=window.ADHD_DB, s=window.ADHD_SESSION||{}, cid=s.self_client_id||null;
+      try{ var u=new URLSearchParams(location.search).get('cid'); if(u)cid=u; }catch(e){}
+      if(db&&db.saveQeegResult&&cid){ db.saveQeegResult({ client_id:cid, dept:'adhd', framework:'game_v1', source_meta:{source:'game',game:game}, qeeg_data:{game_metrics:metrics} }).catch(function(){}); }
+    }catch(e){}
+  }
+  function resultBox(host, title, rows){
+    host.insertAdjacentHTML('beforeend','<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:20px;margin-top:12px"><div style="font-weight:800;color:#5E35B1;font-size:1.1em;margin-bottom:10px">✅ '+esc(title)+'</div><table style="width:100%;border-collapse:collapse;font-size:14px">'+rows.map(function(r){return '<tr style="border-bottom:1px solid #F1F2F4"><td style="padding:8px 4px;color:#4A6472">'+esc(r[0])+'</td><td style="padding:8px 4px;text-align:right;font-weight:800;color:#3A5566">'+esc(r[1])+'</td></tr>';}).join('')+'</table></div>');
+  }
+  function stage(host){ host.innerHTML='<div id="g-stage" style="position:relative;background:#0F1720;border-radius:16px;height:340px;display:flex;align-items:center;justify-content:center;overflow:hidden;user-select:none"></div><div id="g-hud" style="display:flex;justify-content:space-between;font-size:13px;color:#8FA9BC;margin-top:8px"></div>'; return {st:host.querySelector('#g-stage'),hud:host.querySelector('#g-hud')}; }
+  function startScreen(s, instr, color, cb){ s.st.innerHTML='<div style="text-align:center;color:#CAD6DE;padding:0 20px"><div style="font-size:15px;margin-bottom:14px;line-height:1.6">'+instr+'</div><button id="g-start" style="padding:12px 26px;border:0;border-radius:10px;background:'+color+';color:#fff;font-weight:800;font-size:16px;cursor:pointer">'+T('시작','Start')+'</button></div>'; s.st.querySelector('#g-start').onclick=cb; }
+  function flash(s,c){ s.st.style.boxShadow='inset 0 0 0 4px '+c; setTimeout(function(){s.st.style.boxShadow='none';},170); }
+
+  // 자극 렌더러 (파라미터로 모양/글자/색 제어)
+  function renderStim(kind, val, color){
+    if(kind==='circle') return '<div style="width:130px;height:130px;background:'+color+';border-radius:50%"></div>';
+    if(kind==='square') return '<div style="width:120px;height:120px;background:'+color+';border-radius:12px"></div>';
+    if(kind==='letter') return '<div style="font-size:5rem;font-weight:900;color:'+(color||'#fff')+'">'+esc(val)+'</div>';
+    if(kind==='arrow')  return '<div style="font-size:3.5rem;font-weight:900;color:#fff;letter-spacing:8px">'+esc(val)+'</div>';
+    return '<div style="font-size:4rem;color:#fff">'+esc(val||'?')+'</div>';
+  }
+
+  // ══════════ 엔진 1: react_inhibit (Go/No-Go 계열) ══════════
+  // params: {trials, nogoRate, speed, goStim:{kind,color}, nogoStim:{kind,color}, instrKo, instrEn}
+  function react_inhibit(host, p, gameId, title){
+    p=p||{}; var total=p.trials||30, nogoRate=p.nogoRate||0.3, speed=p.speed||1200;
+    var goS=p.goStim||{kind:'circle',color:'#22C55E'}, noS=p.nogoStim||{kind:'square',color:'#EF4444'};
+    var s=stage(host), i=0, hits=0, cr=0, comm=0, omit=0, rts=[], nogo=0, waiting=false, t0=0, timer=null;
+    startScreen(s, p['instr'+(ko()?'Ko':'En')]||T('목표 자극 → 빠르게 클릭<br>금지 자극 → 참기','Go stimulus → click<br>No-go → HOLD'), goS.color, next);
+    function next(){
+      if(i>=total) return finish();
+      i++; s.hud.innerHTML='<span>'+i+'/'+total+'</span><span>'+T('정확','Hits')+': '+hits+'</span>';
+      var isNogo=Math.random()<nogoRate; if(isNogo)nogo++;
+      waiting=true; t0=performance.now();
+      s.st.innerHTML=isNogo?renderStim(noS.kind,noS.val,noS.color):renderStim(goS.kind,goS.val,goS.color);
+      s.st.onclick=function(){ if(!waiting)return; waiting=false; if(isNogo){comm++;flash(s,'#EF4444');}else{hits++;rts.push(performance.now()-t0);flash(s,'#22C55E');} clearTimeout(timer); setTimeout(next,400); };
+      timer=setTimeout(function(){ if(!waiting)return; waiting=false; if(isNogo)cr++; else omit++; setTimeout(next,300); }, speed);
+    }
+    function finish(){
+      var acc=Math.round((hits+cr)/total*100), inh=nogo?Math.round(cr/nogo*100):100, mr=Math.round(mean(rts));
+      s.st.innerHTML='<div style="color:'+goS.color+';font-size:1.4em;font-weight:800">'+T('완료!','Done!')+'</div>'; s.hud.innerHTML='';
+      var m={accuracy:acc,inhibition:inh,meanRt:mr,commission:comm,omission:omit};
+      saveResult(gameId,m);
+      resultBox(host,title,[[T('정확도','Accuracy'),acc+'%'],[T('충동 억제율','Inhibition'),inh+'%'],[T('평균 반응속도','Mean RT'),mr+'ms'],[T('오반응','Commission'),comm],[T('누락','Omission'),omit]]);
+    }
+  }
+
+  // ══════════ 엔진 2: detect_target (CPT 계열) ══════════
+  // params: {duration, isi, targetRate, mode:'X'|'AX', target, pool, instrKo, instrEn}
+  function detect_target(host, p, gameId, title){
+    p=p||{}; var dur=p.duration||60, isi=p.isi||1500, targetRate=p.targetRate||0.2;
+    var mode=p.mode||'X', target=p.target||'X', pool=(p.pool||'ABCDEFHJKLMNPRTUVWYZ').split('');
+    var s=stage(host), running=false, hits=0, fa=0, miss=0, rts=[], targets=0, endAt=0, curTarget=false, waiting=false, t0=0, iv=null, prev=null;
+    var instr = p['instr'+(ko()?'Ko':'En')] || (mode==='AX'? T('<b style="color:#fff">A</b> 다음의 <b style="color:#fff">'+target+'</b>에만 클릭!','Click <b style="color:#fff">'+target+'</b> only after <b style="color:#fff">A</b>!') : T('오직 <b style="color:#fff">'+target+'</b>에만 클릭!','Click ONLY on <b style="color:#fff">'+target+'</b>!'));
+    startScreen(s, instr, '#3B82F6', function(){ running=true; endAt=performance.now()+dur*1000; tick(); iv=setInterval(tick,isi); });
+    s.st.onclick=function(){ if(!running||!waiting)return; if(curTarget){hits++;rts.push(performance.now()-t0);waiting=false;flash(s,'#22C55E');}else{fa++;flash(s,'#EF4444');} };
+    function tick(){
+      if(performance.now()>=endAt) return finish();
+      if(waiting&&curTarget)miss++;
+      var isT=Math.random()<targetRate;
+      var ch;
+      if(mode==='AX'){ if(isT&&prev==='A'){ ch=target; curTarget=true; } else if(isT){ ch='A'; curTarget=false; } else { ch=pick(pool); curTarget=false; } }
+      else { curTarget=isT; ch=isT?target:pick(pool); }
+      if(curTarget)targets++;
+      prev=ch;
+      s.st.innerHTML=renderStim('letter',ch,'#fff'); waiting=true; t0=performance.now();
+      s.hud.innerHTML='<span>'+Math.max(0,Math.round((endAt-performance.now())/1000))+'s</span><span>'+T('명중','Hits')+': '+hits+'</span>';
+    }
+    function finish(){
+      clearInterval(iv); running=false;
+      var det=targets?Math.round(hits/targets*100):0, mr=Math.round(mean(rts)), rv=Math.round(sd(rts));
+      s.st.innerHTML='<div style="color:#3B82F6;font-size:1.4em;font-weight:800">'+T('완료!','Done!')+'</div>'; s.hud.innerHTML='';
+      var m={detection:det,meanRt:mr,rtVariability:rv,falseAlarms:fa,misses:miss};
+      saveResult(gameId,m);
+      resultBox(host,title,[[T('탐지율','Detection'),det+'%'],[T('평균 RT','Mean RT'),mr+'ms'],[T('RT 변동성','RT variability'),rv+'ms'],[T('오경보','False alarms'),fa],[T('놓침','Misses'),miss]]);
+    }
+  }
+
+  // ══════════ 엔진 3: match_memory (N-back 계열) ══════════
+  // params: {n, trials, speed, pool, matchRate, instrKo, instrEn}
+  function match_memory(host, p, gameId, title){
+    p=p||{}; var n=p.n||1, speed=p.speed||2500, total=(p.trials||20)+n, pool=(p.pool||'ABCDEFGH').split(''), matchRate=p.matchRate||0.3;
+    var s=stage(host), seq=[], i=0, hits=0, fa=0, miss=0, matches=0, waiting=false, iv=null, running=false, responded=false;
+    startScreen(s, p['instr'+(ko()?'Ko':'En')]||T('<b style="color:#fff">'+n+'개 전</b>과 같으면 클릭!','Click if same as <b style="color:#fff">'+n+' back</b>!'), '#3B82F6', function(){ running=true; step(); iv=setInterval(step,speed); });
+    s.st.onclick=function(){ if(!running||!waiting||responded)return; responded=true; var isM=i>n&&seq[i-1]===seq[i-1-n]; if(isM){hits++;flash(s,'#22C55E');}else{fa++;flash(s,'#EF4444');} };
+    function step(){
+      if(i>n&&!responded){ if(seq[i-1]===seq[i-1-n])miss++; }
+      if(i>=total) return finish();
+      var ch=(i>=n&&Math.random()<matchRate)?seq[i-n]:pick(pool);
+      seq[i]=ch; if(i>=n&&seq[i]===seq[i-n])matches++;
+      s.st.innerHTML=renderStim('letter',ch,'#fff'); waiting=true; responded=false; i++;
+      s.hud.innerHTML='<span>'+i+'/'+total+'</span><span>'+T('명중','Hits')+': '+hits+'</span>';
+    }
+    function finish(){
+      clearInterval(iv); running=false; var acc=matches?Math.round(hits/matches*100):0;
+      s.st.innerHTML='<div style="color:#3B82F6;font-size:1.4em;font-weight:800">'+T('완료!','Done!')+'</div>'; s.hud.innerHTML='';
+      var m={nLevel:n,matchAccuracy:acc,hits:hits,falseAlarms:fa,misses:miss};
+      saveResult(gameId,m);
+      resultBox(host,title,[[T('난이도','Level'),n+'-back'],[T('매치 정확도','Accuracy'),acc+'%'],[T('명중','Hits'),hits],[T('오경보','False alarms'),fa],[T('놓침','Misses'),miss]]);
+    }
+  }
+
+  // ══════════ 엔진 4: choice_conflict (Stroop/Flanker 계열) ══════════
+  // params: {trials, incongruentRate, variant:'stroop'|'flanker'|'simon', instrKo, instrEn}
+  function choice_conflict(host, p, gameId, title){
+    p=p||{}; var total=p.trials||24, incongRate=p.incongruentRate||0.5, variant=p.variant||'stroop';
+    var s=stage(host), i=0, correct=0, rts=[], congRt=[], incongRt=[], waiting=false, t0=0;
+    var COLORS=[['빨강','Red','#EF4444'],['파랑','Blue','#3B82F6'],['초록','Green','#22C55E'],['노랑','Yellow','#EAB308']];
+    var instr = p['instr'+(ko()?'Ko':'En')] || (variant==='flanker'? T('<b style="color:#fff">가운데</b> 화살표 방향만!','Center arrow only!') : T('글자의 <b style="color:#fff">색깔</b>을 고르세요!','Pick the <b style="color:#fff">ink color</b>!'));
+    startScreen(s, instr, '#8B5CF6', next);
+    function next(){
+      if(i>=total) return finish();
+      i++; var incong=Math.random()<incongRate;
+      if(variant==='flanker'){
+        var cL=Math.random()<0.5, fL=incong?!cL:cL;
+        var ar=function(l){return l?'◀':'▶';};
+        var row=ar(fL)+ar(fL)+ar(cL)+ar(fL)+ar(fL);
+        s.st.innerHTML='<div style="text-align:center;width:100%">'+renderStim('arrow',row)+'<div style="display:flex;gap:12px;padding:20px 40px 0"><button data-d="L" style="flex:1;padding:16px;border:0;border-radius:12px;background:#26313D;color:#fff;font-size:22px;cursor:pointer">◀</button><button data-d="R" style="flex:1;padding:16px;border:0;border-radius:12px;background:#26313D;color:#fff;font-size:22px;cursor:pointer">▶</button></div></div>';
+        waiting=true; t0=performance.now();
+        s.st.querySelectorAll('button[data-d]').forEach(function(b){ b.onclick=function(){ if(!waiting)return; waiting=false; var rt=performance.now()-t0; var ok=(b.getAttribute('data-d')==='L')===cL;
+          if(ok){correct++;rts.push(rt);(incong?incongRt:congRt).push(rt);flash(s,'#22C55E');}else flash(s,'#EF4444'); setTimeout(next,300); }; });
+      } else {
+        var word=pick(COLORS); var ink=incong?COLORS[(COLORS.indexOf(word)+1+Math.floor(Math.random()*3))%4]:word;
+        var btns=COLORS.map(function(c){ return '<button data-c="'+c[2]+'" style="flex:1;padding:13px 4px;margin:3px;border:0;border-radius:10px;background:#26313D;color:#fff;font-weight:800;font-size:14px;cursor:pointer">'+(ko()?c[0]:c[1])+'</button>'; }).join('');
+        s.st.innerHTML='<div style="text-align:center;width:100%"><div style="font-size:3.5rem;font-weight:900;color:'+ink[2]+';margin-bottom:18px">'+(ko()?word[0]:word[1])+'</div><div style="display:flex;padding:0 16px">'+btns+'</div></div>';
+        waiting=true; t0=performance.now();
+        s.st.querySelectorAll('button[data-c]').forEach(function(b){ b.onclick=function(){ if(!waiting)return; waiting=false; var rt=performance.now()-t0; var ok=b.getAttribute('data-c')===ink[2];
+          if(ok){correct++;rts.push(rt);(incong?incongRt:congRt).push(rt);flash(s,'#22C55E');}else flash(s,'#EF4444'); setTimeout(next,320); }; });
+      }
+      s.hud.innerHTML='<span>'+i+'/'+total+'</span><span>'+T('정답','Correct')+': '+correct+'</span>';
+    }
+    function finish(){
+      var acc=Math.round(correct/total*100), mr=Math.round(mean(rts));
+      var confl=Math.round(mean(incongRt)-mean(congRt));
+      s.st.innerHTML='<div style="color:#8B5CF6;font-size:1.4em;font-weight:800">'+T('완료!','Done!')+'</div>'; s.hud.innerHTML='';
+      var m={accuracy:acc,meanRt:mr,conflictEffect:confl};
+      saveResult(gameId,m);
+      resultBox(host,title,[[T('정확도','Accuracy'),acc+'%'],[T('평균 RT','Mean RT'),mr+'ms'],[T('갈등 효과(낮을수록↑)','Conflict effect'),confl+'ms']]);
+    }
+  }
+
+  // ══════════ 엔진 5: pace_regulate (호흡/리듬 계열) ══════════
+  // params: {inhale, exhale, cycles, holdIn, holdOut, instrKo, instrEn}
+  function pace_regulate(host, p, gameId, title){
+    p=p||{}; var inhale=p.inhale||5, exhale=p.exhale||5, holdIn=p.holdIn||0, holdOut=p.holdOut||0, cycles=p.cycles||6;
+    var s=stage(host), c=0;
+    startScreen(s, p['instr'+(ko()?'Ko':'En')]||T('원이 커지면 들이쉬고, 작아지면 내쉬세요.','Inhale as circle grows, exhale as it shrinks.'), '#10B981', cycle);
+    function cycle(){
+      if(c>=cycles) return finish();
+      c++; s.hud.innerHTML='<span>'+c+'/'+cycles+'</span>';
+      s.st.innerHTML='<div id="g-c" style="width:80px;height:80px;background:radial-gradient(circle,#34D399,#10B981);border-radius:50%;transition:all '+inhale+'s ease-in-out"></div><div id="g-t" style="position:absolute;bottom:26px;color:#fff;font-weight:700;font-size:18px">'+T('들이쉬기','Inhale')+'</div>';
+      var cc=s.st.querySelector('#g-c'), tt=s.st.querySelector('#g-t');
+      setTimeout(function(){ cc.style.width='240px'; cc.style.height='240px'; },50);
+      var tIn=inhale*1000, tHold=holdIn*1000;
+      if(holdIn>0) setTimeout(function(){ tt.textContent=T('멈춤','Hold'); }, tIn);
+      setTimeout(function(){ tt.textContent=T('내쉬기','Exhale'); cc.style.transition='all '+exhale+'s ease-in-out'; cc.style.width='80px'; cc.style.height='80px'; }, tIn+tHold);
+      setTimeout(cycle, tIn+tHold+exhale*1000+holdOut*1000);
+    }
+    function finish(){
+      s.st.innerHTML='<div style="color:#10B981;font-size:1.4em;font-weight:800">'+T('완료!','Done!')+'</div>'; s.hud.innerHTML='';
+      var pace=(60/(inhale+exhale+holdIn+holdOut)).toFixed(1);
+      var m={cycles:cycles,pace:pace+'/min'};
+      saveResult(gameId,m);
+      resultBox(host,title,[[T('완료 호흡','Cycles'),cycles],[T('호흡 속도','Pace'),pace+'/min']]);
+    }
+  }
+
+  // ══════════ 디스패처: rules의 게임 정의 → 엔진 실행 ══════════
+  var ENGINES={ react_inhibit:react_inhibit, detect_target:detect_target, match_memory:match_memory, choice_conflict:choice_conflict, pace_regulate:pace_regulate };
+  window.AdhdGames = {
+    engines: Object.keys(ENGINES),
+    play: function(gameId, host, gameDef, tunedParams){
+      var eng=ENGINES[gameDef.engine];
+      if(!eng){ host.innerHTML='<div style="padding:20px;color:#C2410C">unknown engine: '+esc(gameDef.engine)+'</div>'; return; }
+      var params=Object.assign({}, gameDef.params||{}, tunedParams||{});
+      var title=(document.body.getAttribute('data-lang')||'en')==='ko'?gameDef.ko:gameDef.en;
+      eng(host, params, gameId, title);
+    }
+  };
+})();
+
+</script>
+<script>
+/* ===== AI Treatment 매칭 엔진 v3 — 3레이어 곱하기 (rules 주도) — AdhdMatcher ===== */
+(function(){
+  // 입력: {L1:{positive,symptomCount,inattention,hyperactivity}, L2:{axisScores}, L3:{dims}, qeeg:{objectiveData}}
+  // 출력: {picks:[{game,axis,engine,intensity,gamify,tuned,why}], all:[...], intensity, gamify}
+
+  function getGM(){ return (window._ADHD_RULES && window._ADHD_RULES.game_module) || null; }
+
+  // ── L2: 조절축 → 게임 후보 (다양성: 상위 축에서 1개씩) ──
+  function axisFromL2(GM, axisScores){
+    var ranked=Object.keys(GM.axes).sort(function(a,b){ return (axisScores[b]||0)-(axisScores[a]||0); });
+    var map=GM.axis_game_map||{}, picks=[], seen={};
+    ranked.forEach(function(ax){ if(picks.length>=3)return; var gs=map[ax]||[]; for(var k=0;k<gs.length;k++){ if(!seen[gs[k]]&&GM.games[gs[k]]){ seen[gs[k]]=1; picks.push({game:gs[k],axis:ax,axisScore:axisScores[ax]||0}); break; } } });
+    ranked.forEach(function(ax){ (map[ax]||[]).forEach(function(g){ if(!seen[g]&&GM.games[g]&&picks.length<3){ seen[g]=1; picks.push({game:g,axis:ax,axisScore:axisScores[ax]||0}); } }); });
+    return { ranked:ranked, picks:picks };
+  }
+
+  // ── QEEG: 축 점수 보정 ──
+  function qeegAdjust(GM, axisScores, objectiveData){
+    var o=objectiveData||{}, applied=[];
+    (GM.qeeg_adjust||[]).forEach(function(rule){
+      var v=o[rule.feature]; if(v==null)return;
+      var hit=(rule.gt!=null&&v>rule.gt)||(rule.lt!=null&&v<rule.lt);
+      if(hit&&rule.boost){ Object.keys(rule.boost).forEach(function(ax){ if(axisScores[ax]!=null){ axisScores[ax]=Math.min(100,axisScores[ax]+rule.boost[ax]); applied.push(ax+'+'+rule.boost[ax]); } }); }
+    });
+    return applied;
+  }
+
+  // ── L1: 진단 심각도 → 훈련 강도 ──
+  function intensityFromL1(GM, L1){
+    var im=GM.intensity_map; if(!im) return { intensity:'moderate', sessionLength:'medium', frequency:'3-4/week', startFrom:'primary' };
+    var count = L1 ? (L1.symptomCount||0) : 0;
+    var positive = L1 ? !!L1.positive : false;
+    for(var i=0;i<im.levels.length;i++){
+      var w=im.levels[i].when;
+      var okPos = (w.diagnostic_positive===positive);
+      var okCnt = (w.symptom_count_gte==null) || (count>=w.symptom_count_gte);
+      if(okPos && okCnt) return im.levels[i].set;
+    }
+    return im.levels[im.levels.length-1].set;
+  }
+
+  // ── L3: 참여 스타일 → 게임화 방식 ──
+  function gamifyFromL3(GM, L3dims){
+    var out={ gamified:'balanced', showScore:true, showRank:false, allowChoice:false, selfPaced:false, adaptiveDifficulty:false, instantFeedback:false, encouragement:false };
+    var em=GM.engagement_map; if(!em||!L3dims) return out;
+    em.rules.forEach(function(r){
+      var w=r.when, ok=true;
+      Object.keys(w).forEach(function(key){
+        var m=key.match(/^(.+)_gte$/); if(!m)return; var dim=m[1]; var need=w[key];
+        // reward_style_compete / reward_style_calm 등 복합키 지원
+        var val = L3dims[dim]; if(val==null) ok=false; else if(!(val>=need)) ok=false;
+      });
+      if(ok && r.set) Object.keys(r.set).forEach(function(k){ out[k]=r.set[k]; });
+    });
+    return out;
+  }
+
+  // ── 파라미터 튜닝 (rules tuning + 강도 + 게임화) ──
+  function tuneParams(GM, pk, axisScores, intensity, gamify){
+    var g=GM.games[pk.game]; var tuned=JSON.parse(JSON.stringify(g.params||{}));
+    // rules tuning
+    (GM.tuning||[]).forEach(function(t){
+      if(t.game!==pk.game)return; var w=t.when||{}, ok=true;
+      if(w.axisScore_gte!=null && !(pk.axisScore>=w.axisScore_gte)) ok=false;
+      Object.keys(w).forEach(function(key){ var m=key.match(/^(\w+)_gte$/); if(m&&m[1]!=='axisScore'){ var ax=m[1]; if(!(axisScores[ax]>=w[key])) ok=false; } });
+      if(ok&&t.set) Object.keys(t.set).forEach(function(k){ tuned[k]=t.set[k]; });
+    });
+    // 강도 반영: high면 세션 짧게(반복수↓ 또는 duration↓)
+    if(intensity && intensity.intensity==='high'){
+      if(tuned.duration) tuned.duration=Math.round(tuned.duration*0.7);
+      if(tuned.trials) tuned.trials=Math.max(12, Math.round(tuned.trials*0.7));
+    }
+    // 게임화: 적응난이도면 살짝 쉬운 시작
+    if(gamify && gamify.adaptiveDifficulty){ if(tuned.nogoRate) tuned.nogoRate=Math.max(0.2, tuned.nogoRate-0.05); }
+    return tuned;
+  }
+
+  function whyText(pk, GM, intensity, gamify, ko){
+    var A=GM.axes[pk.axis]; var axisName=ko?A.ko:A.en;
+    var parts=[];
+    parts.push((ko?'조절축 ':'Axis ')+axisName+(ko?' 훈련 필요도 '+pk.axisScore:' need '+pk.axisScore));
+    if(intensity) parts.push((ko?'강도 ':'intensity ')+intensity.intensity);
+    if(gamify){ if(gamify.gamified==='competitive') parts.push(ko?'경쟁형':'competitive'); else if(gamify.gamified==='calm') parts.push(ko?'차분형':'calm'); }
+    return parts.join(' · ');
+  }
+
+  window.AdhdMatcher = {
+    run: function(input){
+      var GM=getGM(); if(!GM) return null;
+      var axisScores = Object.assign({}, input.L2||{});
+      // 축 점수 없으면 0
+      Object.keys(GM.axes).forEach(function(a){ if(axisScores[a]==null) axisScores[a]=0; });
+      var qeegApplied = qeegAdjust(GM, axisScores, input.qeeg);
+      var m = axisFromL2(GM, axisScores);
+      var intensity = intensityFromL1(GM, input.L1);
+      var gamify = gamifyFromL3(GM, input.L3);
+      var ko = (document.body.getAttribute('data-lang')||'en')==='ko';
+      // 우선 추천 3개
+      m.picks.forEach(function(pk){
+        pk.engine = GM.games[pk.game].engine || pk.game;
+        pk.tuned = tuneParams(GM, pk, axisScores, intensity, gamify);
+        pk.gamify = gamify; pk.intensity = intensity;
+        pk.why = whyText(pk, GM, intensity, gamify, ko);
+      });
+      // 전체 리스트 (자유 선택용) — 모든 게임
+      var all = Object.keys(GM.games).map(function(gid){
+        var g=GM.games[gid];
+        return { game:gid, engine:g.engine||gid, axis:g.axis, tuned: tuneParams(GM, {game:gid,axisScore:axisScores[g.axis]||0}, axisScores, intensity, gamify) };
+      });
+      return { picks:m.picks, all:all, ranked:m.ranked, axisScores:axisScores, intensity:intensity, gamify:gamify, qeegApplied:qeegApplied };
+    }
+  };
+})();
+
+</script>
+<script>
+/* ===== AI Treatment 프로그램 — 처방·세션추적·진전·재평가 (rules 주도) — AdhdProgram ===== */
+(function(){
+  function getGM(){ return (window._ADHD_RULES && window._ADHD_RULES.game_module) || null; }
+  function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
+  function T(k,e){ return ko()?k:e; }
+
+  // ── 처방 계산: 심각도 → 분/일/주/세션 ──
+  function prescribe(intensity, opts){
+    var GM=getGM(); if(!GM||!GM.prescription) return null;
+    var lvl=(intensity&&intensity.intensity)||'moderate';
+    var base=GM.prescription.by_intensity[lvl]||GM.prescription.by_intensity.moderate;
+    var minutesPerDay = (opts&&opts.minutesPerDay)||base.minutesPerDay;
+    var daysPerWeek   = (opts&&opts.daysPerWeek)||base.daysPerWeek;
+    var weeks         = (opts&&opts.weeks)||base.weeks;
+    var totalSessions = daysPerWeek*weeks;
+    var totalMinutes  = totalSessions*minutesPerDay;
+    return { level:lvl, minutesPerDay:minutesPerDay, daysPerWeek:daysPerWeek, weeks:weeks,
+             totalSessions:totalSessions, totalMinutes:totalMinutes,
+             goalNote: ko()?base.goalNote_ko:base.goalNote_en };
+  }
+
+  // ── 기간 조절 → 세션수 재계산 ──
+  function recalc(current, changes){
+    return prescribe({intensity:current.level}, Object.assign({
+      minutesPerDay:current.minutesPerDay, daysPerWeek:current.daysPerWeek, weeks:current.weeks
+    }, changes||{}));
+  }
+
+  // ── 게임별 목표 ──
+  function goalFor(game){ var GM=getGM(); return GM&&GM.prescription&&GM.prescription.goals?GM.prescription.goals[game]:null; }
+
+  // ── 세션 결과 저장 ──
+  function saveSession(game, metrics, sessionNumber){
+    var GM=getGM(); var goal=goalFor(game);
+    var goalVal = goal&&metrics? metrics[goal.metric] : null;
+    var rec={ game:game, session_number:sessionNumber||null, game_metrics:metrics||{},
+              goal_metric: goal?goal.metric:null, goal_value:goalVal, timestamp:Date.now() };
+    try{
+      // 로컬 히스토리 (즉시 진전 표시용)
+      var key='_ADHD_SESSIONS_'+game;
+      var hist=[]; try{ hist=JSON.parse(sessionStorage.getItem(key)||'[]'); }catch(e){}
+      hist.push(rec); try{ sessionStorage.setItem(key, JSON.stringify(hist)); }catch(e){}
+      window._ADHD_LAST_SESSION=rec;
+      // DB 저장 (있으면)
+      var db=window.ADHD_DB, s=window.ADHD_SESSION||{}, cid=s.self_client_id||null;
+      try{ var u=new URLSearchParams(location.search).get('cid'); if(u)cid=u; }catch(e){}
+      if(db&&db.saveQeegResult&&cid){ db.saveQeegResult({ client_id:cid, dept:'adhd', framework:'game_v1',
+        source_meta:{source:'game', game:game, session:sessionNumber}, qeeg_data:{ game_metrics:metrics, goal:rec.goal_metric, goal_value:goalVal } }).catch(function(){}); }
+    }catch(e){}
+    return rec;
+  }
+
+  // ── 진전 계산 (baseline 대비) ──
+  function progress(game){
+    var key='_ADHD_SESSIONS_'+game; var hist=[];
+    try{ hist=JSON.parse(sessionStorage.getItem(key)||'[]'); }catch(e){}
+    if(hist.length<1) return null;
+    var goal=goalFor(game); if(!goal) return { sessions:hist.length };
+    var vals=hist.map(function(h){ return h.goal_value; }).filter(function(v){ return v!=null; });
+    if(!vals.length) return { sessions:hist.length };
+    var first=vals[0], last=vals[vals.length-1];
+    var improved = goal.direction==='higher' ? (last-first) : (first-last);
+    var reachedGoal = goal.direction==='higher' ? (last>=goal.target) : (last<=goal.target);
+    return { sessions:hist.length, first:first, last:last, improvement:Math.round(improved*10)/10,
+             target:goal.target, unit:goal.unit, reachedGoal:reachedGoal,
+             metricKo:goal.ko, metricEn:goal.en, direction:goal.direction, history:vals };
+  }
+
+  window.AdhdProgram = { prescribe:prescribe, recalc:recalc, goalFor:goalFor, saveSession:saveSession, progress:progress };
+})();
+
+</script>
+<script>
+/* ===== AI Treatment 진전 시각화 (Chart.js) — AdhdViz ===== */
+(function(){
+  function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
+  function T(k,e){ return ko()?k:e; }
+  function getGM(){ return (window._ADHD_RULES && window._ADHD_RULES.game_module) || null; }
+  var _charts={};
+  function destroy(id){ if(_charts[id]){ try{_charts[id].destroy();}catch(e){} delete _charts[id]; } }
+  function axisColor(ax){ var GM=getGM(); return (GM&&GM.axes[ax]&&GM.axes[ax].color)||'#5E35B1'; }
+
+  // ── ① 세션별 진전 라인 (게임 목표지표 추이 + 목표선) ──
+  function progressLine(canvasId, game){
+    if(!window.Chart) return;
+    var P=window.AdhdProgram; var prog=P&&P.progress?P.progress(game):null;
+    if(!prog||!prog.history||!prog.history.length) return false;
+    destroy(canvasId); var ctx=document.getElementById(canvasId); if(!ctx) return false;
+    var labels=prog.history.map(function(_,i){ return (ko()?'세션 ':'S')+(i+1); });
+    var target=prog.target;
+    _charts[canvasId]=new Chart(ctx,{ type:'line',
+      data:{ labels:labels, datasets:[
+        { label: ko()?prog.metricKo:prog.metricEn, data:prog.history, borderColor:'#5E35B1', backgroundColor:'rgba(94,53,177,.12)', fill:true, tension:.3, pointRadius:4, pointBackgroundColor:'#5E35B1' },
+        { label: T('목표','Target'), data:prog.history.map(function(){return target;}), borderColor:'#22C55E', borderDash:[6,4], pointRadius:0, fill:false }
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ font:{size:11} } } },
+        scales:{ y:{ beginAtZero:true, suggestedMax: prog.direction==='higher'?Math.max(100,target*1.1):Math.max.apply(null,prog.history)*1.2 } } }
+    });
+    return true;
+  }
+
+  // ── ② 영역별(축) 성취 바 그래프 ──
+  // achievements: {axis: percentToGoal} — 각 축 목표 대비 성취율
+  function axisBars(canvasId, achievements){
+    if(!window.Chart) return; var GM=getGM(); if(!GM) return false;
+    destroy(canvasId); var ctx=document.getElementById(canvasId); if(!ctx) return false;
+    var axes=Object.keys(achievements||{}); if(!axes.length) return false;
+    _charts[canvasId]=new Chart(ctx,{ type:'bar',
+      data:{ labels: axes.map(function(a){ return ko()?GM.axes[a].ko:GM.axes[a].en; }),
+        datasets:[{ label:T('성취율','Achievement'), data:axes.map(function(a){return achievements[a];}),
+          backgroundColor: axes.map(function(a){return axisColor(a);}), borderRadius:6 }] },
+      options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} },
+        scales:{ x:{ beginAtZero:true, max:100, ticks:{ callback:function(v){return v+'%';} } } } }
+    });
+    return true;
+  }
+
+  // ── ③ 프로그램 진행 게이지 (완료/총 세션) ──
+  function programGauge(canvasId, completed, total){
+    if(!window.Chart) return; destroy(canvasId); var ctx=document.getElementById(canvasId); if(!ctx) return false;
+    var pct=total?Math.round(completed/total*100):0;
+    _charts[canvasId]=new Chart(ctx,{ type:'doughnut',
+      data:{ labels:[T('완료','Done'),T('남음','Left')], datasets:[{ data:[completed, Math.max(0,total-completed)],
+        backgroundColor:['#5E35B1','#EEF2F4'], borderWidth:0 }] },
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'72%', plugins:{ legend:{display:false},
+        tooltip:{enabled:true} } }
+    });
+    return pct;
+  }
+
+  // ── ④ 게임별 목표 달성 도넛 (현재/목표) ──
+  function goalDonut(canvasId, game){
+    if(!window.Chart) return; var P=window.AdhdProgram; var prog=P&&P.progress?P.progress(game):null;
+    if(!prog||prog.last==null) return false;
+    destroy(canvasId); var ctx=document.getElementById(canvasId); if(!ctx) return false;
+    var cur=prog.last, tgt=prog.target;
+    var pct = prog.direction==='higher' ? Math.min(100,Math.round(cur/tgt*100)) : Math.min(100,Math.round(tgt/Math.max(cur,1)*100));
+    _charts[canvasId]=new Chart(ctx,{ type:'doughnut',
+      data:{ datasets:[{ data:[pct, 100-pct], backgroundColor:[prog.reachedGoal?'#22C55E':'#5E35B1','#EEF2F4'], borderWidth:0 }] },
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{display:false}} }
+    });
+    return { pct:pct, reached:prog.reachedGoal };
+  }
+
+  // ── 통합 대시보드 렌더 (한 번에 다 그림) ──
+  function renderDashboard(host, opts){
+    // opts: {games:[game...], prescription:{completed,total}, achievements:{axis:pct}}
+    var GM=getGM(); if(!GM){ return; }
+    var games=(opts&&opts.games)||[];
+    var h='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:16px;padding:20px;margin-top:16px">'+
+      '<div style="font-weight:800;color:#5E35B1;font-size:1.15em;margin-bottom:16px">📈 '+T('진전 대시보드','Progress Dashboard')+'</div>';
+
+    // 프로그램 진행 게이지
+    if(opts&&opts.prescription){
+      h+='<div style="display:flex;gap:16px;align-items:center;margin-bottom:20px;flex-wrap:wrap">'+
+        '<div style="position:relative;width:120px;height:120px"><canvas id="viz-gauge"></canvas>'+
+        '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div id="viz-gauge-pct" style="font-size:1.5rem;font-weight:900;color:#5E35B1">0%</div><div style="font-size:11px;color:#8FA9BC">'+T('진행','Progress')+'</div></div></div>'+
+        '<div style="flex:1;min-width:160px"><div style="font-size:13px;color:#4A6472">'+T('전체 세션','Total sessions')+'</div>'+
+        '<div style="font-size:1.3rem;font-weight:800;color:#3A5566">'+(opts.prescription.completed||0)+' / '+(opts.prescription.total||0)+'</div></div></div>';
+    }
+
+    // 영역별 성취 바
+    if(opts&&opts.achievements&&Object.keys(opts.achievements).length){
+      h+='<div style="margin-bottom:20px"><div style="font-weight:700;color:#3A5566;margin-bottom:8px;font-size:14px">'+T('영역별 목표 성취','Goal achievement by area')+'</div><div style="height:'+(Object.keys(opts.achievements).length*44+20)+'px"><canvas id="viz-axisbars"></canvas></div></div>';
+    }
+
+    // 게임별 진전 라인 + 도넛
+    games.forEach(function(game){
+      var g=GM.games[game]; if(!g) return;
+      h+='<div style="border-top:1px solid #EEF2F4;padding-top:14px;margin-top:14px">'+
+        '<div style="font-weight:700;color:#3A5566;font-size:14px;margin-bottom:8px">'+(ko()?g.ko:g.en)+'</div>'+
+        '<div style="display:flex;gap:14px;flex-wrap:wrap"><div style="flex:2;min-width:220px;height:180px"><canvas id="viz-line-'+game+'"></canvas></div>'+
+        '<div style="flex:1;min-width:120px;position:relative;height:180px"><canvas id="viz-donut-'+game+'"></canvas>'+
+        '<div id="viz-donut-lbl-'+game+'" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none"></div></div></div></div>';
+    });
+    h+='</div>';
+    host.insertAdjacentHTML('beforeend', h);
+
+    // 차트 그리기 (DOM 후)
+    setTimeout(function(){
+      if(opts&&opts.prescription){ var pct=programGauge('viz-gauge', opts.prescription.completed||0, opts.prescription.total||0); var el=document.getElementById('viz-gauge-pct'); if(el)el.textContent=pct+'%'; }
+      if(opts&&opts.achievements) axisBars('viz-axisbars', opts.achievements);
+      games.forEach(function(game){
+        progressLine('viz-line-'+game, game);
+        var d=goalDonut('viz-donut-'+game, game);
+        var lbl=document.getElementById('viz-donut-lbl-'+game);
+        if(lbl&&d){ lbl.innerHTML='<div style="font-size:1.4rem;font-weight:900;color:'+(d.reached?'#22C55E':'#5E35B1')+'">'+d.pct+'%</div><div style="font-size:10px;color:#8FA9BC">'+(d.reached?T('달성','Reached'):T('목표까지','To goal'))+'</div>'; }
+      });
+    }, 80);
+  }
+
+  window.AdhdViz = { progressLine:progressLine, axisBars:axisBars, programGauge:programGauge, goalDonut:goalDonut, renderDashboard:renderDashboard };
+})();
+
+</script>
+<script>
+/* ===== AI Treatment UI — 연령→3레이어→QEEG→처방→게임→진전 (rules 주도) — AdhdTreatment ===== */
+(function(){
+  function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
+  function T(k,e){ return ko()?k:e; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function $(id){ return document.getElementById(id); }
+  var GM=null, STATE={ age:null, L1:null, L2:null, L3:null, match:null, prescription:null };
+
+  async function loadGM(){
+    if(GM) return GM;
+    var R=window._ADHD_RULES;
+    if(!R){ try{ if(window.AdhdEngine&&AdhdEngine.load) R=await AdhdEngine.load(); else { var r=await fetch('adhd-engine/rules/adhd_rules.json'); R=await r.json(); window._ADHD_RULES=R; } }catch(e){} }
+    GM=(R&&R.game_module)||null; return GM;
+  }
+
+  function surveyKey(layer, age){
+    if(layer==='L1') return age==='child'?'diagnostic_child':'diagnostic_adult';
+    if(layer==='L2') return age==='child'?'matching_child':'matching_adult';
+    if(layer==='L3') return age==='child'?'engagement_child':'engagement_adult';
+  }
+
+  // ── 연령 선택 화면 ──
+  function renderAgeSelect(){
+    var host=$('trt-survey'); if(!host) return;
+    host.innerHTML='<div style="font-size:14px;color:#4A6472;margin-bottom:16px">'+T('먼저 연령을 선택하세요. 아동과 성인은 설문 문항과 표현이 다릅니다.','Select age first. Child and adult use different survey wording.')+'</div>'+
+      '<div style="display:flex;gap:12px;flex-wrap:wrap">'+
+      '<button data-age="child" class="trt-age" style="flex:1;min-width:140px;padding:22px;border:2px solid #CAD6DE;border-radius:14px;background:#fff;cursor:pointer;font-family:inherit"><div style="font-size:2rem">🧒</div><div style="font-weight:800;color:#3A5566;margin-top:6px">'+T('아동 6–12세','Child 6–12')+'</div><div style="font-size:12px;color:#8FA9BC">'+T('보호자가 응답','Caregiver reports')+'</div></button>'+
+      '<button data-age="adult" class="trt-age" style="flex:1;min-width:140px;padding:22px;border:2px solid #CAD6DE;border-radius:14px;background:#fff;cursor:pointer;font-family:inherit"><div style="font-size:2rem">🧑</div><div style="font-weight:800;color:#3A5566;margin-top:6px">'+T('청소년·성인 12+','Adol./Adult 12+')+'</div><div style="font-size:12px;color:#8FA9BC">'+T('본인이 응답','Self report')+'</div></button>'+
+      '</div>';
+    host.querySelectorAll('.trt-age').forEach(function(b){ b.onclick=function(){ STATE.age=b.getAttribute('data-age'); renderLayer('L1'); }; });
+    $('trt-result').innerHTML='';
+  }
+
+  // ── 레이어 설문 렌더 (진행 표시) ──
+  function renderLayer(layer){
+    var host=$('trt-survey'); var sv=GM.surveys[surveyKey(layer,STATE.age)];
+    var titles={ L1:T('1단계 · 진단','Step 1 · Diagnostic'), L2:T('2단계 · 게임 매칭','Step 2 · Game Matching'), L3:T('3단계 · 참여 스타일','Step 3 · Engagement') };
+    var stepNum={L1:1,L2:2,L3:3}[layer];
+    var h='<div style="display:flex;gap:6px;margin-bottom:14px">'+[1,2,3].map(function(n){ return '<div style="flex:1;height:6px;border-radius:3px;background:'+(n<=stepNum?'#5E35B1':'#EEF2F4')+'"></div>'; }).join('')+'</div>';
+    h+='<div style="font-weight:800;color:#5E35B1;font-size:1.05em;margin-bottom:4px">'+titles[layer]+'</div>';
+    h+='<div style="font-size:13px;color:#8FA9BC;margin-bottom:14px">'+esc(ko()?sv.title_ko:sv.title_en)+'</div>';
+    var labels=sv.scale.labels_ko, labelsEn=sv.scale.labels_en, maxv=sv.scale.max;
+    sv.items.forEach(function(q){
+      h+='<div style="padding:10px 0;border-bottom:1px solid #F1F2F4"><div style="font-size:14px;color:#3A5566;margin-bottom:6px">'+esc(ko()?q.ko:q.en)+'</div><div style="display:flex;gap:5px">';
+      for(var v=0;v<=maxv;v++){ h+='<label style="flex:1;text-align:center;cursor:pointer"><input type="radio" name="'+esc(q.id)+'" value="'+v+'" style="display:none"><span class="trt-opt" style="display:block;padding:7px 2px;border:1px solid #CAD6DE;border-radius:8px;font-weight:700;color:#5C6166;font-size:12px">'+v+'</span></label>'; }
+      h+='</div></div>';
+    });
+    h+='<button id="trt-next" style="margin-top:14px;padding:12px 22px;border:0;border-radius:10px;background:#5E35B1;color:#fff;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit">'+
+      (layer==='L3'?T('QEEG 옵션으로 →','To QEEG option →'):T('다음 단계 →','Next step →'))+'</button>';
+    host.innerHTML=h;
+    host.querySelectorAll('input[type=radio]').forEach(function(r){ r.addEventListener('change', function(){ host.querySelectorAll('input[name="'+r.name+'"]').forEach(function(x){ var sp=x.nextElementSibling; sp.style.background=x.checked?'#5E35B1':'#fff'; sp.style.color=x.checked?'#fff':'#5C6166'; sp.style.borderColor=x.checked?'#5E35B1':'#CAD6DE'; }); }); });
+    $('trt-next').onclick=function(){ scoreLayer(layer, sv); };
+  }
+
+  // ── 레이어 채점 ──
+  function scoreLayer(layer, sv){
+    var host=$('trt-survey');
+    if(layer==='L1'){
+      var ia=0,hi=0,cnt=0;
+      sv.items.forEach(function(q){ var s=host.querySelector('input[name="'+q.id+'"]:checked'); if(s){ cnt++; var v=+s.value; var pos=v>=sv.scale.positive_threshold; if(pos){ if(q.subscale==='inattention')ia++; else hi++; } } });
+      if(cnt<Math.ceil(sv.items.length*0.7)){ alert(T('문항 대부분에 응답해 주세요.','Please answer most items.')); return; }
+      var positive = ia>=sv.scoring.inattention_threshold || hi>=sv.scoring.hyperactivity_threshold;
+      STATE.L1={ positive:positive, inattention:ia, hyperactivity:hi, symptomCount:ia+hi };
+      renderLayer('L2');
+    } else if(layer==='L2'){
+      var scores={}, counts={};
+      Object.keys(GM.axes).forEach(function(a){ scores[a]=0; counts[a]=0; });
+      var ans=0;
+      sv.items.forEach(function(q){ var s=host.querySelector('input[name="'+q.id+'"]:checked'); if(s){ ans++; var v=+s.value; if(q.reverse)v=sv.scale.max-v; scores[q.axis]=(scores[q.axis]||0)+v; counts[q.axis]=(counts[q.axis]||0)+1; } });
+      if(ans<Math.ceil(sv.items.length*0.7)){ alert(T('문항 대부분에 응답해 주세요.','Please answer most items.')); return; }
+      var norm={}; Object.keys(scores).forEach(function(a){ norm[a]=counts[a]?Math.round(scores[a]/(counts[a]*sv.scale.max)*100):0; });
+      STATE.L2=norm; renderLayer('L3');
+    } else if(layer==='L3'){
+      var dims={}, dcnt={};
+      sv.items.forEach(function(q){ var s=host.querySelector('input[name="'+q.id+'"]:checked'); if(s){ var v=+s.value; var dim=q.dimension;
+        // reward_style는 compete/calm 분리
+        if(dim==='reward_style'){ var sub=q.id==='e_calm'?'reward_style_calm':'reward_style_compete'; dims[sub]=v; }
+        else { dims[dim]=(dims[dim]||0)+v; dcnt[dim]=(dcnt[dim]||0)+1; }
+      } });
+      Object.keys(dcnt).forEach(function(d){ dims[d]=Math.round(dims[d]/dcnt[d]); });
+      STATE.L3=dims; renderQeegOption();
+    }
+  }
+
+  // ── QEEG 옵션 ──
+  function renderQeegOption(){
+    var host=$('trt-survey');
+    var hasQeeg = window.state && state.objectiveData && Object.keys(state.objectiveData).length;
+    host.innerHTML='<div style="display:flex;gap:6px;margin-bottom:14px">'+[1,2,3].map(function(){return '<div style="flex:1;height:6px;border-radius:3px;background:#5E35B1"></div>';}).join('')+'</div>'+
+      '<div style="font-weight:800;color:#5E35B1;font-size:1.05em;margin-bottom:10px">🧠 '+T('QEEG 옵션 (선택)','QEEG Option')+'</div>'+
+      '<div style="background:'+(hasQeeg?'#F0FDF4':'#F5FAFE')+';border:1px '+(hasQeeg?'solid #86EFAC':'dashed #8AA5B5')+';border-radius:12px;padding:16px;font-size:13px;color:#4A6472;margin-bottom:14px">'+
+      (hasQeeg? '✅ '+T('QEEG 측정값이 있습니다. 매칭에 반영됩니다 (theta/beta @ Cz → 주의·각성 축 보정).','QEEG measures found. Will be applied (theta/beta @ Cz → attention/arousal).')
+              : '💡 '+T('QEEG 없이 설문만으로 매칭합니다. QEEG 탭에서 측정하면 정밀도가 높아집니다. FDA/AAN 근거상 보조 지표로만 사용됩니다.','Matching from survey only. Measure in QEEG tab for higher precision. Used adjunctively per FDA/AAN.'))+'</div>'+
+      '<button id="trt-tomatch" style="padding:12px 22px;border:0;border-radius:10px;background:#5E35B1;color:#fff;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit">'+T('매칭 결과 보기 →','See matching →')+'</button>'+
+      (!hasQeeg?' <button id="trt-goqeeg" style="padding:12px 18px;border:1px solid #CAD6DE;border-radius:10px;background:#fff;color:#5B7B94;font-weight:700;cursor:pointer;font-family:inherit">'+T('QEEG 측정하러 가기','Go measure QEEG')+'</button>':'');
+    $('trt-tomatch').onclick=runMatch;
+    var gq=$('trt-goqeeg'); if(gq) gq.onclick=function(){ if(typeof switchSymptomTab==='function') switchSymptomTab('s-meas'); };
+  }
+
+  // ── 매칭 실행 → 보고서 + 처방 + 게임 ──
+  function runMatch(){
+    var qeeg = (window.state&&state.objectiveData)||{};
+    var m = window.AdhdMatcher.run({ L1:STATE.L1, L2:STATE.L2, L3:STATE.L3, qeeg:qeeg });
+    STATE.match=m;
+    var rx = window.AdhdProgram.prescribe(m.intensity);
+    STATE.prescription=rx;
+    var host=$('trt-result');
+    host.innerHTML = renderReport(m, rx) + renderPrescription(rx) + renderGames(m) + '<div id="trt-game-area" style="margin-top:16px"></div><div id="trt-dash"></div>';
+    wireGameButtons(m);
+    $('trt-survey').innerHTML='<button id="trt-restart" style="padding:10px 18px;border:1px solid #CAD6DE;border-radius:9px;background:#fff;color:#5B7B94;font-weight:700;cursor:pointer;font-family:inherit">↻ '+T('다시 평가 (재설문/재측정)','Reassess (redo survey)')+'</button>';
+    $('trt-restart').onclick=function(){ STATE={age:null,L1:null,L2:null,L3:null,match:null,prescription:null}; renderAgeSelect(); };
+  }
+
+  function renderReport(m, rx){
+    var A=GM.axes, top=m.ranked[0];
+    var h='<div id="trt-report">';
+    h+='<div style="background:linear-gradient(135deg,#5E35B1,#7C3AED);color:#fff;border-radius:16px;padding:20px 22px;margin-bottom:16px">'+
+      '<div style="font-size:12px;opacity:.85;font-weight:700">🎯 '+T('AI 게임 매칭 · 3레이어 분석','AI GAME MATCHING · 3-layer')+'</div>'+
+      '<div style="font-size:1.35rem;font-weight:900;margin-top:4px">'+T('주요 훈련 타겟: ','Primary target: ')+esc(ko()?A[top].ko:A[top].en)+'</div>'+
+      '<div style="font-size:13px;opacity:.92;margin-top:4px">'+T('진단·조절축·참여 스타일'+(m.qeegApplied.length?'·QEEG':'')+'을 종합해 매칭했습니다.','Matched across diagnostic, axis, engagement'+(m.qeegApplied.length?', QEEG':'')+'.')+'</div></div>';
+    // 진단 요약
+    if(STATE.L1) h+='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:12px;padding:14px 16px;margin-bottom:12px;font-size:13px;color:#4A6472"><b style="color:#3A5566">'+T('진단 스크리닝','Diagnostic')+':</b> '+
+      (STATE.L1.positive?('<span style="color:#C2410C;font-weight:700">'+T('양성 스크린','Positive screen')+'</span>'):('<span style="color:#059669;font-weight:700">'+T('역치 미만','Below threshold')+'</span>'))+
+      ' · '+T('부주의','Inatt')+' '+STATE.L1.inattention+'/9, '+T('과잉/충동','Hyper/Imp')+' '+STATE.L1.hyperactivity+'/9</div>';
+    // 축 바
+    h+='<div style="background:#fff;border:1px solid #CAD6DE;border-radius:14px;padding:16px 18px;margin-bottom:12px"><div style="font-weight:800;color:#3A5566;margin-bottom:10px">'+T('조절축 훈련 필요도','Training need by axis')+(m.qeegApplied.length?' <span style="font-size:11px;color:#10B981">(QEEG '+T('반영','adj')+': '+esc(m.qeegApplied.join(','))+')</span>':'')+'</div>'+
+      m.ranked.map(function(ax){ var v=m.axisScores[ax], c=A[ax].color; return '<div style="margin:8px 0"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><b style="color:#3A5566">'+esc(ko()?A[ax].ko:A[ax].en)+'</b><b style="color:'+c+'">'+v+'</b></div><div style="height:14px;background:#EEF2F4;border-radius:6px;overflow:hidden"><div style="height:100%;width:'+v+'%;background:'+c+';border-radius:6px"></div></div></div>'; }).join('')+'</div>';
+    // 참여 스타일
+    if(m.gamify) h+='<div style="background:#F5FAFE;border:1px solid #BDD7E7;border-radius:12px;padding:12px 16px;margin-bottom:12px;font-size:13px;color:#4A6472"><b style="color:#3A5566">'+T('참여 스타일','Engagement')+':</b> '+
+      (m.gamify.gamified==='competitive'?T('경쟁형 (점수·순위)','Competitive (score/rank)'):m.gamify.gamified==='calm'?T('차분형 (조용한 훈련)','Calm (quiet)'):T('균형형','Balanced'))+
+      (m.gamify.allowChoice?' · '+T('선택 자유','free choice'):'')+(m.gamify.adaptiveDifficulty?' · '+T('적응 난이도','adaptive'):'')+'</div>';
+    h+='</div>';
+    return h;
+  }
+
+  function renderPrescription(rx){
+    if(!rx) return '';
+    return '<div style="background:#fff;border:2px solid #5E35B1;border-radius:14px;padding:18px;margin-bottom:14px">'+
+      '<div style="font-weight:800;color:#5E35B1;font-size:1.05em;margin-bottom:10px">💊 '+T('훈련 처방','Training Prescription')+'</div>'+
+      '<div style="display:flex;gap:14px;flex-wrap:wrap;text-align:center">'+
+      [[rx.minutesPerDay, T('분/일','min/day')],[rx.daysPerWeek, T('일/주','days/wk')],[rx.weeks, T('주','weeks')],[rx.totalSessions, T('총 세션','sessions')]].map(function(p){
+        return '<div style="flex:1;min-width:70px;background:#F5F3FB;border-radius:10px;padding:12px 6px"><div style="font-size:1.5rem;font-weight:900;color:#5E35B1">'+p[0]+'</div><div style="font-size:11px;color:#8FA9BC">'+p[1]+'</div></div>';
+      }).join('')+'</div>'+
+      '<div style="font-size:12.5px;color:#8FA9BC;margin-top:10px">'+esc(rx.goalNote)+'. '+T('기간을 조절하면 총 세션이 재계산됩니다:','Adjust duration to recalc:')+'</div>'+
+      '<div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><label style="font-size:13px;color:#4A6472">'+T('기간(주)','Weeks')+': </label><input id="rx-weeks" type="number" min="1" max="24" value="'+rx.weeks+'" style="width:64px;padding:6px;border:1px solid #CAD6DE;border-radius:8px;font-family:inherit"> <button id="rx-apply" style="padding:6px 14px;border:0;border-radius:8px;background:#5B7B94;color:#fff;font-weight:700;cursor:pointer;font-family:inherit">'+T('재계산','Recalc')+'</button> <span id="rx-out" style="font-size:13px;color:#5E35B1;font-weight:700"></span></div></div>';
+  }
+
+  function renderGames(m){
+    var A=GM.axes;
+    var h='<div style="font-weight:800;color:#3A5566;font-size:1.1em;margin:18px 0 10px">🎮 '+T('추천 게임 (순서대로 하거나 자유 선택)','Recommended (in order or free choice)')+'</div>';
+    // 우선 3개
+    m.picks.forEach(function(pk,i){
+      var g=GM.games[pk.game], c=A[pk.axis].color;
+      h+='<div style="border:1px solid #CAD6DE;border-left:5px solid '+c+';border-radius:12px;padding:14px 16px;margin-bottom:10px;background:#fff">'+
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div style="font-weight:800;color:#3A5566">'+(i+1)+'. '+esc(ko()?g.ko:g.en)+'</div>'+
+        '<span style="background:'+c+'22;color:'+c+';padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700">'+esc(ko()?A[pk.axis].ko:A[pk.axis].en)+'</span></div>'+
+        '<div style="font-size:12.5px;color:#4A6472;line-height:1.5;margin:5px 0">'+esc(ko()?g.descKo:g.descEn)+'</div>'+
+        '<div style="font-size:11px;color:#8FA9BC;margin-bottom:8px">'+esc(pk.why)+'</div>'+
+        '<button class="trt-play" data-engine="'+esc(pk.engine)+'" data-game="'+esc(pk.game)+'" data-params=\''+JSON.stringify(pk.tuned).replace(/'/g,"&#39;")+'\' style="padding:8px 16px;border:0;border-radius:9px;background:'+c+';color:#fff;font-weight:700;cursor:pointer;font-family:inherit">▶ '+T('시작','Start')+'</button></div>';
+    });
+    // 전체 리스트 (자유 선택)
+    h+='<details style="margin-top:10px"><summary style="cursor:pointer;color:#5B7B94;font-weight:700;font-size:13px">'+T('전체 게임 목록 (자유 선택)','All games (free choice)')+'</summary><div style="margin-top:8px">';
+    m.all.forEach(function(x){ var g=GM.games[x.game], c=A[x.axis]?A[x.axis].color:'#5E35B1';
+      h+='<div style="display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid #F1F2F4"><span style="flex:1;font-size:13px;color:#3A5566">'+esc(ko()?g.ko:g.en)+'</span><button class="trt-play" data-engine="'+esc(x.engine)+'" data-game="'+esc(x.game)+'" data-params=\''+JSON.stringify(x.tuned).replace(/'/g,"&#39;")+'\' style="padding:5px 12px;border:1px solid '+c+';border-radius:7px;background:#fff;color:'+c+';font-weight:700;cursor:pointer;font-size:12px;font-family:inherit">▶ '+T('시작','Start')+'</button></div>';
+    });
+    h+='</div></details>';
+    return h;
+  }
+
+  var _sessionCounts={};
+  function wireGameButtons(m){
+    // 처방 재계산
+    var applyBtn=$('rx-apply');
+    if(applyBtn) applyBtn.onclick=function(){ var w=parseInt($('rx-weeks').value,10)||STATE.prescription.weeks; var rx2=window.AdhdProgram.recalc(STATE.prescription,{weeks:w}); STATE.prescription=rx2; $('rx-out').textContent='→ '+T('총 ','')+rx2.totalSessions+T(' 세션',' sessions'); };
+    // 게임 시작
+    document.querySelectorAll('.trt-play').forEach(function(b){ b.addEventListener('click', function(){
+      var game=b.getAttribute('data-game'), pr={};
+      try{ pr=JSON.parse(b.getAttribute('data-params')); }catch(e){}
+      playGame(game, pr);
+    }); });
+  }
+
+  function playGame(game, params){
+    var host=$('trt-game-area'); if(!host) return;
+    host.scrollIntoView({behavior:'smooth'});
+    var gameDef = GM.games[game];
+    if(!gameDef || !(window.AdhdGames&&window.AdhdGames.play)){ host.innerHTML='<div style="padding:20px;color:#C2410C">'+T('게임 로딩 실패','Game load failed')+': '+esc(game)+'</div>'; return; }
+    window.AdhdGames.play(game, host, gameDef, params||{});
+    // 게임 완료 감지: _ADHD_GAME_LAST 폴링
+    var before = window._ADHD_GAME_LAST && window._ADHD_GAME_LAST.ts;
+    var poll=setInterval(function(){
+      var last=window._ADHD_GAME_LAST;
+      if(last && last.ts!==before && last.game===game){
+        clearInterval(poll);
+        _sessionCounts[game]=(_sessionCounts[game]||0)+1;
+        window.AdhdProgram.saveSession(game, last.metrics, _sessionCounts[game]);
+        renderDashboard(game);
+      }
+    }, 500);
+    setTimeout(function(){ clearInterval(poll); }, 600000);
+  }
+
+  function renderDashboard(lastGame){
+    var dash=$('trt-dash'); if(!dash) return;
+    dash.innerHTML='';
+    var playedGames=Object.keys(_sessionCounts);
+    // 영역별 성취
+    var achievements={};
+    playedGames.forEach(function(g){ var prog=window.AdhdProgram.progress(g); if(prog&&prog.last!=null){ var ax=GM.games[g].axis;
+      var pct = prog.direction==='higher'?Math.min(100,Math.round(prog.last/prog.target*100)):Math.min(100,Math.round(prog.target/Math.max(prog.last,1)*100)); achievements[ax]=Math.max(achievements[ax]||0,pct); } });
+    var totalDone=Object.keys(_sessionCounts).reduce(function(a,g){return a+_sessionCounts[g];},0);
+    window.AdhdViz.renderDashboard(dash, {
+      games: playedGames,
+      prescription: STATE.prescription?{ completed:totalDone, total:STATE.prescription.totalSessions }:null,
+      achievements: achievements
+    });
+  }
+
+  window.AdhdTreatment = {
+    init: async function(){ await loadGM(); if(!GM){ var h=$('trt-survey'); if(h)h.innerHTML='<div style="color:#C2410C;padding:14px">game_module '+T('로드 실패','load failed')+'</div>'; return; } renderAgeSelect(); }
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    document.addEventListener('click', function(ev){ var b=ev.target&&ev.target.closest&&ev.target.closest('.rpt-tabbar button[data-t="s-trt"]'); if(b) setTimeout(function(){ var h=$('trt-survey'); if(h&&!h.getAttribute('data-init')){ h.setAttribute('data-init','1'); AdhdTreatment.init(); } },60); });
+  });
 })();
 
 </script>

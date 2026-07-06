@@ -2027,5 +2027,1543 @@
         "Johnstone SJ et al. (2013). ERP meta-analysis in ADHD."
       ]
     }
+  },
+  "game_module": {
+    "meta": {
+      "version": "1.0",
+      "symptom": "ADHD",
+      "note": "게임 매칭 엔진 정본. 증상별로 이 섹션만 교체하면 다른 증상 치료훈련이 됨."
+    },
+    "axes": {
+      "arousal": {
+        "ko": "피질 각성",
+        "en": "Cortical Arousal",
+        "color": "#E8833C",
+        "basis": "Sergeant Cognitive-Energetic; Barry arousal-EEG; Monastra theta/beta. 과각성↔저각성 양방향.",
+        "ref": [
+          "sergeant",
+          "neba_fda"
+        ]
+      },
+      "attention": {
+        "ko": "주의 용량",
+        "en": "Attention Capacity",
+        "color": "#3B82F6",
+        "basis": "Posner attention networks; Sergeant sustained attention; Lubar theta/beta ratio.",
+        "ref": [
+          "sergeant",
+          "snyder"
+        ]
+      },
+      "impulseControl": {
+        "ko": "충동 조절",
+        "en": "Impulse Control",
+        "color": "#8B5CF6",
+        "basis": "Barkley response inhibition; prefrontal no-go; Go/No-Go & Stroop paradigms.",
+        "ref": [
+          "barkley"
+        ]
+      },
+      "autonomic": {
+        "ko": "자율신경",
+        "en": "Autonomic Balance",
+        "color": "#10B981",
+        "basis": "Thayer neurovisceral integration; HRV; Porges polyvagal. 자율신경 균형.",
+        "ref": [
+          "thayer"
+        ]
+      },
+      "emotional": {
+        "ko": "정서 안정",
+        "en": "Emotional Stability",
+        "color": "#EC4899",
+        "basis": "Shaw 2014 emotional dysregulation in ADHD; amygdala-prefrontal regulation.",
+        "ref": [
+          "shaw"
+        ]
+      }
+    },
+    "survey": [
+      {
+        "id": "g_focus",
+        "axis": "attention",
+        "ko": "긴 과제에 집중을 유지하기가 어렵다",
+        "en": "Hard to sustain focus on long tasks",
+        "basis": "Sustained attention (Sergeant); vigilance decrement"
+      },
+      {
+        "id": "g_distract",
+        "axis": "attention",
+        "ko": "주변 자극에 쉽게 주의가 흐트러진다",
+        "en": "Easily distracted by surroundings",
+        "basis": "Selective attention; distractibility (Posner)"
+      },
+      {
+        "id": "g_impulse",
+        "axis": "impulseControl",
+        "ko": "생각하기 전에 반응·행동한다",
+        "en": "React/act before thinking",
+        "basis": "Response inhibition (Barkley); prefrontal no-go"
+      },
+      {
+        "id": "g_restless",
+        "axis": "arousal",
+        "ko": "안절부절 못하고 가만히 있기 힘들다 (과각성)",
+        "en": "Restless, hard to stay still (over-arousal)",
+        "basis": "Over-arousal; hyperactivity (Sergeant energetic pool)"
+      },
+      {
+        "id": "g_sluggish",
+        "axis": "arousal",
+        "ko": "멍하고 처지며 각성이 낮다 (저각성)",
+        "en": "Foggy, sluggish, low arousal",
+        "reverse": true,
+        "basis": "Under-arousal; sluggish cognitive tempo (Barkley SCT)"
+      },
+      {
+        "id": "g_stress",
+        "axis": "autonomic",
+        "ko": "긴장·스트레스가 몸에 자주 나타난다",
+        "en": "Tension/stress shows up physically",
+        "basis": "Autonomic dysregulation; HRV (Thayer neurovisceral)"
+      },
+      {
+        "id": "g_emotion",
+        "axis": "emotional",
+        "ko": "감정이 쉽게 올라오고 조절이 어렵다",
+        "en": "Emotions spike, hard to regulate",
+        "basis": "Emotional dysregulation in ADHD (Shaw 2014)"
+      }
+    ],
+    "games": {
+      "gonogo": {
+        "ko": "Go / No-Go",
+        "en": "Go / No-Go",
+        "axis": "impulseControl",
+        "engine": "react_inhibit",
+        "descKo": "초록엔 빠르게, 빨강엔 참기. 충동 억제(전전두 no-go) 직접 훈련.",
+        "descEn": "Fast on green, hold on red. Trains impulse inhibition.",
+        "params": {
+          "trials": 30,
+          "nogoRate": 0.3,
+          "speed": 1200,
+          "goStim": {
+            "kind": "circle",
+            "color": "#22C55E"
+          },
+          "nogoStim": {
+            "kind": "square",
+            "color": "#EF4444"
+          }
+        }
+      },
+      "gonogo_letter": {
+        "ko": "글자 Go/No-Go",
+        "en": "Letter Go/No-Go",
+        "axis": "impulseControl",
+        "engine": "react_inhibit",
+        "descKo": "글자 자극 버전 — 시각 변별과 억제를 함께. 난이도 높음.",
+        "descEn": "Letter-stimulus version — visual discrimination + inhibition.",
+        "params": {
+          "trials": 30,
+          "nogoRate": 0.35,
+          "speed": 1100,
+          "goStim": {
+            "kind": "letter",
+            "val": "O",
+            "color": "#22C55E"
+          },
+          "nogoStim": {
+            "kind": "letter",
+            "val": "Q",
+            "color": "#EF4444"
+          },
+          "instrKo": "O는 클릭, Q는 참기!",
+          "instrEn": "Click O, hold on Q!"
+        }
+      },
+      "stroop": {
+        "ko": "스트룹 억제",
+        "en": "Stroop",
+        "axis": "impulseControl",
+        "engine": "choice_conflict",
+        "descKo": "글자 뜻이 아닌 색을 선택. 인지 통제·간섭 억제 훈련.",
+        "descEn": "Pick ink color, not word meaning. Cognitive control.",
+        "params": {
+          "trials": 24,
+          "incongruentRate": 0.6,
+          "variant": "stroop"
+        }
+      },
+      "simon_arrow": {
+        "ko": "사이먼 화살표",
+        "en": "Simon Arrows",
+        "axis": "impulseControl",
+        "engine": "choice_conflict",
+        "descKo": "위치 갈등 억제 — 화살표 방향으로만 반응, 위치는 무시.",
+        "descEn": "Respond to direction, ignore location. Conflict inhibition.",
+        "params": {
+          "trials": 24,
+          "incongruentRate": 0.55,
+          "variant": "flanker"
+        }
+      },
+      "cpt": {
+        "ko": "지속수행 (CPT-X)",
+        "en": "Sustained (CPT-X)",
+        "axis": "attention",
+        "engine": "detect_target",
+        "descKo": "X에만 반응. 지속주의·각성 유지 훈련의 표준.",
+        "descEn": "Respond only to X. Standard sustained-attention training.",
+        "params": {
+          "duration": 120,
+          "isi": 1500,
+          "targetRate": 0.2,
+          "mode": "X",
+          "target": "X"
+        }
+      },
+      "cpt_ax": {
+        "ko": "조건 수행 (CPT-AX)",
+        "en": "Conditional (CPT-AX)",
+        "axis": "attention",
+        "engine": "detect_target",
+        "descKo": "A 다음의 X에만 반응 — 맥락 기억+지속주의. 상급.",
+        "descEn": "Respond to X only after A — context memory + attention. Advanced.",
+        "params": {
+          "duration": 120,
+          "isi": 1400,
+          "targetRate": 0.25,
+          "mode": "AX",
+          "target": "X"
+        }
+      },
+      "flanker": {
+        "ko": "플랭커 주의",
+        "en": "Flanker",
+        "axis": "attention",
+        "engine": "choice_conflict",
+        "descKo": "가운데 화살표만 — 방해자극 무시하는 선택주의.",
+        "descEn": "Center arrow only — selective attention against distractors.",
+        "params": {
+          "trials": 24,
+          "incongruentRate": 0.5,
+          "variant": "flanker"
+        }
+      },
+      "nback1": {
+        "ko": "1-back 기억",
+        "en": "1-back Memory",
+        "axis": "attention",
+        "engine": "match_memory",
+        "descKo": "바로 전과 같으면 클릭 — 작업기억 입문.",
+        "descEn": "Click if same as previous — working memory entry.",
+        "params": {
+          "n": 1,
+          "trials": 20,
+          "speed": 2500
+        }
+      },
+      "nback2": {
+        "ko": "2-back 기억",
+        "en": "2-back Memory",
+        "axis": "attention",
+        "engine": "match_memory",
+        "descKo": "2개 전과 같으면 클릭 — 작업기억 상급.",
+        "descEn": "Click if same as 2 back — working memory advanced.",
+        "params": {
+          "n": 2,
+          "trials": 22,
+          "speed": 2600
+        }
+      },
+      "breath": {
+        "ko": "호흡 페이싱 (HRV)",
+        "en": "Breath Pacing",
+        "axis": "autonomic",
+        "engine": "pace_regulate",
+        "descKo": "6회/분 공명 호흡 — 자율신경 이완·HRV 훈련.",
+        "descEn": "~6/min resonance breathing — autonomic calm, HRV.",
+        "params": {
+          "inhale": 5,
+          "exhale": 5,
+          "cycles": 6
+        }
+      },
+      "breath_478": {
+        "ko": "4-7-8 이완 호흡",
+        "en": "4-7-8 Breathing",
+        "axis": "emotional",
+        "engine": "pace_regulate",
+        "descKo": "들숨4·멈춤7·날숨8 — 깊은 이완, 정서 안정 훈련.",
+        "descEn": "In 4, hold 7, out 8 — deep calm, emotional regulation.",
+        "params": {
+          "inhale": 4,
+          "holdIn": 7,
+          "exhale": 8,
+          "cycles": 4
+        }
+      }
+    },
+    "axis_game_map": {
+      "attention": [
+        "cpt",
+        "flanker",
+        "nback1",
+        "cpt_ax",
+        "nback2"
+      ],
+      "impulseControl": [
+        "gonogo",
+        "stroop",
+        "gonogo_letter",
+        "simon_arrow"
+      ],
+      "arousal": [
+        "cpt",
+        "breath",
+        "gonogo"
+      ],
+      "autonomic": [
+        "breath",
+        "breath_478"
+      ],
+      "emotional": [
+        "breath_478",
+        "breath",
+        "stroop"
+      ]
+    },
+    "tuning": [
+      {
+        "game": "gonogo",
+        "when": {
+          "axisScore_gte": 60
+        },
+        "set": {
+          "nogoRate": 0.4
+        }
+      },
+      {
+        "game": "gonogo",
+        "when": {
+          "arousal_gte": 55
+        },
+        "set": {
+          "speed": 1000
+        }
+      },
+      {
+        "game": "gonogo_letter",
+        "when": {
+          "axisScore_gte": 65
+        },
+        "set": {
+          "speed": 950
+        }
+      },
+      {
+        "game": "cpt",
+        "when": {
+          "arousal_gte": 55
+        },
+        "set": {
+          "targetRate": 0.15,
+          "isi": 1300
+        }
+      },
+      {
+        "game": "cpt_ax",
+        "when": {
+          "axisScore_gte": 70
+        },
+        "set": {
+          "isi": 1250
+        }
+      },
+      {
+        "game": "nback1",
+        "when": {
+          "axisScore_gte": 65
+        },
+        "set": {
+          "speed": 2300
+        }
+      },
+      {
+        "game": "nback2",
+        "when": {
+          "axisScore_gte": 75
+        },
+        "set": {
+          "speed": 2400
+        }
+      },
+      {
+        "game": "stroop",
+        "when": {
+          "axisScore_gte": 60
+        },
+        "set": {
+          "incongruentRate": 0.75
+        }
+      },
+      {
+        "game": "flanker",
+        "when": {
+          "axisScore_gte": 60
+        },
+        "set": {
+          "incongruentRate": 0.65
+        }
+      },
+      {
+        "game": "breath",
+        "when": {
+          "autonomic_gte": 60
+        },
+        "set": {
+          "inhale": 6,
+          "exhale": 6
+        }
+      }
+    ],
+    "qeeg_adjust": [
+      {
+        "feature": "theta_beta_ratio",
+        "gt": 2.5,
+        "boost": {
+          "attention": 15,
+          "arousal": 10
+        }
+      },
+      {
+        "feature": "hrv_rmssd",
+        "lt": 30,
+        "boost": {
+          "autonomic": 20
+        }
+      }
+    ],
+    "surveys": {
+      "diagnostic_child": {
+        "id": "adhd_dx_child_v1",
+        "age_band": "6-12",
+        "title_ko": "ADHD 진단 스크리닝 (아동 6–12세 · 보호자 보고)",
+        "title_en": "ADHD Diagnostic Screening (Child 6–12 · Caregiver report)",
+        "informant": "caregiver",
+        "basis_ref": [
+          "dsm5tr",
+          "vanderbilt",
+          "vanderbilt_norms"
+        ],
+        "basis_note_ko": "DSM-5-TR ADHD 진단기준(Criterion A) 구성에 근거하며, Vanderbilt(Wolraich 2003) 부모용 척도 구조를 참조해 문항 표현을 재저작함. 보호자·교사 다정보원 평가 권장.",
+        "basis_note_en": "Constructs from DSM-5-TR Criterion A; item wording re-authored referencing the Vanderbilt parent scale structure (Wolraich 2003). Multi-informant (caregiver+teacher) recommended.",
+        "scale": {
+          "min": 0,
+          "max": 3,
+          "labels_ko": [
+            "전혀",
+            "가끔",
+            "자주",
+            "매우 자주"
+          ],
+          "labels_en": [
+            "Never",
+            "Occasionally",
+            "Often",
+            "Very Often"
+          ],
+          "positive_threshold": 2,
+          "note_ko": "'자주(2)' 이상을 증상 양성으로 계수",
+          "note_en": "'Often(2)'+ counts as symptom-positive"
+        },
+        "scoring": {
+          "rule_ko": "부주의 9문항 중 6개 이상 OR 과잉행동/충동 9문항 중 6개 이상이 '자주(2)' 이상이면 양성 스크린 (DSM-5 소아 기준 6/9).",
+          "rule_en": "Positive screen if ≥6 of 9 inattentive OR ≥6 of 9 hyperactive/impulsive items rated 'Often(2)'+ (DSM-5 pediatric 6/9).",
+          "inattention_threshold": 6,
+          "hyperactivity_threshold": 6,
+          "onset_required": "12세 이전 증상 발현 (DSM-5 필수)",
+          "impairment_required": "2개 이상 환경에서 기능 손상"
+        },
+        "items": [
+          {
+            "id": "IA1",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "세부적인 것을 놓치거나 실수를 자주 한다 (학교·과제)",
+            "en": "make careless mistakes / miss details in schoolwork",
+            "dsm": "DSM-5-TR A11",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "IA2",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "놀이나 과제에 주의를 오래 유지하기 어렵다",
+            "en": "trouble keeping attention on tasks or play",
+            "dsm": "DSM-5-TR A12",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "IA3",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "바로 앞에서 말해도 듣지 않는 것 같다",
+            "en": "seems not to listen when spoken to directly",
+            "dsm": "DSM-5-TR A13",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "IA4",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "지시를 끝까지 따르지 못하고 일을 마치지 못한다",
+            "en": "doesn't follow through / finish tasks",
+            "dsm": "DSM-5-TR A14",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "IA5",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "할 일과 활동을 순서대로 정리하기 어렵다",
+            "en": "trouble organizing tasks and activities",
+            "dsm": "DSM-5-TR A15",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "IA6",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "오래 집중해야 하는 일을 싫어하거나 미룬다",
+            "en": "avoids tasks needing sustained mental effort",
+            "dsm": "DSM-5-TR A16",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "IA7",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "물건을 자주 잃어버린다 (준비물·장난감)",
+            "en": "loses things needed for tasks",
+            "dsm": "DSM-5-TR A17",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "IA8",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "주변 소리·움직임에 쉽게 산만해진다",
+            "en": "easily distracted by surroundings",
+            "dsm": "DSM-5-TR A18",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "IA9",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "일상적으로 해야 할 일을 자주 잊는다",
+            "en": "forgetful in daily activities",
+            "dsm": "DSM-5-TR A19",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "HI1",
+            "subscale": "hyperactivity",
+            "axis": "arousal",
+            "ko": "손발을 가만두지 못하고 꼼지락거린다",
+            "en": "fidgets or squirms",
+            "dsm": "DSM-5-TR A21",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "HI2",
+            "subscale": "hyperactivity",
+            "axis": "arousal",
+            "ko": "앉아 있어야 할 때 자리에서 일어난다",
+            "en": "leaves seat when should stay seated",
+            "dsm": "DSM-5-TR A22",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "HI3",
+            "subscale": "hyperactivity",
+            "axis": "arousal",
+            "ko": "부적절한 상황에서 지나치게 뛰거나 기어오른다",
+            "en": "runs/climbs excessively",
+            "dsm": "DSM-5-TR A23",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "HI4",
+            "subscale": "hyperactivity",
+            "axis": "arousal",
+            "ko": "조용히 노는 것을 어려워한다",
+            "en": "trouble playing quietly",
+            "dsm": "DSM-5-TR A24",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "HI5",
+            "subscale": "hyperactivity",
+            "axis": "arousal",
+            "ko": "끊임없이 움직이며 '모터가 달린 것' 같다",
+            "en": "on the go, as if driven by a motor",
+            "dsm": "DSM-5-TR A25",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "HI6",
+            "subscale": "hyperactivity",
+            "axis": "impulseControl",
+            "ko": "말이 지나치게 많다",
+            "en": "talks excessively",
+            "dsm": "DSM-5-TR A26",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "HI7",
+            "subscale": "impulsivity",
+            "axis": "impulseControl",
+            "ko": "질문이 끝나기 전에 답을 불쑥 말한다",
+            "en": "blurts answers before question finished",
+            "dsm": "DSM-5-TR A27",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "HI8",
+            "subscale": "impulsivity",
+            "axis": "impulseControl",
+            "ko": "차례를 기다리기 어렵다",
+            "en": "trouble waiting turn",
+            "dsm": "DSM-5-TR A28",
+            "ref": "dsm5tr|vanderbilt"
+          },
+          {
+            "id": "HI9",
+            "subscale": "impulsivity",
+            "axis": "impulseControl",
+            "ko": "다른 사람을 방해하거나 대화·놀이에 끼어든다",
+            "en": "interrupts or intrudes on others",
+            "dsm": "DSM-5-TR A29",
+            "ref": "dsm5tr|vanderbilt"
+          }
+        ]
+      },
+      "diagnostic_adult": {
+        "id": "adhd_dx_adult_v1",
+        "age_band": "12+",
+        "title_ko": "ADHD 진단 스크리닝 (청소년·성인 12세+ · 자기보고)",
+        "title_en": "ADHD Diagnostic Screening (Adolescent/Adult 12+ · Self-report)",
+        "informant": "self",
+        "basis_ref": [
+          "dsm5tr",
+          "asrs",
+          "asrs_screen"
+        ],
+        "basis_note_ko": "DSM-5-TR ADHD 진단기준(Criterion A)에 근거하며, WHO ASRS v1.1(Kessler 2005) 구조를 참조해 성인 발현 양상으로 문항을 재저작함. Part A 6문항이 핵심 스크리너.",
+        "basis_note_en": "Constructs from DSM-5-TR Criterion A; wording re-authored for adult presentation referencing WHO ASRS v1.1 (Kessler 2005). Part A (6 items) is the core screener.",
+        "scale": {
+          "min": 0,
+          "max": 3,
+          "labels_ko": [
+            "전혀",
+            "가끔",
+            "자주",
+            "매우 자주"
+          ],
+          "labels_en": [
+            "Never",
+            "Occasionally",
+            "Often",
+            "Very Often"
+          ],
+          "positive_threshold": 2,
+          "note_ko": "'자주(2)' 이상을 증상 양성으로 계수",
+          "note_en": "'Often(2)'+ counts as symptom-positive"
+        },
+        "scoring": {
+          "rule_ko": "성인(17세+)은 각 영역 5개 이상, 청소년은 6개 이상이 '자주(2)' 이상이면 양성. Part A 6문항 별도 스크리너.",
+          "rule_en": "Adults (17+): ≥5 per domain; adolescents: ≥6, rated 'Often(2)'+. Part A (6 items) as separate screener.",
+          "inattention_threshold": 5,
+          "hyperactivity_threshold": 5,
+          "part_a_screener": [
+            "IA1",
+            "IA2",
+            "IA5",
+            "HI1",
+            "HI3",
+            "HI6"
+          ],
+          "part_a_note": "ASRS Part A 유사 핵심 6문항 (Kessler 2007). 4/6 이상 시 추가평가 권장.",
+          "onset_required": "12세 이전 증상 발현 (DSM-5 필수)",
+          "impairment_required": "2개 이상 환경에서 기능 손상"
+        },
+        "items": [
+          {
+            "id": "IA1",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "세부 사항을 놓치거나 부주의한 실수를 한다 (일·과제)",
+            "en": "make careless mistakes or overlook details at work",
+            "dsm": "DSM-5-TR A11",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "IA2",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "회의·독서·긴 작업에 주의를 오래 유지하기 어렵다",
+            "en": "trouble sustaining attention in meetings/reading/long tasks",
+            "dsm": "DSM-5-TR A12",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "IA3",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "직접 대화 중에도 마음이 딴 데 가 있는 것 같다",
+            "en": "mind seems elsewhere even during direct conversation",
+            "dsm": "DSM-5-TR A13",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "IA4",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "일을 시작해도 끝맺지 못하고 마무리가 안 된다",
+            "en": "start tasks but fail to finish them",
+            "dsm": "DSM-5-TR A14",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "IA5",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "일과 시간을 체계적으로 관리·정리하기 어렵다",
+            "en": "trouble organizing tasks, time, and materials",
+            "dsm": "DSM-5-TR A15",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "IA6",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "지속적 집중이 필요한 일을 피하거나 미룬다",
+            "en": "avoid or delay tasks requiring sustained focus",
+            "dsm": "DSM-5-TR A16",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "IA7",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "필요한 물건을 자주 잃어버리거나 둔 곳을 못 찾는다",
+            "en": "often lose items needed for tasks",
+            "dsm": "DSM-5-TR A17",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "IA8",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "주변 자극이나 떠오르는 생각에 쉽게 산만해진다",
+            "en": "easily distracted by surroundings or stray thoughts",
+            "dsm": "DSM-5-TR A18",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "IA9",
+            "subscale": "inattention",
+            "axis": "attention",
+            "ko": "약속·청구·일과 등 일상적인 일을 자주 잊는다",
+            "en": "forgetful in daily routines (appointments, bills)",
+            "dsm": "DSM-5-TR A19",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "HI1",
+            "subscale": "hyperactivity",
+            "axis": "arousal",
+            "ko": "손발을 만지작거리거나 몸을 가만두기 어렵다",
+            "en": "fidget with hands/feet or squirm",
+            "dsm": "DSM-5-TR A21",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "HI2",
+            "subscale": "hyperactivity",
+            "axis": "arousal",
+            "ko": "오래 앉아 있어야 하는 상황에서 자리를 뜨고 싶다",
+            "en": "feel the need to leave seat when expected to stay",
+            "dsm": "DSM-5-TR A22",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "HI3",
+            "subscale": "hyperactivity",
+            "axis": "arousal",
+            "ko": "안절부절 못하는 내적 초조함을 느낀다",
+            "en": "feel restless / inner sense of restlessness",
+            "dsm": "DSM-5-TR A23",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "HI4",
+            "subscale": "hyperactivity",
+            "axis": "arousal",
+            "ko": "여가·휴식 시간에 조용히 있기 어렵다",
+            "en": "trouble engaging in quiet leisure",
+            "dsm": "DSM-5-TR A24",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "HI5",
+            "subscale": "hyperactivity",
+            "axis": "arousal",
+            "ko": "쉬지 않고 활동하며 멈추기 어렵다고 느낀다",
+            "en": "feel driven, hard to slow down",
+            "dsm": "DSM-5-TR A25",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "HI6",
+            "subscale": "hyperactivity",
+            "axis": "impulseControl",
+            "ko": "상황에 비해 말이 지나치게 많아진다",
+            "en": "talk excessively",
+            "dsm": "DSM-5-TR A26",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "HI7",
+            "subscale": "impulsivity",
+            "axis": "impulseControl",
+            "ko": "상대의 말이 끝나기 전에 답을 불쑥 내뱉는다",
+            "en": "blurt out answers/finish others' sentences",
+            "dsm": "DSM-5-TR A27",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "HI8",
+            "subscale": "impulsivity",
+            "axis": "impulseControl",
+            "ko": "줄이나 차례를 기다리는 것이 힘들다",
+            "en": "find it hard to wait one's turn",
+            "dsm": "DSM-5-TR A28",
+            "ref": "dsm5tr|asrs"
+          },
+          {
+            "id": "HI9",
+            "subscale": "impulsivity",
+            "axis": "impulseControl",
+            "ko": "다른 사람의 일이나 대화에 불쑥 끼어든다",
+            "en": "interrupt or intrude on others",
+            "dsm": "DSM-5-TR A29",
+            "ref": "dsm5tr|asrs"
+          }
+        ]
+      },
+      "engagement_adult": {
+        "id": "adhd_engagement_adult_v1",
+        "age_band": "12+",
+        "title_ko": "참여 스타일 프로파일 (12세+)",
+        "title_en": "Engagement Style Profile (12+)",
+        "informant": "self",
+        "basis_ref": [
+          "sdt",
+          "sdt_health",
+          "flow",
+          "rigby_ryan"
+        ],
+        "basis_note_ko": "자기결정이론(Deci & Ryan)의 3가지 기본욕구(자율성·유능감·관계성)와 Flow(도전-능력 균형)에 근거. 게임을 실제로 '지속'하게 만드는 개인 동기 스타일을 측정해 게임화 방식을 개인화함.",
+        "basis_note_en": "Based on Self-Determination Theory (autonomy/competence/relatedness) and Flow (challenge-skill balance). Measures the motivational style that drives sustained engagement to personalize gamification.",
+        "scale": {
+          "min": 0,
+          "max": 4,
+          "labels_ko": [
+            "전혀 아니다",
+            "약간",
+            "보통",
+            "그렇다",
+            "매우 그렇다"
+          ],
+          "labels_en": [
+            "Not at all",
+            "Slightly",
+            "Moderately",
+            "True",
+            "Very true"
+          ]
+        },
+        "items": [
+          {
+            "id": "e_choice",
+            "dimension": "autonomy",
+            "ko": "내가 직접 방식을 고를 수 있을 때 더 잘 몰입한다",
+            "en": "I engage more when I can choose how to do things",
+            "ref": "sdt"
+          },
+          {
+            "id": "e_pace",
+            "dimension": "autonomy",
+            "ko": "내 속도대로 진행하는 것이 편하다 (강요받는 것 싫음)",
+            "en": "I prefer going at my own pace (dislike being pushed)",
+            "ref": "sdt"
+          },
+          {
+            "id": "e_master",
+            "dimension": "competence",
+            "ko": "조금씩 실력이 느는 게 느껴지면 계속하고 싶다",
+            "en": "Feeling myself improve keeps me going",
+            "ref": "sdt"
+          },
+          {
+            "id": "e_challenge",
+            "dimension": "flow",
+            "ko": "너무 쉬우면 지루하고, 적당히 어려울 때 집중된다",
+            "en": "Too easy bores me; moderate challenge focuses me",
+            "ref": "flow"
+          },
+          {
+            "id": "e_compete",
+            "dimension": "reward_style",
+            "ko": "점수·순위 같은 경쟁 요소가 나에게 동기를 준다",
+            "en": "Scores/rankings motivate me",
+            "ref": "rigby_ryan"
+          },
+          {
+            "id": "e_calm",
+            "dimension": "reward_style",
+            "ko": "경쟁보다 차분하고 조용한 활동이 더 편하다",
+            "en": "I prefer calm, quiet activities over competition",
+            "ref": "rigby_ryan",
+            "reverse_of": "e_compete"
+          },
+          {
+            "id": "e_social",
+            "dimension": "relatedness",
+            "ko": "누군가와 함께하거나 격려받으면 더 잘한다",
+            "en": "I do better with others or with encouragement",
+            "ref": "sdt"
+          },
+          {
+            "id": "e_feedback",
+            "dimension": "competence",
+            "ko": "즉각적인 피드백(잘함/틀림)이 있으면 더 집중된다",
+            "en": "Immediate feedback keeps me focused",
+            "ref": "sdt"
+          }
+        ]
+      },
+      "engagement_child": {
+        "id": "adhd_engagement_child_v1",
+        "age_band": "6-12",
+        "title_ko": "참여 스타일 프로파일 (아동 6–12세 · 보호자 관찰)",
+        "title_en": "Engagement Style Profile (Child 6–12 · Caregiver observation)",
+        "informant": "caregiver",
+        "basis_ref": [
+          "sdt",
+          "flow",
+          "rigby_ryan"
+        ],
+        "basis_note_ko": "자기결정이론(자율성·유능감·관계성)과 Flow에 근거. 아이가 어떤 방식일 때 활동을 즐기고 지속하는지 보호자가 관찰 보고하여 게임화 방식을 아이에게 맞춤.",
+        "basis_note_en": "Based on SDT and Flow. Caregiver reports how the child best enjoys and sustains activities, to personalize game style for the child.",
+        "scale": {
+          "min": 0,
+          "max": 4,
+          "labels_ko": [
+            "전혀 아니다",
+            "약간",
+            "보통",
+            "그렇다",
+            "매우 그렇다"
+          ],
+          "labels_en": [
+            "Not at all",
+            "Slightly",
+            "Moderately",
+            "True",
+            "Very true"
+          ]
+        },
+        "items": [
+          {
+            "id": "e_choice",
+            "dimension": "autonomy",
+            "ko": "아이는 스스로 고르게 해주면 더 즐겁게 참여한다",
+            "en": "The child engages more happily when allowed to choose",
+            "ref": "sdt"
+          },
+          {
+            "id": "e_pace",
+            "dimension": "autonomy",
+            "ko": "아이는 재촉하지 않고 자기 속도로 할 때 잘한다",
+            "en": "The child does better at their own pace, unhurried",
+            "ref": "sdt"
+          },
+          {
+            "id": "e_master",
+            "dimension": "competence",
+            "ko": "아이는 '해냈다'는 성취감을 느끼면 더 하려 한다",
+            "en": "A sense of accomplishment makes the child want more",
+            "ref": "sdt"
+          },
+          {
+            "id": "e_challenge",
+            "dimension": "flow",
+            "ko": "아이는 너무 쉬우면 금방 지루해하고, 적당히 어려우면 집중한다",
+            "en": "The child bores of easy tasks; moderate challenge focuses them",
+            "ref": "flow"
+          },
+          {
+            "id": "e_compete",
+            "dimension": "reward_style",
+            "ko": "아이는 점수·별·순위 같은 보상에 신나한다",
+            "en": "The child gets excited by points/stars/rankings",
+            "ref": "rigby_ryan"
+          },
+          {
+            "id": "e_calm",
+            "dimension": "reward_style",
+            "ko": "아이는 경쟁보다 조용하고 차분한 놀이를 편해한다",
+            "en": "The child prefers calm play over competition",
+            "ref": "rigby_ryan",
+            "reverse_of": "e_compete"
+          },
+          {
+            "id": "e_social",
+            "dimension": "relatedness",
+            "ko": "아이는 함께하거나 칭찬받으면 더 잘 참여한다",
+            "en": "The child participates better together or when praised",
+            "ref": "sdt"
+          },
+          {
+            "id": "e_feedback",
+            "dimension": "competence",
+            "ko": "아이는 바로바로 반응(잘했어/다시)해주면 더 집중한다",
+            "en": "Immediate responses (well done/try again) keep the child focused",
+            "ref": "sdt"
+          }
+        ]
+      },
+      "matching_child": {
+        "id": "adhd_matching_child_v1",
+        "age_band": "6-12",
+        "informant": "caregiver",
+        "title_ko": "게임 매칭 설문 (아동 6–12세 · 보호자)",
+        "title_en": "Game Matching Survey (Child 6–12 · Caregiver)",
+        "basis": "Sergeant Cognitive-Energetic model (state regulation); Sterman SMR; Lubar theta/beta; Gruzelier NF review",
+        "note": "아동용 — 보호자가 관찰 보고. 조절축 매핑은 성인판과 동일.",
+        "scale": {
+          "min": 0,
+          "max": 4,
+          "labels_ko": [
+            "전혀",
+            "드물게",
+            "가끔",
+            "자주",
+            "매우 자주"
+          ],
+          "labels_en": [
+            "Never",
+            "Rarely",
+            "Sometimes",
+            "Often",
+            "Very often"
+          ]
+        },
+        "items": [
+          {
+            "id": "g_focus",
+            "axis": "attention",
+            "ko": "아이가 긴 활동에 집중을 오래 유지하기 어려워한다",
+            "en": "The child struggles to stay focused on long activities",
+            "basis": "Sustained attention (Sergeant); vigilance decrement"
+          },
+          {
+            "id": "g_distract",
+            "axis": "attention",
+            "ko": "아이가 주변 소리나 움직임에 쉽게 산만해진다",
+            "en": "The child is easily distracted by sounds or movement",
+            "basis": "Selective attention; distractibility (Posner)"
+          },
+          {
+            "id": "g_impulse",
+            "axis": "impulseControl",
+            "ko": "아이가 생각하기 전에 먼저 행동한다",
+            "en": "The child acts before thinking",
+            "basis": "Response inhibition (Barkley); prefrontal no-go"
+          },
+          {
+            "id": "g_restless",
+            "axis": "arousal",
+            "ko": "아이가 가만히 있지 못하고 계속 움직인다 (과활동)",
+            "en": "The child can't sit still and keeps moving (overactive)",
+            "basis": "Over-arousal; hyperactivity (Sergeant energetic pool)"
+          },
+          {
+            "id": "g_sluggish",
+            "axis": "arousal",
+            "ko": "아이가 멍하고 처지며 느릿하다 (저각성)",
+            "en": "The child seems foggy, sluggish, low-energy",
+            "reverse": true,
+            "basis": "Under-arousal; sluggish cognitive tempo (Barkley SCT)"
+          },
+          {
+            "id": "g_stress",
+            "axis": "autonomic",
+            "ko": "아이가 긴장하거나 스트레스를 몸으로 표현한다 (배아픔 등)",
+            "en": "The child shows tension/stress physically (e.g., tummy aches)",
+            "basis": "Autonomic dysregulation; HRV (Thayer neurovisceral)"
+          },
+          {
+            "id": "g_emotion",
+            "axis": "emotional",
+            "ko": "아이가 감정이 쉽게 폭발하고 진정이 어렵다",
+            "en": "The child's emotions erupt easily and are hard to calm",
+            "basis": "Emotional dysregulation in ADHD (Shaw 2014)"
+          }
+        ]
+      },
+      "matching_adult": {
+        "id": "adhd_matching_adult_v1",
+        "age_band": "12+",
+        "informant": "self",
+        "title_ko": "게임 매칭 설문 (12세+)",
+        "title_en": "Game Matching Survey (12+)",
+        "basis": "Sergeant Cognitive-Energetic model (state regulation); Sterman SMR; Lubar theta/beta; Gruzelier NF review",
+        "note": "각 문항은 조절축(arousal/attention/impulseControl/autonomic/emotional)에 매핑되어 게임 훈련 방향을 결정",
+        "scale": {
+          "min": 0,
+          "max": 4,
+          "labels_ko": [
+            "전혀",
+            "드물게",
+            "가끔",
+            "자주",
+            "매우 자주"
+          ],
+          "labels_en": [
+            "Never",
+            "Rarely",
+            "Sometimes",
+            "Often",
+            "Very often"
+          ]
+        },
+        "items": [
+          {
+            "id": "g_focus",
+            "axis": "attention",
+            "ko": "긴 과제에 집중을 유지하기가 어렵다",
+            "en": "Hard to sustain focus on long tasks",
+            "basis": "Sustained attention (Sergeant); vigilance decrement"
+          },
+          {
+            "id": "g_distract",
+            "axis": "attention",
+            "ko": "주변 자극에 쉽게 주의가 흐트러진다",
+            "en": "Easily distracted by surroundings",
+            "basis": "Selective attention; distractibility (Posner)"
+          },
+          {
+            "id": "g_impulse",
+            "axis": "impulseControl",
+            "ko": "생각하기 전에 반응·행동한다",
+            "en": "React/act before thinking",
+            "basis": "Response inhibition (Barkley); prefrontal no-go"
+          },
+          {
+            "id": "g_restless",
+            "axis": "arousal",
+            "ko": "안절부절 못하고 가만히 있기 힘들다 (과각성)",
+            "en": "Restless, hard to stay still (over-arousal)",
+            "basis": "Over-arousal; hyperactivity (Sergeant energetic pool)"
+          },
+          {
+            "id": "g_sluggish",
+            "axis": "arousal",
+            "ko": "멍하고 처지며 각성이 낮다 (저각성)",
+            "en": "Foggy, sluggish, low arousal",
+            "reverse": true,
+            "basis": "Under-arousal; sluggish cognitive tempo (Barkley SCT)"
+          },
+          {
+            "id": "g_stress",
+            "axis": "autonomic",
+            "ko": "긴장·스트레스가 몸에 자주 나타난다",
+            "en": "Tension/stress shows up physically",
+            "basis": "Autonomic dysregulation; HRV (Thayer neurovisceral)"
+          },
+          {
+            "id": "g_emotion",
+            "axis": "emotional",
+            "ko": "감정이 쉽게 올라오고 조절이 어렵다",
+            "en": "Emotions spike, hard to regulate",
+            "basis": "Emotional dysregulation in ADHD (Shaw 2014)"
+          }
+        ]
+      }
+    },
+    "qeeg_evidence": {
+      "marker": "theta_beta_ratio",
+      "site": "Cz",
+      "role": "adjunctive",
+      "basis_ref": [
+        "neba_fda",
+        "aan",
+        "snyder",
+        "monastra",
+        "arns"
+      ],
+      "supporting_ko": "FDA NEBA(2013): Cz theta/beta ratio를 임상평가와 병용해 6-17세 ADHD 진단 보조 승인. AAN(2016): theta/beta+frontal beta가 89-94% 정확도. Snyder 메타분석: ADHD 아동 세타 파워 +32%.",
+      "caution_ko": "단독 진단 불가(FDA/AAN). theta/beta 단독 시 6-15% 오진 위험. Arns(2013): 이질적 표본에서 타당성 논란, 발달 궤적 혼입 가능. → 반드시 설문(진단)을 보강하는 축 보정 용도로만 사용.",
+      "adjusts_axes": [
+        "arousal",
+        "attention"
+      ]
+    },
+    "engagement_map": {
+      "basis_ref": [
+        "sdt",
+        "rigby_ryan",
+        "flow"
+      ],
+      "note_ko": "참여 프로파일 점수를 게임화 방식으로 변환. 경쟁/협동, 세션 길이, 선택 자유도, 피드백 빈도를 개인화.",
+      "rules": [
+        {
+          "when": {
+            "reward_style_compete_gte": 3
+          },
+          "set": {
+            "gamified": "competitive",
+            "showScore": true,
+            "showRank": true
+          }
+        },
+        {
+          "when": {
+            "reward_style_calm_gte": 3
+          },
+          "set": {
+            "gamified": "calm",
+            "showScore": false,
+            "showRank": false
+          }
+        },
+        {
+          "when": {
+            "autonomy_gte": 3
+          },
+          "set": {
+            "allowChoice": true,
+            "selfPaced": true
+          }
+        },
+        {
+          "when": {
+            "flow_gte": 3
+          },
+          "set": {
+            "adaptiveDifficulty": true
+          }
+        },
+        {
+          "when": {
+            "competence_gte": 3
+          },
+          "set": {
+            "instantFeedback": true
+          }
+        },
+        {
+          "when": {
+            "relatedness_gte": 3
+          },
+          "set": {
+            "encouragement": true
+          }
+        }
+      ]
+    },
+    "intensity_map": {
+      "basis_ref": [
+        "dsm5tr",
+        "sdt"
+      ],
+      "note_ko": "진단 심각도(레이어1)를 훈련 강도·기간으로 변환. 심할수록 기초부터, 세션 짧게, 빈도 높게.",
+      "levels": [
+        {
+          "when": {
+            "diagnostic_positive": true,
+            "symptom_count_gte": 7
+          },
+          "set": {
+            "intensity": "high",
+            "sessionLength": "short",
+            "frequency": "daily",
+            "startFrom": "foundational",
+            "note_ko": "증상 다수 — 기초 축부터 짧고 자주"
+          }
+        },
+        {
+          "when": {
+            "diagnostic_positive": true,
+            "symptom_count_gte": 4
+          },
+          "set": {
+            "intensity": "moderate",
+            "sessionLength": "medium",
+            "frequency": "3-4/week",
+            "startFrom": "primary",
+            "note_ko": "중등도 — 주요 축 중심"
+          }
+        },
+        {
+          "when": {
+            "diagnostic_positive": false
+          },
+          "set": {
+            "intensity": "light",
+            "sessionLength": "flexible",
+            "frequency": "2-3/week",
+            "startFrom": "preference",
+            "note_ko": "역치 미만 — 선호 기반 유연 훈련"
+          }
+        }
+      ]
+    },
+    "matching_pipeline": {
+      "note_ko": "3레이어 곱하기: L1 강도, L2 축→게임, L3 게임화방식, QEEG 축보정",
+      "steps": [
+        "axis_from_L2",
+        "qeeg_adjust",
+        "intensity_from_L1",
+        "gamify_from_L3",
+        "tune_params",
+        "rank_top3_plus_all"
+      ]
+    },
+    "prescription": {
+      "basis_ref": [
+        "sdt",
+        "dsm5tr"
+      ],
+      "note_ko": "진단 심각도(레이어1)에 따라 일일 훈련시간·기간·목표를 추천. 고객이 기간을 조절하면 총 세션수가 재계산됨.",
+      "note_en": "Recommends daily minutes, duration, and goals by severity. Adjusting duration recalculates total sessions.",
+      "by_intensity": {
+        "high": {
+          "minutesPerDay": 20,
+          "daysPerWeek": 5,
+          "weeks": 8,
+          "goalNote_ko": "집중 훈련 — 8주 프로그램",
+          "goalNote_en": "Intensive — 8-week program"
+        },
+        "moderate": {
+          "minutesPerDay": 15,
+          "daysPerWeek": 4,
+          "weeks": 6,
+          "goalNote_ko": "표준 훈련 — 6주 프로그램",
+          "goalNote_en": "Standard — 6-week program"
+        },
+        "light": {
+          "minutesPerDay": 10,
+          "daysPerWeek": 3,
+          "weeks": 4,
+          "goalNote_ko": "유지 훈련 — 4주 프로그램",
+          "goalNote_en": "Maintenance — 4-week program"
+        }
+      },
+      "goals": {
+        "gonogo": {
+          "metric": "inhibition",
+          "ko": "충동 억제율",
+          "en": "Inhibition",
+          "target": 80,
+          "unit": "%",
+          "direction": "higher"
+        },
+        "gonogo_letter": {
+          "metric": "inhibition",
+          "ko": "충동 억제율",
+          "en": "Inhibition",
+          "target": 78,
+          "unit": "%",
+          "direction": "higher"
+        },
+        "stroop": {
+          "metric": "conflictEffect",
+          "ko": "간섭 효과",
+          "en": "Conflict effect",
+          "target": 150,
+          "unit": "ms",
+          "direction": "lower"
+        },
+        "simon_arrow": {
+          "metric": "conflictEffect",
+          "ko": "갈등 효과",
+          "en": "Conflict effect",
+          "target": 120,
+          "unit": "ms",
+          "direction": "lower"
+        },
+        "cpt": {
+          "metric": "detection",
+          "ko": "탐지율",
+          "en": "Detection",
+          "target": 85,
+          "unit": "%",
+          "direction": "higher"
+        },
+        "cpt_ax": {
+          "metric": "detection",
+          "ko": "탐지율",
+          "en": "Detection",
+          "target": 80,
+          "unit": "%",
+          "direction": "higher"
+        },
+        "flanker": {
+          "metric": "conflictEffect",
+          "ko": "플랭커 효과",
+          "en": "Flanker effect",
+          "target": 100,
+          "unit": "ms",
+          "direction": "lower"
+        },
+        "nback1": {
+          "metric": "matchAccuracy",
+          "ko": "기억 정확도",
+          "en": "Memory accuracy",
+          "target": 80,
+          "unit": "%",
+          "direction": "higher"
+        },
+        "nback2": {
+          "metric": "matchAccuracy",
+          "ko": "기억 정확도",
+          "en": "Memory accuracy",
+          "target": 75,
+          "unit": "%",
+          "direction": "higher"
+        },
+        "breath": {
+          "metric": "cycles",
+          "ko": "호흡 완료",
+          "en": "Cycles",
+          "target": 6,
+          "unit": "",
+          "direction": "higher"
+        },
+        "breath_478": {
+          "metric": "cycles",
+          "ko": "호흡 완료",
+          "en": "Cycles",
+          "target": 4,
+          "unit": "",
+          "direction": "higher"
+        }
+      },
+      "reassessment": {
+        "note_ko": "프로그램 중간(예: 2주마다) 설문/QEEG 재측정 → 축 점수 갱신 → 재처방 가능",
+        "interval_weeks": 2,
+        "triggers": [
+          "midpoint",
+          "user_request",
+          "plateau"
+        ]
+      }
+    },
+    "session_schema": {
+      "note_ko": "매 세션마다 저장. game_metrics는 게임별 지표, 향상은 baseline 대비 계산.",
+      "fields": [
+        "client_id",
+        "dept",
+        "game",
+        "session_number",
+        "game_metrics",
+        "goal_metric",
+        "goal_value",
+        "timestamp"
+      ],
+      "framework": "game_v1"
+    },
+    "game_schema": {
+      "note_ko": "새 게임 추가: engine(5타입 중)+params만으로 코드 없이 추가. 슈퍼 엔진관리에서 편집.",
+      "engines": [
+        "react_inhibit",
+        "detect_target",
+        "match_memory",
+        "choice_conflict",
+        "pace_regulate"
+      ],
+      "required_fields": [
+        "ko",
+        "en",
+        "axis",
+        "engine",
+        "descKo",
+        "descEn",
+        "params"
+      ],
+      "engine_params": {
+        "react_inhibit": [
+          "trials",
+          "nogoRate",
+          "speed",
+          "goStim",
+          "nogoStim"
+        ],
+        "detect_target": [
+          "duration",
+          "isi",
+          "targetRate",
+          "mode",
+          "target",
+          "pool"
+        ],
+        "match_memory": [
+          "n",
+          "trials",
+          "speed",
+          "pool",
+          "matchRate"
+        ],
+        "choice_conflict": [
+          "trials",
+          "incongruentRate",
+          "variant"
+        ],
+        "pace_regulate": [
+          "inhale",
+          "exhale",
+          "holdIn",
+          "holdOut",
+          "cycles"
+        ]
+      }
+    }
+  },
+  "references": {
+    "dsm5tr": "American Psychiatric Association (2022). DSM-5-TR, ADHD Diagnostic Criteria (Criterion A).",
+    "asrs": "Kessler RC et al. (2005). The WHO Adult ADHD Self-Report Scale (ASRS): a short screening scale. Psychol Med 35(2):245-256.",
+    "asrs_screen": "Kessler RC et al. (2007). Validity of the WHO ASRS Screener. Int J Methods Psychiatr Res 16(2):52-65.",
+    "vanderbilt": "Wolraich ML et al. (2003). Psychometric properties of the Vanderbilt ADHD Diagnostic Parent Rating Scale. J Pediatr Psychol 28(8):559-568.",
+    "vanderbilt_norms": "Wolraich ML et al. (2023). National Norms for the Vanderbilt ADHD Diagnostic Parent Rating Scale. J Pediatr Psychol.",
+    "snyder": "Snyder SM, Hall JR (2006). A meta-analysis of quantitative EEG power associated with ADHD. J Clin Neurophysiol 23(5):440-455.",
+    "sergeant": "Sergeant J (2000/2005). The cognitive-energetic model of ADHD. Neurosci Biobehav Rev / Biol Psychiatry.",
+    "barkley": "Barkley RA (1997). Behavioral inhibition, sustained attention, and executive functions. Psychol Bull 121:65-94.",
+    "monastra": "Monastra VJ et al. (1999). Assessing ADHD via QEEG: theta/beta ratio. Neuropsychology 13(3):424-433.",
+    "neba_fda": "US FDA (2013). NEBA System de novo approval — theta/beta ratio at Cz, ages 6-17, adjunctive to clinical evaluation.",
+    "aan": "Gloss D et al. (2016). Practice advisory: EEG theta/beta power ratio in ADHD diagnosis. Neurology (AAN).",
+    "arns": "Arns M et al. (2013). EEG theta/beta ratio in ADHD: meta-analysis critique. J Atten Disord.",
+    "shaw": "Shaw P et al. (2014). Emotional dysregulation in ADHD. Am J Psychiatry 171(3):276-293.",
+    "thayer": "Thayer JF, Lane RD (2000). Neurovisceral integration model; HRV. J Affect Disord.",
+    "sdt": "Deci EL, Ryan RM (2000). Self-Determination Theory. Am Psychol / Contemp Educ Psychol 25:54-67.",
+    "sdt_health": "Ng JYY et al. (2012). SDT applied to health contexts: meta-analysis. Perspect Psychol Sci 7(4):325-340.",
+    "flow": "Csikszentmihalyi M (1990). Flow: The Psychology of Optimal Experience. (challenge-skill balance)",
+    "rigby_ryan": "Ryan RM, Rigby CS (2020). Motivational foundations of game-based learning. In Handbook of Game-Based Learning."
   }
 }
