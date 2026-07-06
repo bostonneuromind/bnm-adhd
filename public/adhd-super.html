@@ -32,6 +32,10 @@
   .sec-tab[data-on="1"]{background:#7C3AED;color:#fff;border-color:#7C3AED}
   .sec-body{display:none}
   .sec-body[data-on="1"]{display:block}
+  .dash-card{font:inherit;text-align:left;display:flex;flex-direction:column;gap:6px;padding:20px 22px;border:1px solid #E3E6EA;border-radius:16px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.04);cursor:pointer;font-size:26px}
+  .dash-card:hover{border-color:#7C3AED;box-shadow:0 6px 18px rgba(124,58,237,.12)}
+  .dash-t{font-size:16px;font-weight:800;color:#7C3AED}
+  .dash-d{font-size:12px;color:#6B7280;font-weight:400}
   .proto-card{border:1px solid #E3E6EA;border-radius:12px;padding:16px 18px;margin-bottom:12px;background:#fff}
   .proto-card h3{font-size:15px;font-weight:800;color:#5E35B1;margin-bottom:4px}
   .eng-modbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
@@ -88,14 +92,17 @@
   </header>
 
   <!-- section tabs -->
-  <div id="sec-tabs" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
-    <button class="sec-tab" data-sec="members" data-on="1"><span class="ko-text">회원 · 동의</span><span class="en-text">Members · Consent</span></button>
-    <button class="sec-tab" data-sec="engine"><span class="ko-text">엔진 관리</span><span class="en-text">Engine</span></button>
-    <button class="sec-tab" data-sec="vault"><span class="ko-text">Vault 관리</span><span class="en-text">Vault</span></button>
-    <button class="sec-tab" data-sec="access"><span class="ko-text">이용권</span><span class="en-text">Access</span></button>
+  <!-- 뒤로가기 (섹션 진입 시만 표시) -->
+  <button id="dash-back" style="display:none;font:inherit;font-size:13px;font-weight:700;padding:8px 14px;border:1px solid #E3E6EA;border-radius:8px;background:#fff;color:#5C6166;cursor:pointer;margin-bottom:14px;align-items:center;gap:4px">← <span class="ko-text">대시보드</span><span class="en-text">Dashboard</span></button>
+  <!-- 대시보드 홈 (큰 카드) -->
+  <div id="dashboard" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:18px">
+    <button class="dash-card" data-sec="members">👥<span class="dash-t"><span class="ko-text">회원 · 동의</span><span class="en-text">Members · Consent</span></span><span class="dash-d"><span class="ko-text">가입자 · 임상가 · 관리자 · 동의서</span><span class="en-text">Users · clinicians · admins · consents</span></span></button>
+    <button class="dash-card" data-sec="engine">🧠<span class="dash-t"><span class="ko-text">엔진 관리</span><span class="en-text">Engine</span></span><span class="dash-d"><span class="ko-text">게임 · 알고리즘 · NF · 매뉴얼</span><span class="en-text">Game · algorithm · NF · manual</span></span></button>
+    <button class="dash-card" data-sec="vault">🗄️<span class="dash-t"><span class="ko-text">Vault 관리</span><span class="en-text">Vault</span></span><span class="dash-d"><span class="ko-text">임상가 voice 셀</span><span class="en-text">Clinician voice cells</span></span></button>
+    <button class="dash-card" data-sec="access">🎫<span class="dash-t"><span class="ko-text">이용권</span><span class="en-text">Access</span></span><span class="dash-d"><span class="ko-text">무료 이용권 · 구독자</span><span class="en-text">Free access · subscribers</span></span></button>
   </div>
 
-  <div class="sec-body" data-sec="members" data-on="1">
+  <div class="sec-body" data-sec="members">
   <!-- ════ 회원 관리 (sepiera adhd_users, source_site=adhd) — 범용 edge adhd-users-admin 재사용, 격리 ════ -->
   <div class="panel">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
@@ -367,17 +374,25 @@
 // section switching + engine/vault rendering
 (function(){
   function $(id){return document.getElementById(id);}
-  var tabs = $('sec-tabs');
-  if(!tabs) return;
+  var dash = $('dashboard');
+  if(!dash) return;
   var engineLoaded=false, vaultLoaded=false, accessLoaded=false, gameLoaded=false;
-  function activate(sec){
-    [].forEach.call(document.querySelectorAll('.sec-tab'), function(b){ b.setAttribute('data-on', b.getAttribute('data-sec')===sec?'1':'0'); });
+  function openSection(sec){
+    dash.style.display='none';
+    var bk=$('dash-back'); if(bk) bk.style.display='inline-flex';
     [].forEach.call(document.querySelectorAll('.sec-body'), function(b){ b.setAttribute('data-on', b.getAttribute('data-sec')===sec?'1':'0'); });
     var cc=$('consent-card'); if(cc) cc.style.display=(sec==='members')?'block':'none';
     if(sec==='vault' && !vaultLoaded){ vaultLoaded=true; loadVault(); }
     if(sec==='access' && !accessLoaded){ accessLoaded=true; if(window.TCAdmin) window.TCAdmin.init({ botKey:'adhd', mount:document.getElementById('adminMount') }); }
   }
-  tabs.addEventListener('click', function(e){ var b=e.target.closest?e.target.closest('.sec-tab'):null; if(b) activate(b.getAttribute('data-sec')); });
+  function showDashboard(){
+    [].forEach.call(document.querySelectorAll('.sec-body'), function(b){ b.setAttribute('data-on','0'); });
+    var cc=$('consent-card'); if(cc) cc.style.display='none';
+    dash.style.display='grid';
+    var bk=$('dash-back'); if(bk) bk.style.display='none';
+  }
+  dash.addEventListener('click', function(e){ var b=e.target.closest?e.target.closest('.dash-card'):null; if(b) openSection(b.getAttribute('data-sec')); });
+  var _bk=$('dash-back'); if(_bk) _bk.addEventListener('click', showDashboard);
   // 엔진 모듈 버튼 바 (게임/알고리즘/NF 패널 전환; 매뉴얼은 data-mod 없는 <a>라 제외)
   var mbar=document.querySelector('.eng-modbar');
   if(mbar){ mbar.addEventListener('click', function(e){
