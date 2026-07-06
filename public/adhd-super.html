@@ -97,7 +97,9 @@
   <!-- 대시보드 홈 (큰 카드) -->
   <div id="dashboard" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:18px">
     <button class="dash-card" data-sec="members">👥<span class="dash-t"><span class="ko-text">회원 · 동의</span><span class="en-text">Members · Consent</span></span><span class="dash-d"><span class="ko-text">가입자 · 임상가 · 관리자 · 동의서</span><span class="en-text">Users · clinicians · admins · consents</span></span></button>
-    <button class="dash-card" data-sec="engine">🧠<span class="dash-t"><span class="ko-text">엔진 관리</span><span class="en-text">Engine</span></span><span class="dash-d"><span class="ko-text">게임 · 알고리즘 · NF · 매뉴얼</span><span class="en-text">Game · algorithm · NF · manual</span></span></button>
+    <button class="dash-card" data-sec="engine">🧠<span class="dash-t"><span class="ko-text">엔진 관리</span><span class="en-text">Engine</span></span><span class="dash-d"><span class="ko-text">뉴로피드백 · 매뉴얼</span><span class="en-text">Neurofeedback · manual</span></span></button>
+    <button class="dash-card" data-sec="game">🎮<span class="dash-t"><span class="ko-text">게임 엔진</span><span class="en-text">Game Engine</span></span><span class="dash-d"><span class="ko-text">9증상 게임 중앙 관리</span><span class="en-text">9-condition game hub</span></span></button>
+    <button class="dash-card" data-sec="algo">📊<span class="dash-t"><span class="ko-text">알고리즘 엔진</span><span class="en-text">Algorithm</span></span><span class="dash-d"><span class="ko-text">판별 · 처방</span><span class="en-text">Discrimination · prescription</span></span></button>
     <button class="dash-card" data-sec="vault">🗄️<span class="dash-t"><span class="ko-text">Vault 관리</span><span class="en-text">Vault</span></span><span class="dash-d"><span class="ko-text">임상가 voice 셀</span><span class="en-text">Clinician voice cells</span></span></button>
     <button class="dash-card" data-sec="access">🎫<span class="dash-t"><span class="ko-text">이용권</span><span class="en-text">Access</span></span><span class="dash-d"><span class="ko-text">무료 이용권 · 구독자</span><span class="en-text">Free access · subscribers</span></span></button>
   </div>
@@ -131,18 +133,10 @@
   <div class="sec-body" data-sec="engine">
     <!-- 모듈 버튼 바 -->
     <div class="eng-modbar">
-      <button class="eng-mod-btn" data-mod="game">🎮 <span class="ko-text">게임 엔진</span><span class="en-text">Game Engine</span></button>
-      <button class="eng-mod-btn" data-mod="algo">📊 <span class="ko-text">알고리즘 엔진</span><span class="en-text">Algorithm</span></button>
       <button class="eng-mod-btn" data-mod="nf">🧠 <span class="ko-text">뉴로피드백</span><span class="en-text">Neurofeedback</span></button>
       <a class="eng-mod-btn" href="adhd-engine/ENGINE_MANUAL.html" target="_blank" rel="noopener">📖 <span class="ko-text">엔진 매뉴얼</span><span class="en-text">Manual</span></a>
     </div>
     <!-- 모듈 표시 영역 -->
-    <div id="eng-mod-game" class="eng-mod-panel" style="display:none">
-      <div class="panel"><h2><span class="ko-text">게임 엔진</span><span class="en-text">Game Engine</span></h2><div class="sub"><span class="ko-text">게임 모듈 관리 — 다음 단계.</span><span class="en-text">Game module management — next step.</span></div></div>
-    </div>
-    <div id="eng-mod-algo" class="eng-mod-panel" style="display:none">
-      <div class="panel"><h2><span class="ko-text">알고리즘 엔진</span><span class="en-text">Algorithm Engine</span></h2><div class="sub"><span class="ko-text">판별·처방 알고리즘 — 다음 단계.</span><span class="en-text">Discrimination & prescription — next step.</span></div></div>
-    </div>
     <div id="eng-mod-nf" class="eng-mod-panel" style="display:none">
       <div class="panel">
         <h2><span class="ko-text">뉴로피드백 프로토콜</span><span class="en-text">Neurofeedback Protocols</span></h2>
@@ -153,6 +147,16 @@
       </div>
     </div>
   </div><!-- /sec-body engine -->
+
+  <!-- ════ 게임 엔진 (독립 카드) — 심장1 AdhdHeartGame 렌더 대상 #eng-mod-game ════ -->
+  <div class="sec-body" data-sec="game">
+    <div id="eng-mod-game"></div>
+  </div>
+
+  <!-- ════ 알고리즘 엔진 (독립 카드) ════ -->
+  <div class="sec-body" data-sec="algo">
+    <div class="panel"><h2><span class="ko-text">알고리즘 엔진</span><span class="en-text">Algorithm Engine</span></h2><div class="sub"><span class="ko-text">판별 · 처방 알고리즘 — 다음 단계.</span><span class="en-text">Discrimination & prescription — next step.</span></div></div>
+  </div>
 
   <!-- ════ Vault 관리 ════ -->
   <div class="sec-body" data-sec="vault">
@@ -384,6 +388,7 @@
     var cc=$('consent-card'); if(cc) cc.style.display=(sec==='members')?'block':'none';
     if(sec==='vault' && !vaultLoaded){ vaultLoaded=true; loadVault(); }
     if(sec==='access' && !accessLoaded){ accessLoaded=true; if(window.TCAdmin) window.TCAdmin.init({ botKey:'adhd', mount:document.getElementById('adminMount') }); }
+    if(sec==='game' && !gameLoaded){ gameLoaded=true; if(window.AdhdHeartGame) window.AdhdHeartGame.render(document.getElementById('eng-mod-game')); }  // 🎮 심장1
   }
   function showDashboard(){
     [].forEach.call(document.querySelectorAll('.sec-body'), function(b){ b.setAttribute('data-on','0'); });
@@ -401,7 +406,6 @@
     [].forEach.call(document.querySelectorAll('.eng-mod-btn[data-mod]'), function(x){ x.setAttribute('data-on', x===b?'1':'0'); });
     [].forEach.call(document.querySelectorAll('.eng-mod-panel'), function(p){ p.style.display=(p.id==='eng-mod-'+mod)?'block':'none'; });
     if(mod==='nf' && !engineLoaded){ engineLoaded=true; loadEngine(); }  // 🧠 클릭 시 로드(가드 유지)
-    if(mod==='game' && !gameLoaded){ gameLoaded=true; if(window.AdhdHeartGame) window.AdhdHeartGame.render(document.getElementById('eng-mod-game')); }  // 🎮 심장1
   }); }
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function isEn(){return document.body.getAttribute('data-lang')==='en';}
@@ -460,14 +464,14 @@
 <script src="tc-auth.js?v=1"></script>
 <script src="service-admin.js?v=2"></script>
 <script>
-/* ===== 심장1: 게임 엔진 관리 모듈 (슈퍼) — 8개 증상 풀다운 중앙 관리 ===== */
+/* ===== 심장1: 게임 엔진 관리 모듈 (슈퍼) — 9개 증상 풀다운 중앙 관리 ===== */
 (function(){
   function ko(){ return (document.body.getAttribute('data-lang')||'en')==='ko'; }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function KE(k,e){ return '<span class="ko-text">'+esc(k)+'</span><span class="en-text">'+esc(e)+'</span>'; }
   var C={dark:'#2E5A7A',main:'#4A90C2',mid:'#7BAFD0',soft:'#BDD7E7',bg:'#E8F1F8',ink:'#374151',dim:'#8FA9BC'};
 
-  // 8개 증상 (풀다운) — ADHD만 rules 있음, 나머지는 생성 대기
+  // 9개 증상 (풀다운) — ADHD만 rules 있음, 나머지는 생성 대기
   var CONDITIONS=[
     {key:'adhd', ko:'ADHD', en:'ADHD', ready:true, rules:'adhd-engine/rules/adhd_rules.json'},
     {key:'depression', ko:'우울', en:'Depression', ready:false},
@@ -476,7 +480,8 @@
     {key:'sleep', ko:'수면', en:'Sleep', ready:false},
     {key:'burnout', ko:'번아웃', en:'Burnout', ready:false},
     {key:'ptsd', ko:'PTSD', en:'PTSD', ready:false},
-    {key:'autism', ko:'자폐', en:'Autism', ready:false}
+    {key:'autism', ko:'자폐', en:'Autism', ready:false},
+    {key:'bipolar', ko:'양극성', en:'Bipolar', ready:false}
   ];
   var ENGINE_LABEL={
     react_inhibit:{ko:'반응 억제',en:'Response Inhibition'},
