@@ -126,7 +126,7 @@
     <div class="eng-modbar">
       <button class="eng-mod-btn" data-mod="game">🎮 <span class="ko-text">게임 엔진</span><span class="en-text">Game Engine</span></button>
       <button class="eng-mod-btn" data-mod="algo">📊 <span class="ko-text">알고리즘 엔진</span><span class="en-text">Algorithm</span></button>
-      <button class="eng-mod-btn" data-mod="nf" data-on="1">🧠 <span class="ko-text">뉴로피드백</span><span class="en-text">Neurofeedback</span></button>
+      <button class="eng-mod-btn" data-mod="nf">🧠 <span class="ko-text">뉴로피드백</span><span class="en-text">Neurofeedback</span></button>
       <a class="eng-mod-btn" href="adhd-engine/ENGINE_MANUAL.html" target="_blank" rel="noopener">📖 <span class="ko-text">엔진 매뉴얼</span><span class="en-text">Manual</span></a>
     </div>
     <!-- 모듈 표시 영역 -->
@@ -136,7 +136,7 @@
     <div id="eng-mod-algo" class="eng-mod-panel" style="display:none">
       <div class="panel"><h2><span class="ko-text">알고리즘 엔진</span><span class="en-text">Algorithm Engine</span></h2><div class="sub"><span class="ko-text">판별·처방 알고리즘 — 다음 단계.</span><span class="en-text">Discrimination & prescription — next step.</span></div></div>
     </div>
-    <div id="eng-mod-nf" class="eng-mod-panel">
+    <div id="eng-mod-nf" class="eng-mod-panel" style="display:none">
       <div class="panel">
         <h2><span class="ko-text">뉴로피드백 프로토콜</span><span class="en-text">Neurofeedback Protocols</span></h2>
         <div class="sub"><span class="ko-text">adhd_rules.json 근거 프로토콜 (NF 세션·추천의 데이터 정본). 논문 기반 전극·주파수·반응률·기대변화.</span><span class="en-text">Protocols from adhd_rules.json — source of truth for NF sessions & recommendations. Evidence-based sites, bands, response rates, expected changes.</span></div>
@@ -374,7 +374,6 @@
     [].forEach.call(document.querySelectorAll('.sec-tab'), function(b){ b.setAttribute('data-on', b.getAttribute('data-sec')===sec?'1':'0'); });
     [].forEach.call(document.querySelectorAll('.sec-body'), function(b){ b.setAttribute('data-on', b.getAttribute('data-sec')===sec?'1':'0'); });
     var cc=$('consent-card'); if(cc) cc.style.display=(sec==='members')?'block':'none';
-    if(sec==='engine' && !engineLoaded){ engineLoaded=true; loadEngine(); }
     if(sec==='vault' && !vaultLoaded){ vaultLoaded=true; loadVault(); }
     if(sec==='access' && !accessLoaded){ accessLoaded=true; if(window.TCAdmin) window.TCAdmin.init({ botKey:'adhd', mount:document.getElementById('adminMount') }); }
   }
@@ -386,6 +385,7 @@
     var mod=b.getAttribute('data-mod');
     [].forEach.call(document.querySelectorAll('.eng-mod-btn[data-mod]'), function(x){ x.setAttribute('data-on', x===b?'1':'0'); });
     [].forEach.call(document.querySelectorAll('.eng-mod-panel'), function(p){ p.style.display=(p.id==='eng-mod-'+mod)?'block':'none'; });
+    if(mod==='nf' && !engineLoaded){ engineLoaded=true; loadEngine(); }  // 🧠 클릭 시 로드(가드 유지)
   }); }
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function isEn(){return document.body.getAttribute('data-lang')==='en';}
