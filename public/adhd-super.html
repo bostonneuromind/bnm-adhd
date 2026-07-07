@@ -475,14 +475,14 @@
   // 9개 증상 (풀다운) — ADHD만 rules 있음, 나머지는 생성 대기
   var CONDITIONS=[
     {key:'adhd', ko:'ADHD', en:'ADHD', ready:true, rules:'adhd-engine/rules/adhd_rules.json'},
-    {key:'depression', ko:'우울', en:'Depression', ready:false},
-    {key:'anxiety', ko:'불안', en:'Anxiety', ready:false},
-    {key:'ocd', ko:'강박(OCD)', en:'OCD', ready:false},
-    {key:'sleep', ko:'수면', en:'Sleep', ready:false},
-    {key:'burnout', ko:'번아웃', en:'Burnout', ready:false},
-    {key:'ptsd', ko:'PTSD', en:'PTSD', ready:false},
-    {key:'autism', ko:'자폐', en:'Autism', ready:false},
-    {key:'bipolar', ko:'양극성', en:'Bipolar', ready:false}
+    {key:'depression', ko:'우울', en:'Depression', ready:true, rules:'adhd-engine/rules/depression_rules.json'},
+    {key:'anxiety', ko:'불안', en:'Anxiety', ready:true, rules:'adhd-engine/rules/anxiety_rules.json'},
+    {key:'ocd', ko:'강박(OCD)', en:'OCD', ready:true, rules:'adhd-engine/rules/ocd_rules.json'},
+    {key:'sleep', ko:'수면', en:'Sleep', ready:true, rules:'adhd-engine/rules/sleep_rules.json'},
+    {key:'burnout', ko:'번아웃', en:'Burnout', ready:true, rules:'adhd-engine/rules/burnout_rules.json'},
+    {key:'ptsd', ko:'PTSD', en:'PTSD', ready:true, rules:'adhd-engine/rules/ptsd_rules.json'},
+    {key:'autism', ko:'자폐', en:'Autism', ready:true, rules:'adhd-engine/rules/autism_rules.json'},
+    {key:'bipolar', ko:'양극성', en:'Bipolar', ready:true, rules:'adhd-engine/rules/bipolar_rules.json'}
   ];
   var ENGINE_LABEL={
     react_inhibit:{ko:'반응 억제',en:'Response Inhibition'},
@@ -598,14 +598,14 @@
   var C={dark:'#2E5A7A',main:'#4A90C2',mid:'#7BAFD0',soft:'#BDD7E7',bg:'#E8F1F8',ink:'#374151',dim:'#8FA9BC'};
 
   var CONDITIONS=[
-    {key:'depression', ko:'우울', en:'Depression', ready:false},
-    {key:'anxiety', ko:'불안', en:'Anxiety', ready:false},
-    {key:'sleep', ko:'수면', en:'Sleep', ready:false},
-    {key:'burnout', ko:'번아웃', en:'Burnout', ready:false},
-    {key:'ptsd', ko:'PTSD', en:'PTSD', ready:false},
-    {key:'ocd', ko:'강박(OCD)', en:'OCD', ready:false},
-    {key:'bipolar', ko:'양극성', en:'Bipolar', ready:false},
-    {key:'autism', ko:'자폐', en:'Autism', ready:false},
+    {key:'depression', ko:'우울', en:'Depression', ready:true, rules:'adhd-engine/rules/depression_rules.json'},
+    {key:'anxiety', ko:'불안', en:'Anxiety', ready:true, rules:'adhd-engine/rules/anxiety_rules.json'},
+    {key:'sleep', ko:'수면', en:'Sleep', ready:true, rules:'adhd-engine/rules/sleep_rules.json'},
+    {key:'burnout', ko:'번아웃', en:'Burnout', ready:true, rules:'adhd-engine/rules/burnout_rules.json'},
+    {key:'ptsd', ko:'PTSD', en:'PTSD', ready:true, rules:'adhd-engine/rules/ptsd_rules.json'},
+    {key:'ocd', ko:'강박(OCD)', en:'OCD', ready:true, rules:'adhd-engine/rules/ocd_rules.json'},
+    {key:'bipolar', ko:'양극성', en:'Bipolar', ready:true, rules:'adhd-engine/rules/bipolar_rules.json'},
+    {key:'autism', ko:'자폐', en:'Autism', ready:true, rules:'adhd-engine/rules/autism_rules.json'},
     {key:'adhd', ko:'ADHD', en:'ADHD', ready:true, rules:'adhd-engine/rules/adhd_rules.json'}
   ];
   var _cache={};
