@@ -3531,6 +3531,331 @@
         "primary_marker": "delta_beta_ratio",
         "note_ko": "불면 대표=수면 델타/베타 저하(과각성). 베타 증가·안정성 저하 보완. 실측은 수면 측정 필요."
       }
+    },
+    "state_formulas": [
+      {
+        "id": "hyperarousal",
+        "name": "과각성 (hyperarousal)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "autonomic",
+              "op": "add",
+              "multiplier": 0.8
+            },
+            {
+              "feature": "delta_beta_ratio",
+              "op": "add",
+              "multiplier": 15,
+              "offset": -2
+            }
+          ]
+        },
+        "interpret_ko": "자율+수면델타베타=과각성역",
+        "ref": [
+          "Bonnet & Arand 2010 hyperarousal",
+          "Riemann 2010"
+        ],
+        "basis_ko": "피질 과각성(수면 델타/베타 저하) = 불면 핵심 병태.",
+        "basis_en": "Cortical hyperarousal (low sleep delta/beta) = core insomnia pathophysiology.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "sleepCognition",
+        "name": "수면인지 (sleepCognition)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "conflictEffect",
+              "op": "subtract",
+              "multiplier": 0.4,
+              "offset": -75
+            }
+          ]
+        },
+        "interpret_ko": "전환곤란=수면걱정고착",
+        "ref": [
+          "Harvey 2002 cognitive model",
+          "Palagini metacognition"
+        ],
+        "basis_ko": "수면 역기능 신념·걱정(전환곤란)이 각성 증폭.",
+        "basis_en": "Dysfunctional sleep cognitions amplify arousal.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "conditionedArousal",
+        "name": "조건화각성 (conditionedArousal)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "rtVariability",
+              "op": "subtract",
+              "multiplier": 0.35,
+              "offset": -95
+            }
+          ]
+        },
+        "interpret_ko": "변산=각성불안정",
+        "ref": [
+          "Perlis 1997 neurocognitive",
+          "Bootzin stimulus control"
+        ],
+        "basis_ko": "침대-각성 조건화(변산성↑) = 불면 만성화.",
+        "basis_en": "Conditioned bed-arousal (RT variability) chronifies insomnia.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "circadian",
+        "name": "일주기 (circadian)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "detection",
+              "op": "add",
+              "multiplier": 0.6
+            },
+            {
+              "feature": "meanRt",
+              "op": "subtract",
+              "multiplier": 0.04,
+              "offset": -520
+            }
+          ]
+        },
+        "interpret_ko": "주간각성+처리속도=리듬",
+        "ref": [
+          "Wittmann 2006 circadian",
+          "Spielman sleep restriction"
+        ],
+        "basis_ko": "수면-각성 리듬 불일치(주간각성·처리속도)가 불면 유발.",
+        "basis_en": "Circadian misalignment (daytime alertness/speed).",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "sleepHygiene",
+        "name": "수면위생 (sleepHygiene)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "matchAccuracy",
+              "op": "add",
+              "multiplier": 0.7
+            }
+          ]
+        },
+        "interpret_ko": "주간 작업기억=수면질 반영",
+        "ref": [
+          "Irish 2015 hygiene review"
+        ],
+        "basis_ko": "수면방해 습관·주간 기능(작업기억) 반영.",
+        "basis_en": "Sleep-disrupting habits / daytime function.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      }
+    ],
+    "axis_formulas": {
+      "Bio": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "sleepHygiene",
+            "op": "add",
+            "multiplier": 0.5
+          },
+          {
+            "state": "hyperarousal",
+            "op": "add",
+            "multiplier": 0.5
+          }
+        ],
+        "explanations": {
+          "clinician": "Bio: {value}/100 — autonomic & core symptom composite.",
+          "general": "생물학적: {value}점"
+        }
+      },
+      "Psycho": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "conditionedArousal",
+            "op": "add",
+            "multiplier": 0.4
+          },
+          {
+            "state": "sleepCognition",
+            "op": "add",
+            "multiplier": 0.3
+          },
+          {
+            "state": "circadian",
+            "op": "add",
+            "multiplier": 0.3
+          }
+        ],
+        "explanations": {
+          "clinician": "Psycho: {value}/100 — cognitive & regulatory composite.",
+          "general": "심리적: {value}점"
+        }
+      },
+      "Social": {
+        "base": 50,
+        "terms": [
+          {
+            "state": "hyperarousal",
+            "op": "add",
+            "multiplier": 0.3,
+            "offset": -50
+          },
+          {
+            "state": "circadian",
+            "op": "add",
+            "multiplier": 0.2,
+            "offset": -50
+          }
+        ],
+        "explanations": {
+          "clinician": "Social: {value}/100 — inferred from regulatory capacity.",
+          "general": "사회적: {value}점 (간접 추정)"
+        }
+      }
+    },
+    "profile_matching": [
+      {
+        "id": "onset",
+        "name": "입면곤란형",
+        "terms": [
+          {
+            "state": "hyperarousal",
+            "op": "add_inverted",
+            "multiplier": 0.006
+          },
+          {
+            "state": "conditionedArousal",
+            "op": "add_inverted",
+            "multiplier": 0.004
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "입면곤란형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "입면곤란형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "입면곤란형 특징이 약간 있어요 ({pct}%).",
+            "weak": "입면곤란형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "과각성·조건화 우세",
+        "desc_en": "Onset-arousal",
+        "ref": [
+          "Bonnet & Arand 2010"
+        ],
+        "basis_ko": "입면 지연·과각성 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "maintenance",
+        "name": "수면유지형",
+        "terms": [
+          {
+            "state": "conditionedArousal",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          },
+          {
+            "feature": "delta_beta_ratio",
+            "op": "conditional_add",
+            "if_less_than": 2.0,
+            "value": 0.2
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "수면유지형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "수면유지형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "수면유지형 특징이 약간 있어요 ({pct}%).",
+            "weak": "수면유지형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "야간각성·유지곤란 우세",
+        "desc_en": "Maintenance",
+        "ref": [
+          "Perlis 1997"
+        ],
+        "basis_ko": "야간 각성·수면유지 곤란 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "circadian_type",
+        "name": "일주기형",
+        "terms": [
+          {
+            "state": "circadian",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          },
+          {
+            "state": "sleepHygiene",
+            "op": "add_inverted",
+            "multiplier": 0.003
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "일주기형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "일주기형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "일주기형 특징이 약간 있어요 ({pct}%).",
+            "weak": "일주기형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "리듬·위생 우세",
+        "desc_en": "Circadian-dysreg",
+        "ref": [
+          "Wittmann 2006"
+        ],
+        "basis_ko": "일주기 리듬 붕괴 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      }
+    ],
+    "_algo_meta": {
+      "basis": "sleep 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
+      "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
     }
   },
   "references": {

@@ -3533,6 +3533,332 @@
         "primary_marker": "frontal_theta",
         "note_ko": "OCD 대표=오류감시 세타/ERN 증폭(ACC). QEEG 지표화는 탐색적, 전부 보조."
       }
+    },
+    "state_formulas": [
+      {
+        "id": "obsessions",
+        "name": "강박사고 (obsessions)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "conflictEffect",
+              "op": "subtract",
+              "multiplier": 0.4,
+              "offset": -75
+            }
+          ]
+        },
+        "interpret_ko": "전환곤란=사고고착",
+        "ref": [
+          "DSM-5",
+          "Rachman 1997 obsessions"
+        ],
+        "basis_ko": "침습 강박사고(전환곤란).",
+        "basis_en": "Intrusive obsessions (cognitive inflexibility).",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "compulsions",
+        "name": "강박행동 (compulsions)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "matchAccuracy",
+              "op": "add",
+              "multiplier": 0.7
+            }
+          ]
+        },
+        "interpret_ko": "작업기억=확인충동대체역",
+        "ref": [
+          "DSM-5",
+          "Salkovskis RIM model"
+        ],
+        "basis_ko": "고통감소 강박행동(작업기억으로 확인충동 대체).",
+        "basis_en": "Compulsions for distress relief.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "inhibition",
+        "name": "반응억제 (inhibition)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "inhibition",
+              "op": "add",
+              "multiplier": 0.8
+            },
+            {
+              "feature": "commission",
+              "op": "subtract",
+              "multiplier": 2
+            }
+          ]
+        },
+        "interpret_ko": "억제+오반응",
+        "ref": [
+          "ENIGMA-OCD 2025",
+          "Chamberlain 2005 inhibition"
+        ],
+        "basis_ko": "반응 억제 결손 = OCD 특징(프론토-선조체).",
+        "basis_en": "Response inhibition deficit, OCD hallmark.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "errorMonitoring",
+        "name": "오류감시 (errorMonitoring)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "conflictEffect",
+              "op": "subtract",
+              "multiplier": 0.5,
+              "offset": -75
+            },
+            {
+              "feature": "frontal_theta",
+              "op": "subtract",
+              "multiplier": 30,
+              "offset": -1
+            }
+          ]
+        },
+        "interpret_ko": "갈등+세타=과다감시",
+        "ref": [
+          "Endrass 2014 ERN",
+          "Gehring 2000"
+        ],
+        "basis_ko": "과도한 오류감시(ERN 증폭, 전두 세타)=ACC 과활성.",
+        "basis_en": "Enhanced error monitoring (ERN/frontal theta), ACC hyperactivity.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "dysfunctionalBeliefs",
+        "name": "역기능신념 (dysfunctionalBeliefs)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "detection",
+              "op": "add",
+              "multiplier": 0.5
+            }
+          ]
+        },
+        "interpret_ko": "중립탐지=위협과대평가 반영",
+        "ref": [
+          "OBQ / OCCWG 2005",
+          "Salkovskis"
+        ],
+        "basis_ko": "책임 과다·위협 과대평가 = OCD 인지모델(중립탐지 반영).",
+        "basis_en": "Inflated responsibility/threat overestimation, OCD cognitive model.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      }
+    ],
+    "axis_formulas": {
+      "Bio": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "dysfunctionalBeliefs",
+            "op": "add",
+            "multiplier": 0.5
+          },
+          {
+            "state": "obsessions",
+            "op": "add",
+            "multiplier": 0.5
+          }
+        ],
+        "explanations": {
+          "clinician": "Bio: {value}/100 — autonomic & core symptom composite.",
+          "general": "생물학적: {value}점"
+        }
+      },
+      "Psycho": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "inhibition",
+            "op": "add",
+            "multiplier": 0.4
+          },
+          {
+            "state": "compulsions",
+            "op": "add",
+            "multiplier": 0.3
+          },
+          {
+            "state": "errorMonitoring",
+            "op": "add",
+            "multiplier": 0.3
+          }
+        ],
+        "explanations": {
+          "clinician": "Psycho: {value}/100 — cognitive & regulatory composite.",
+          "general": "심리적: {value}점"
+        }
+      },
+      "Social": {
+        "base": 50,
+        "terms": [
+          {
+            "state": "obsessions",
+            "op": "add",
+            "multiplier": 0.3,
+            "offset": -50
+          },
+          {
+            "state": "errorMonitoring",
+            "op": "add",
+            "multiplier": 0.2,
+            "offset": -50
+          }
+        ],
+        "explanations": {
+          "clinician": "Social: {value}/100 — inferred from regulatory capacity.",
+          "general": "사회적: {value}점 (간접 추정)"
+        }
+      }
+    },
+    "profile_matching": [
+      {
+        "id": "checking",
+        "name": "확인형",
+        "terms": [
+          {
+            "state": "compulsions",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          },
+          {
+            "state": "errorMonitoring",
+            "op": "add_inverted",
+            "multiplier": 0.004
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "확인형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "확인형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "확인형 특징이 약간 있어요 ({pct}%).",
+            "weak": "확인형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "확인·오류감시 우세",
+        "desc_en": "Checking",
+        "ref": [
+          "Salkovskis",
+          "Endrass 2014"
+        ],
+        "basis_ko": "확인·오류감시 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "contamination",
+        "name": "오염형",
+        "terms": [
+          {
+            "state": "dysfunctionalBeliefs",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          },
+          {
+            "state": "obsessions",
+            "op": "add_inverted",
+            "multiplier": 0.003
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "오염형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "오염형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "오염형 특징이 약간 있어요 ({pct}%).",
+            "weak": "오염형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "오염·위협신념 우세",
+        "desc_en": "Contamination",
+        "ref": [
+          "Rachman 2004"
+        ],
+        "basis_ko": "오염·위협신념 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "inhibition_type",
+        "name": "억제결손형",
+        "terms": [
+          {
+            "state": "inhibition",
+            "op": "add_inverted",
+            "multiplier": 0.006
+          },
+          {
+            "feature": "frontal_theta",
+            "op": "conditional_add",
+            "if_greater_than": 1.2,
+            "value": 0.2
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "억제결손형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "억제결손형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "억제결손형 특징이 약간 있어요 ({pct}%).",
+            "weak": "억제결손형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "반응억제결손 우세",
+        "desc_en": "Inhibition-deficit",
+        "ref": [
+          "ENIGMA-OCD 2025"
+        ],
+        "basis_ko": "반응억제결손 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      }
+    ],
+    "_algo_meta": {
+      "basis": "ocd 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
+      "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
     }
   },
   "references": {

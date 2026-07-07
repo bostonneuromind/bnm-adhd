@@ -3533,6 +3533,329 @@
         "primary_marker": "frontal_alpha_asymmetry",
         "note_ko": "번아웃은 독립 QEEG 근거 약함 — 우울/피로 마커 참조. 전부 보조지표(정직)."
       }
+    },
+    "state_formulas": [
+      {
+        "id": "exhaustion",
+        "name": "소진 (exhaustion)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "autonomic",
+              "op": "add",
+              "multiplier": 0.7
+            },
+            {
+              "feature": "detection",
+              "op": "add",
+              "multiplier": 0.3
+            }
+          ]
+        },
+        "interpret_ko": "자율회복력+각성=소진역",
+        "ref": [
+          "Maslach 2001",
+          "Melamed 2006 SMBM"
+        ],
+        "basis_ko": "정서적 소진 = 번아웃 최핵심 차원(자율 회복력 저하).",
+        "basis_en": "Emotional exhaustion, core burnout dimension (reduced autonomic recovery).",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "cynicism",
+        "name": "냉소 (cynicism)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "conflictEffect",
+              "op": "subtract",
+              "multiplier": 0.4,
+              "offset": -75
+            }
+          ]
+        },
+        "interpret_ko": "전환곤란=냉소고착",
+        "ref": [
+          "Maslach 2001",
+          "Demerouti JD-R"
+        ],
+        "basis_ko": "냉소·이탈 = 소진 방어(전환곤란).",
+        "basis_en": "Cynicism/detachment as defense against exhaustion.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "efficacy",
+        "name": "효능감 (efficacy)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "detection",
+              "op": "add",
+              "multiplier": 0.6
+            },
+            {
+              "feature": "matchAccuracy",
+              "op": "add",
+              "multiplier": 0.4
+            }
+          ]
+        },
+        "interpret_ko": "긍정탐지+수행=효능감",
+        "ref": [
+          "Maslach 2001",
+          "Leiter 1992"
+        ],
+        "basis_ko": "직업적 효능감 저하 = 번아웃 3차원(긍정탐지·수행).",
+        "basis_en": "Reduced professional efficacy, third burnout dimension.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "cognitiveFatigue",
+        "name": "인지피로 (cognitiveFatigue)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "matchAccuracy",
+              "op": "add",
+              "multiplier": 0.5
+            },
+            {
+              "feature": "meanRt",
+              "op": "subtract",
+              "multiplier": 0.05,
+              "offset": -520
+            }
+          ]
+        },
+        "interpret_ko": "작업기억+처리속도",
+        "ref": [
+          "Melamed 2006 SMBM cognitive weariness",
+          "Deligkaris 2014 cognition meta"
+        ],
+        "basis_ko": "인지피로(작업기억·처리속도 저하) = 만성 스트레스 인지영향.",
+        "basis_en": "Cognitive fatigue (WM/speed decline) from chronic stress.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "recovery",
+        "name": "회복 (recovery)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "autonomic",
+              "op": "add",
+              "multiplier": 0.9
+            }
+          ]
+        },
+        "interpret_ko": "자율신경 회복력",
+        "ref": [
+          "Sonnentag 2007 recovery",
+          "JD-R resource depletion"
+        ],
+        "basis_ko": "회복 실패·심리적 분리 곤란(자율신경).",
+        "basis_en": "Failed recovery / poor detachment (autonomic).",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      }
+    ],
+    "axis_formulas": {
+      "Bio": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "recovery",
+            "op": "add",
+            "multiplier": 0.5
+          },
+          {
+            "state": "exhaustion",
+            "op": "add",
+            "multiplier": 0.5
+          }
+        ],
+        "explanations": {
+          "clinician": "Bio: {value}/100 — autonomic & core symptom composite.",
+          "general": "생물학적: {value}점"
+        }
+      },
+      "Psycho": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "efficacy",
+            "op": "add",
+            "multiplier": 0.4
+          },
+          {
+            "state": "cynicism",
+            "op": "add",
+            "multiplier": 0.3
+          },
+          {
+            "state": "cognitiveFatigue",
+            "op": "add",
+            "multiplier": 0.3
+          }
+        ],
+        "explanations": {
+          "clinician": "Psycho: {value}/100 — cognitive & regulatory composite.",
+          "general": "심리적: {value}점"
+        }
+      },
+      "Social": {
+        "base": 50,
+        "terms": [
+          {
+            "state": "exhaustion",
+            "op": "add",
+            "multiplier": 0.3,
+            "offset": -50
+          },
+          {
+            "state": "cognitiveFatigue",
+            "op": "add",
+            "multiplier": 0.2,
+            "offset": -50
+          }
+        ],
+        "explanations": {
+          "clinician": "Social: {value}/100 — inferred from regulatory capacity.",
+          "general": "사회적: {value}점 (간접 추정)"
+        }
+      }
+    },
+    "profile_matching": [
+      {
+        "id": "exhaustion_type",
+        "name": "소진우세형",
+        "terms": [
+          {
+            "state": "exhaustion",
+            "op": "add_inverted",
+            "multiplier": 0.006
+          },
+          {
+            "state": "recovery",
+            "op": "add_inverted",
+            "multiplier": 0.004
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "소진우세형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "소진우세형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "소진우세형 특징이 약간 있어요 ({pct}%).",
+            "weak": "소진우세형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "정서소진·회복실패 우세",
+        "desc_en": "Exhaustion-dominant",
+        "ref": [
+          "Maslach 2001"
+        ],
+        "basis_ko": "정서소진·회복실패 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "disengaged",
+        "name": "냉소이탈형",
+        "terms": [
+          {
+            "state": "cynicism",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          },
+          {
+            "state": "efficacy",
+            "op": "add_inverted",
+            "multiplier": 0.003
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "냉소이탈형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "냉소이탈형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "냉소이탈형 특징이 약간 있어요 ({pct}%).",
+            "weak": "냉소이탈형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "냉소·효능감저하 우세",
+        "desc_en": "Disengagement",
+        "ref": [
+          "Demerouti JD-R"
+        ],
+        "basis_ko": "냉소·효능감저하 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "cognitive_type",
+        "name": "인지피로형",
+        "terms": [
+          {
+            "state": "cognitiveFatigue",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "인지피로형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "인지피로형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "인지피로형 특징이 약간 있어요 ({pct}%).",
+            "weak": "인지피로형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "인지피로 우세",
+        "desc_en": "Cognitive-fatigue",
+        "ref": [
+          "Melamed 2006"
+        ],
+        "basis_ko": "인지피로 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      }
+    ],
+    "_algo_meta": {
+      "basis": "burnout 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
+      "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
     }
   },
   "references": {

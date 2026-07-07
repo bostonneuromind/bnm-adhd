@@ -3536,6 +3536,326 @@
         "primary_marker": "frontal_theta",
         "note_ko": "ASD는 확립된 단일 QEEG 마커 없음(정직). 전두활동·연결성·감마 = 탐색적 가설. 전부 보조."
       }
+    },
+    "state_formulas": [
+      {
+        "id": "socialCommunication",
+        "name": "사회의사소통 (socialCommunication)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "detection",
+              "op": "add",
+              "multiplier": 0.7
+            }
+          ]
+        },
+        "interpret_ko": "사회단서탐지",
+        "ref": [
+          "DSM-5",
+          "Constantino SRS"
+        ],
+        "basis_ko": "사회 의사소통 차이(사회단서 탐지). ※차이,결함 아님.",
+        "basis_en": "Social communication difference (cue detection). Difference, not deficit.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "sensoryProcessing",
+        "name": "감각처리 (sensoryProcessing)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "autonomic",
+              "op": "add",
+              "multiplier": 0.8
+            }
+          ]
+        },
+        "interpret_ko": "감각부하 자율각성",
+        "ref": [
+          "Dunn SP-2",
+          "Marco 2011 sensory"
+        ],
+        "basis_ko": "감각 과민/저민(자율 각성). 상류 영향.",
+        "basis_en": "Sensory hyper/hypo-reactivity (autonomic).",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "executiveFunction",
+        "name": "실행기능 (executiveFunction)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "matchAccuracy",
+              "op": "add",
+              "multiplier": 0.6
+            },
+            {
+              "feature": "conflictEffect",
+              "op": "subtract",
+              "multiplier": 0.4,
+              "offset": -75
+            }
+          ]
+        },
+        "interpret_ko": "작업기억+전환",
+        "ref": [
+          "Demetriou 2018 EF meta",
+          "BRIEF-2"
+        ],
+        "basis_ko": "실행기능(전환·작업기억) 차이. 개인차 큼.",
+        "basis_en": "Executive function (shifting/WM) difference.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "emotionRegulation",
+        "name": "정서조절 (emotionRegulation)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "autonomic",
+              "op": "add",
+              "multiplier": 0.7
+            },
+            {
+              "feature": "rtVariability",
+              "op": "subtract",
+              "multiplier": 0.3,
+              "offset": -95
+            }
+          ]
+        },
+        "interpret_ko": "자율+변산=정서조절",
+        "ref": [
+          "Mazefsky 2013 ER",
+          "Fernandez-Prieto 2021"
+        ],
+        "basis_ko": "정서조절이 감각-행동 관계 매개(자율·변산).",
+        "basis_en": "Emotion regulation mediates sensory-behavior link.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "flexibility",
+        "name": "유연성 (flexibility)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "conflictEffect",
+              "op": "subtract",
+              "multiplier": 0.5,
+              "offset": -75
+            }
+          ]
+        },
+        "interpret_ko": "전환비용=경직성",
+        "ref": [
+          "DSM-5 RRB",
+          "Geurts 2009 flexibility"
+        ],
+        "basis_ko": "인지 유연성·전환(전환비용). 특별관심=강점.",
+        "basis_en": "Cognitive flexibility/shifting; special interests as strengths.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      }
+    ],
+    "axis_formulas": {
+      "Bio": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "flexibility",
+            "op": "add",
+            "multiplier": 0.5
+          },
+          {
+            "state": "socialCommunication",
+            "op": "add",
+            "multiplier": 0.5
+          }
+        ],
+        "explanations": {
+          "clinician": "Bio: {value}/100 — autonomic & core symptom composite.",
+          "general": "생물학적: {value}점"
+        }
+      },
+      "Psycho": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "executiveFunction",
+            "op": "add",
+            "multiplier": 0.4
+          },
+          {
+            "state": "sensoryProcessing",
+            "op": "add",
+            "multiplier": 0.3
+          },
+          {
+            "state": "emotionRegulation",
+            "op": "add",
+            "multiplier": 0.3
+          }
+        ],
+        "explanations": {
+          "clinician": "Psycho: {value}/100 — cognitive & regulatory composite.",
+          "general": "심리적: {value}점"
+        }
+      },
+      "Social": {
+        "base": 50,
+        "terms": [
+          {
+            "state": "socialCommunication",
+            "op": "add",
+            "multiplier": 0.3,
+            "offset": -50
+          },
+          {
+            "state": "emotionRegulation",
+            "op": "add",
+            "multiplier": 0.2,
+            "offset": -50
+          }
+        ],
+        "explanations": {
+          "clinician": "Social: {value}/100 — inferred from regulatory capacity.",
+          "general": "사회적: {value}점 (간접 추정)"
+        }
+      }
+    },
+    "profile_matching": [
+      {
+        "id": "social_type",
+        "name": "사회의사소통형",
+        "terms": [
+          {
+            "state": "socialCommunication",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "사회의사소통형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "사회의사소통형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "사회의사소통형 특징이 약간 있어요 ({pct}%).",
+            "weak": "사회의사소통형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "사회단서 지원 우세",
+        "desc_en": "Social-communication",
+        "ref": [
+          "Constantino SRS"
+        ],
+        "basis_ko": "사회의사소통 지원 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "sensory_type",
+        "name": "감각우세형",
+        "terms": [
+          {
+            "state": "sensoryProcessing",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          },
+          {
+            "state": "emotionRegulation",
+            "op": "add_inverted",
+            "multiplier": 0.004
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "감각우세형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "감각우세형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "감각우세형 특징이 약간 있어요 ({pct}%).",
+            "weak": "감각우세형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "감각·정서조절 지원 우세",
+        "desc_en": "Sensory-emotional",
+        "ref": [
+          "Dunn SP-2",
+          "Mazefsky 2013"
+        ],
+        "basis_ko": "감각·정서조절 지원 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "ef_type",
+        "name": "실행기능형",
+        "terms": [
+          {
+            "state": "executiveFunction",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          },
+          {
+            "state": "flexibility",
+            "op": "add_inverted",
+            "multiplier": 0.004
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "실행기능형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "실행기능형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "실행기능형 특징이 약간 있어요 ({pct}%).",
+            "weak": "실행기능형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "실행기능·유연성 지원 우세",
+        "desc_en": "EF-flexibility",
+        "ref": [
+          "Demetriou 2018"
+        ],
+        "basis_ko": "실행기능·유연성 지원 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      }
+    ],
+    "_algo_meta": {
+      "basis": "autism 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
+      "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
     }
   },
   "references": {

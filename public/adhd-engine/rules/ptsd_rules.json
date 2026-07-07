@@ -3538,6 +3538,325 @@
         "primary_marker": "frontal_alpha_asymmetry",
         "note_ko": "PTSD QEEG는 연구간 이질성 큼 — 전부 보조지표·탐색적. 단독 진단 불가(정직)."
       }
+    },
+    "state_formulas": [
+      {
+        "id": "reexperiencing",
+        "name": "재경험 (reexperiencing)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "detection",
+              "op": "add",
+              "multiplier": 0.5
+            }
+          ]
+        },
+        "interpret_ko": "중립탐지저하=침습위협편향",
+        "ref": [
+          "DSM-5 criterion B",
+          "Ehlers & Clark 2000"
+        ],
+        "basis_ko": "침습 재경험 = PTSD 기준 B(위협편향·중립탐지 저하).",
+        "basis_en": "Intrusive re-experiencing, DSM-5 criterion B.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "avoidance",
+        "name": "회피 (avoidance)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "inhibition",
+              "op": "add",
+              "multiplier": 0.6
+            }
+          ]
+        },
+        "interpret_ko": "억제=회피조절",
+        "ref": [
+          "DSM-5 criterion C",
+          "Foa emotional processing"
+        ],
+        "basis_ko": "트라우마 회피 = 기준 C(억제·회피 조절).",
+        "basis_en": "Trauma avoidance, criterion C.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "negativeCognition",
+        "name": "부정인지 (negativeCognition)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "detection",
+              "op": "add",
+              "multiplier": 0.5
+            }
+          ]
+        },
+        "interpret_ko": "긍정탐지저하=부정인지",
+        "ref": [
+          "DSM-5 criterion D",
+          "Ehlers & Clark 2000"
+        ],
+        "basis_ko": "부정 인지·정서 마비 = 기준 D(긍정탐지 저하).",
+        "basis_en": "Negative cognition/mood, criterion D.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "hyperarousal",
+        "name": "과각성 (hyperarousal)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "autonomic",
+              "op": "add",
+              "multiplier": 0.6
+            },
+            {
+              "feature": "rtVariability",
+              "op": "subtract",
+              "multiplier": 0.3,
+              "offset": -95
+            }
+          ]
+        },
+        "interpret_ko": "자율+변산=과각성",
+        "ref": [
+          "DSM-5 criterion E",
+          "Pole 2007 psychophysiology meta"
+        ],
+        "basis_ko": "과각성·과잉경계 = 기준 E(자율 항진·변산).",
+        "basis_en": "Hyperarousal, criterion E (autonomic).",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "dissociation",
+        "name": "해리 (dissociation)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "matchAccuracy",
+              "op": "add",
+              "multiplier": 0.7
+            }
+          ]
+        },
+        "interpret_ko": "작업기억=현재연결",
+        "ref": [
+          "DSM-5 dissociative subtype",
+          "Lanius 2010"
+        ],
+        "basis_ko": "이인증·비현실감 = 해리 아형(작업기억·현재연결).",
+        "basis_en": "Depersonalization/derealization, dissociative subtype.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      }
+    ],
+    "axis_formulas": {
+      "Bio": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "dissociation",
+            "op": "add",
+            "multiplier": 0.5
+          },
+          {
+            "state": "reexperiencing",
+            "op": "add",
+            "multiplier": 0.5
+          }
+        ],
+        "explanations": {
+          "clinician": "Bio: {value}/100 — autonomic & core symptom composite.",
+          "general": "생물학적: {value}점"
+        }
+      },
+      "Psycho": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "negativeCognition",
+            "op": "add",
+            "multiplier": 0.4
+          },
+          {
+            "state": "avoidance",
+            "op": "add",
+            "multiplier": 0.3
+          },
+          {
+            "state": "hyperarousal",
+            "op": "add",
+            "multiplier": 0.3
+          }
+        ],
+        "explanations": {
+          "clinician": "Psycho: {value}/100 — cognitive & regulatory composite.",
+          "general": "심리적: {value}점"
+        }
+      },
+      "Social": {
+        "base": 50,
+        "terms": [
+          {
+            "state": "reexperiencing",
+            "op": "add",
+            "multiplier": 0.3,
+            "offset": -50
+          },
+          {
+            "state": "hyperarousal",
+            "op": "add",
+            "multiplier": 0.2,
+            "offset": -50
+          }
+        ],
+        "explanations": {
+          "clinician": "Social: {value}/100 — inferred from regulatory capacity.",
+          "general": "사회적: {value}점 (간접 추정)"
+        }
+      }
+    },
+    "profile_matching": [
+      {
+        "id": "intrusive",
+        "name": "침습우세형",
+        "terms": [
+          {
+            "state": "reexperiencing",
+            "op": "add_inverted",
+            "multiplier": 0.006
+          },
+          {
+            "state": "hyperarousal",
+            "op": "add_inverted",
+            "multiplier": 0.003
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "침습우세형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "침습우세형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "침습우세형 특징이 약간 있어요 ({pct}%).",
+            "weak": "침습우세형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "재경험·과각성 우세",
+        "desc_en": "Intrusion-dominant",
+        "ref": [
+          "DSM-5 B/E",
+          "Lanius 2010"
+        ],
+        "basis_ko": "재경험·과각성 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "avoidant_num",
+        "name": "회피마비형",
+        "terms": [
+          {
+            "state": "avoidance",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          },
+          {
+            "state": "negativeCognition",
+            "op": "add_inverted",
+            "multiplier": 0.004
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "회피마비형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "회피마비형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "회피마비형 특징이 약간 있어요 ({pct}%).",
+            "weak": "회피마비형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "회피·정서마비 우세",
+        "desc_en": "Avoidance-numbing",
+        "ref": [
+          "DSM-5 C/D"
+        ],
+        "basis_ko": "회피·정서마비 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "dissociative",
+        "name": "해리형",
+        "terms": [
+          {
+            "state": "dissociation",
+            "op": "add_inverted",
+            "multiplier": 0.006
+          },
+          {
+            "feature": "frontal_alpha_asymmetry",
+            "op": "conditional_add",
+            "if_less_than": -0.1,
+            "value": 0.2
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "해리형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "해리형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "해리형 특징이 약간 있어요 ({pct}%).",
+            "weak": "해리형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "해리·이인증 우세",
+        "desc_en": "Dissociative",
+        "ref": [
+          "Lanius 2010 dissociative subtype"
+        ],
+        "basis_ko": "해리·이인증 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      }
+    ],
+    "_algo_meta": {
+      "basis": "ptsd 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
+      "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
     }
   },
   "references": {

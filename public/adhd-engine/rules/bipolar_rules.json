@@ -3546,6 +3546,339 @@
         "primary_marker": "frontal_theta",
         "note_ko": "BD 대표=전두 세타 증가(우울 감별). 델타 과활성·알파 비대칭(상태). 전부 보조·탐색적."
       }
+    },
+    "state_formulas": [
+      {
+        "id": "moodInstability",
+        "name": "기분불안정 (moodInstability)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "rtVariability",
+              "op": "subtract",
+              "multiplier": 0.4,
+              "offset": -95
+            }
+          ]
+        },
+        "interpret_ko": "반응변산=기분변동",
+        "ref": [
+          "Tonon 2024",
+          "Bonsall 2012 mood dynamics"
+        ],
+        "basis_ko": "기분 불안정(변산성)=BD 핵심 예측인자.",
+        "basis_en": "Mood instability (variability), core BD predictor.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "circadian",
+        "name": "일주기 (circadian)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "detection",
+              "op": "add",
+              "multiplier": 0.6
+            }
+          ]
+        },
+        "interpret_ko": "지속주의=리듬안정",
+        "ref": [
+          "Tonon 2024 circadian",
+          "Murray & Harvey 2010"
+        ],
+        "basis_ko": "일주기·수면 리듬 불안정=BD 특징(주의·리듬).",
+        "basis_en": "Circadian/sleep instability, BD feature.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "manicActivation",
+        "name": "조증활성 (manicActivation)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "inhibition",
+              "op": "add",
+              "multiplier": 0.6
+            },
+            {
+              "feature": "commission",
+              "op": "subtract",
+              "multiplier": 2
+            }
+          ]
+        },
+        "interpret_ko": "억제저하+오반응=조증충동",
+        "ref": [
+          "DSM-5 manic episode",
+          "Swann 2009 impulsivity"
+        ],
+        "basis_ko": "조증 활성·충동(억제저하·오반응).",
+        "basis_en": "Manic activation/impulsivity (reduced inhibition).",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "depressiveState",
+        "name": "우울상태 (depressiveState)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "detection",
+              "op": "add",
+              "multiplier": 0.6
+            },
+            {
+              "feature": "meanRt",
+              "op": "subtract",
+              "multiplier": 0.04,
+              "offset": -520
+            }
+          ]
+        },
+        "interpret_ko": "보상반응+처리속도",
+        "ref": [
+          "DSM-5 BD depression",
+          "Bipolar review 2024"
+        ],
+        "basis_ko": "우울 삽화(보상반응·처리속도 저하).",
+        "basis_en": "Depressive episode (reduced reward/speed).",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "cognitiveControl",
+        "name": "인지통제 (cognitiveControl)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "matchAccuracy",
+              "op": "add",
+              "multiplier": 0.8
+            },
+            {
+              "feature": "frontal_theta",
+              "op": "subtract",
+              "multiplier": 25,
+              "offset": -1
+            }
+          ]
+        },
+        "interpret_ko": "작업기억+전두세타",
+        "ref": [
+          "Bourne 2013 cognition meta",
+          "P300 review"
+        ],
+        "basis_ko": "작업기억·처리속도 결손(삽화·관해기).",
+        "basis_en": "WM/speed deficits (episodic & euthymic).",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      }
+    ],
+    "axis_formulas": {
+      "Bio": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "cognitiveControl",
+            "op": "add",
+            "multiplier": 0.5
+          },
+          {
+            "state": "moodInstability",
+            "op": "add",
+            "multiplier": 0.5
+          }
+        ],
+        "explanations": {
+          "clinician": "Bio: {value}/100 — autonomic & core symptom composite.",
+          "general": "생물학적: {value}점"
+        }
+      },
+      "Psycho": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "manicActivation",
+            "op": "add",
+            "multiplier": 0.4
+          },
+          {
+            "state": "circadian",
+            "op": "add",
+            "multiplier": 0.3
+          },
+          {
+            "state": "depressiveState",
+            "op": "add",
+            "multiplier": 0.3
+          }
+        ],
+        "explanations": {
+          "clinician": "Psycho: {value}/100 — cognitive & regulatory composite.",
+          "general": "심리적: {value}점"
+        }
+      },
+      "Social": {
+        "base": 50,
+        "terms": [
+          {
+            "state": "moodInstability",
+            "op": "add",
+            "multiplier": 0.3,
+            "offset": -50
+          },
+          {
+            "state": "depressiveState",
+            "op": "add",
+            "multiplier": 0.2,
+            "offset": -50
+          }
+        ],
+        "explanations": {
+          "clinician": "Social: {value}/100 — inferred from regulatory capacity.",
+          "general": "사회적: {value}점 (간접 추정)"
+        }
+      }
+    },
+    "profile_matching": [
+      {
+        "id": "manic_pred",
+        "name": "조증우세형",
+        "terms": [
+          {
+            "state": "manicActivation",
+            "op": "add_inverted",
+            "multiplier": 0.006
+          },
+          {
+            "feature": "frontal_theta",
+            "op": "conditional_add",
+            "if_greater_than": 1.25,
+            "value": 0.2
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "조증우세형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "조증우세형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "조증우세형 특징이 약간 있어요 ({pct}%).",
+            "weak": "조증우세형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "조증활성·충동 우세",
+        "desc_en": "Manic-predominant",
+        "ref": [
+          "DSM-5 BD-I",
+          "Swann 2009"
+        ],
+        "basis_ko": "조증활성·충동 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "depressive_pred",
+        "name": "우울우세형",
+        "terms": [
+          {
+            "state": "depressiveState",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          },
+          {
+            "feature": "frontal_delta",
+            "op": "conditional_add",
+            "if_greater_than": 1.2,
+            "value": 0.2
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "우울우세형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "우울우세형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "우울우세형 특징이 약간 있어요 ({pct}%).",
+            "weak": "우울우세형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "우울삽화 우세",
+        "desc_en": "Depressive-predominant",
+        "ref": [
+          "DSM-5 BD depression"
+        ],
+        "basis_ko": "우울삽화 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "rapid_cycling",
+        "name": "급속순환형",
+        "terms": [
+          {
+            "state": "moodInstability",
+            "op": "add_inverted",
+            "multiplier": 0.006
+          },
+          {
+            "state": "circadian",
+            "op": "add_inverted",
+            "multiplier": 0.004
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "급속순환형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "급속순환형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "급속순환형 특징이 약간 있어요 ({pct}%).",
+            "weak": "급속순환형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "기분불안정·리듬붕괴 우세",
+        "desc_en": "Rapid-cycling",
+        "ref": [
+          "DSM-5 rapid cycling",
+          "Tonon 2024"
+        ],
+        "basis_ko": "기분 불안정·리듬붕괴 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      }
+    ],
+    "_algo_meta": {
+      "basis": "bipolar 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
+      "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
     }
   },
   "references": {

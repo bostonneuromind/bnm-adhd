@@ -3581,6 +3581,341 @@
         "primary_marker": "frontal_alpha_asymmetry",
         "note_ko": "우울 대표=전두 알파 비대칭(단 효과크기 작음). 베타 증가는 메타 확인. 전부 보조지표."
       }
+    },
+    "state_formulas": [
+      {
+        "id": "anhedonia",
+        "name": "무쾌감 (anhedonia)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "detection",
+              "op": "add",
+              "multiplier": 0.6
+            },
+            {
+              "feature": "frontal_alpha_asymmetry",
+              "op": "add",
+              "multiplier": 40
+            }
+          ]
+        },
+        "interpret_ko": "보상탐지+전두알파비대칭",
+        "ref": [
+          "Pizzagalli 2014 review",
+          "Nusslock & Alloy FAA",
+          "Coan & Allen capability model"
+        ],
+        "basis_ko": "좌측 전두 저활성(FAA) = 접근동기·보상민감성 저하 = 무쾌감 확립 지표. 보상탐지 저하는 복측선조체 저활성 반영.",
+        "basis_en": "Left frontal hypoactivation (FAA) = reduced approach motivation/reward sensitivity; hallmark of anhedonia.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "rumination",
+        "name": "반추 (rumination)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "conflictEffect",
+              "op": "subtract",
+              "multiplier": 0.5,
+              "offset": -75
+            }
+          ]
+        },
+        "interpret_ko": "전환비용 클수록 반추",
+        "ref": [
+          "Koster 2011 impaired disengagement",
+          "Whitmer & Gotlib 2013 cognitive inflexibility"
+        ],
+        "basis_ko": "인지 전환·이탈 곤란(전환비용↑)이 반추 고착과 연관 (손상된 이탈 이론).",
+        "basis_en": "Impaired disengagement/switching (higher switch cost) linked to ruminative fixation.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "cognitiveControl",
+        "name": "인지통제 (cognitiveControl)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "matchAccuracy",
+              "op": "add",
+              "multiplier": 0.8
+            },
+            {
+              "feature": "meanRt",
+              "op": "subtract",
+              "multiplier": 0.05,
+              "offset": -520
+            }
+          ]
+        },
+        "interpret_ko": "작업기억+처리속도",
+        "ref": [
+          "Rock 2014 meta g≈0.3-0.5",
+          "Semkovska 2019 Lancet Psychiatry"
+        ],
+        "basis_ko": "작업기억·처리속도 결손 = 우울 확립 인지결손 (메타 소~중 효과크기).",
+        "basis_en": "Working memory/processing speed deficits, established in depression meta-analyses.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "attentionalBias",
+        "name": "주의편향 (attentionalBias)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "detection",
+              "op": "add",
+              "multiplier": 0.5
+            }
+          ]
+        },
+        "interpret_ko": "긍정탐지 저하=부정편향",
+        "ref": [
+          "Disner 2011 cognitive model",
+          "Peckham 2010 meta attention bias"
+        ],
+        "basis_ko": "긍정자극 탐지 저하·부정 편향 = 우울 인지모델 핵심 (부정 정보 우선처리).",
+        "basis_en": "Reduced positive detection / negative attention bias, core to cognitive model of depression.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "autonomic",
+        "name": "자율신경 (autonomic)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "rtVariability",
+              "op": "subtract",
+              "multiplier": 0.4,
+              "offset": -95
+            }
+          ]
+        },
+        "interpret_ko": "반응변산=자율불안정",
+        "ref": [
+          "Kemp 2010 HRV meta",
+          "Koch 2019 HRV depression"
+        ],
+        "basis_ko": "자율신경 조절 저하(HRV↓, 반응 변산성↑) = 우울 확립 소견.",
+        "basis_en": "Reduced autonomic regulation (lower HRV, higher RT variability) in depression.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      }
+    ],
+    "axis_formulas": {
+      "Bio": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "autonomic",
+            "op": "add",
+            "multiplier": 0.5
+          },
+          {
+            "state": "anhedonia",
+            "op": "add",
+            "multiplier": 0.5
+          }
+        ],
+        "explanations": {
+          "clinician": "Bio: {value}/100 — autonomic & core symptom composite.",
+          "general": "생물학적: {value}점"
+        }
+      },
+      "Psycho": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "cognitiveControl",
+            "op": "add",
+            "multiplier": 0.4
+          },
+          {
+            "state": "rumination",
+            "op": "add",
+            "multiplier": 0.3
+          },
+          {
+            "state": "attentionalBias",
+            "op": "add",
+            "multiplier": 0.3
+          }
+        ],
+        "explanations": {
+          "clinician": "Psycho: {value}/100 — cognitive & regulatory composite.",
+          "general": "심리적: {value}점"
+        }
+      },
+      "Social": {
+        "base": 50,
+        "terms": [
+          {
+            "state": "anhedonia",
+            "op": "add",
+            "multiplier": 0.3,
+            "offset": -50
+          },
+          {
+            "state": "attentionalBias",
+            "op": "add",
+            "multiplier": 0.2,
+            "offset": -50
+          }
+        ],
+        "explanations": {
+          "clinician": "Social: {value}/100 — inferred from regulatory capacity.",
+          "general": "사회적: {value}점 (간접 추정)"
+        }
+      }
+    },
+    "profile_matching": [
+      {
+        "id": "melancholic",
+        "name": "멜랑콜리형",
+        "terms": [
+          {
+            "state": "anhedonia",
+            "op": "add_inverted",
+            "multiplier": 0.006
+          },
+          {
+            "feature": "frontal_alpha_asymmetry",
+            "op": "conditional_add",
+            "if_less_than": -0.1,
+            "value": 0.25
+          },
+          {
+            "state": "autonomic",
+            "op": "add_inverted",
+            "multiplier": 0.003
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "멜랑콜리형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "멜랑콜리형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "멜랑콜리형 특징이 약간 있어요 ({pct}%).",
+            "weak": "멜랑콜리형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "무쾌감·자율신경저하 우세",
+        "desc_en": "Anhedonia-dominant",
+        "ref": [
+          "DSM-5-TR melancholic specifier",
+          "Pizzagalli 2014"
+        ],
+        "basis_ko": "무쾌감·반응성 소실·자율신경 저하 = 멜랑콜리 아형 진단기준.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "atypical",
+        "name": "비정형",
+        "terms": [
+          {
+            "state": "attentionalBias",
+            "op": "add_inverted",
+            "multiplier": 0.004
+          },
+          {
+            "feature": "rtVariability",
+            "op": "conditional_add",
+            "if_greater_than": 115,
+            "value": 0.2
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "비정형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "비정형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "비정형 특징이 약간 있어요 ({pct}%).",
+            "weak": "비정형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "반응성기분·주의편향 우세",
+        "desc_en": "Mood-reactive",
+        "ref": [
+          "DSM-5-TR atypical specifier",
+          "Stewart 2007"
+        ],
+        "basis_ko": "기분 반응성·과수면·거부민감 = 비정형 아형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "cognitive",
+        "name": "인지형",
+        "terms": [
+          {
+            "state": "cognitiveControl",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          },
+          {
+            "state": "rumination",
+            "op": "add_inverted",
+            "multiplier": 0.004
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "인지형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "인지형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "인지형 특징이 약간 있어요 ({pct}%).",
+            "weak": "인지형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "인지통제저하·반추 우세",
+        "desc_en": "Cognitive-deficit",
+        "ref": [
+          "Rock 2014",
+          "Semkovska 2019"
+        ],
+        "basis_ko": "인지결손·반추 우세 = 인지증상 우세 프로파일.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      }
+    ],
+    "_algo_meta": {
+      "basis": "depression 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
+      "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
     }
   },
   "references": {

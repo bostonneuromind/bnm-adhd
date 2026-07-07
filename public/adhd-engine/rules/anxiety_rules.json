@@ -3533,6 +3533,328 @@
         "primary_marker": "beta_power",
         "note_ko": "불안 대표=베타 증가(과각성). 측두 알파 비대칭·델타-베타 결합 보완. 전부 보조지표."
       }
+    },
+    "state_formulas": [
+      {
+        "id": "worry",
+        "name": "걱정 (worry)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "conflictEffect",
+              "op": "subtract",
+              "multiplier": 0.5,
+              "offset": -75
+            }
+          ]
+        },
+        "interpret_ko": "전환곤란=걱정고착",
+        "ref": [
+          "Borkovec 1998 worry model",
+          "Ren 2020 network analysis"
+        ],
+        "basis_ko": "통제불가 반복 걱정 = GAD 핵심; 인지 전환곤란과 연관.",
+        "basis_en": "Uncontrollable worry, core to GAD; linked to cognitive inflexibility.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "threatBias",
+        "name": "위협편향 (threatBias)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "detection",
+              "op": "add",
+              "multiplier": 0.6
+            }
+          ]
+        },
+        "interpret_ko": "중립탐지 저하=위협편향",
+        "ref": [
+          "Bar-Haim 2007 meta d≈0.45",
+          "Cisler & Koster 2010"
+        ],
+        "basis_ko": "위협 주의편향 = 불안 강건한 현상(중립탐지 저하).",
+        "basis_en": "Threat attention bias, robust in anxiety (reduced neutral detection).",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "hyperarousal",
+        "name": "과각성 (hyperarousal)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "beta_power",
+              "op": "subtract",
+              "multiplier": 30,
+              "offset": -1
+            },
+            {
+              "feature": "rtVariability",
+              "op": "subtract",
+              "multiplier": 0.3,
+              "offset": -95
+            }
+          ]
+        },
+        "interpret_ko": "베타증가+변산=과각성",
+        "ref": [
+          "Nature 2025 GAD beta",
+          "Sylvers 2011 hyperarousal"
+        ],
+        "basis_ko": "전두 베타 증가·자율 항진 = 과각성 지표.",
+        "basis_en": "Increased frontal beta / autonomic arousal = hyperarousal.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "avoidance",
+        "name": "회피 (avoidance)",
+        "formula": {
+          "base": 100,
+          "terms": [
+            {
+              "feature": "commission",
+              "op": "subtract",
+              "multiplier": 2
+            }
+          ]
+        },
+        "interpret_ko": "충동오반응=회피충동",
+        "ref": [
+          "Mowrer two-factor",
+          "Arnaudova 2017 avoidance"
+        ],
+        "basis_ko": "위협 회피·충동 억제 곤란 = 불안 유지 기전.",
+        "basis_en": "Threat avoidance / impaired inhibition maintains anxiety.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      },
+      {
+        "id": "uncertaintyIntolerance",
+        "name": "불확실성불내성 (uncertaintyIntolerance)",
+        "formula": {
+          "base": 0,
+          "terms": [
+            {
+              "feature": "matchAccuracy",
+              "op": "add",
+              "multiplier": 0.8
+            }
+          ]
+        },
+        "interpret_ko": "작업기억으로 모호함 견딤",
+        "ref": [
+          "Dugas 1998 IU model",
+          "Ren 2020"
+        ],
+        "basis_ko": "불확실성 불내성 = GAD 핵심 인지요인(작업기억으로 모호함 처리).",
+        "basis_en": "Intolerance of uncertainty, core GAD cognitive factor.",
+        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+      }
+    ],
+    "axis_formulas": {
+      "Bio": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "uncertaintyIntolerance",
+            "op": "add",
+            "multiplier": 0.5
+          },
+          {
+            "state": "worry",
+            "op": "add",
+            "multiplier": 0.5
+          }
+        ],
+        "explanations": {
+          "clinician": "Bio: {value}/100 — autonomic & core symptom composite.",
+          "general": "생물학적: {value}점"
+        }
+      },
+      "Psycho": {
+        "base": 0,
+        "terms": [
+          {
+            "state": "hyperarousal",
+            "op": "add",
+            "multiplier": 0.4
+          },
+          {
+            "state": "threatBias",
+            "op": "add",
+            "multiplier": 0.3
+          },
+          {
+            "state": "avoidance",
+            "op": "add",
+            "multiplier": 0.3
+          }
+        ],
+        "explanations": {
+          "clinician": "Psycho: {value}/100 — cognitive & regulatory composite.",
+          "general": "심리적: {value}점"
+        }
+      },
+      "Social": {
+        "base": 50,
+        "terms": [
+          {
+            "state": "worry",
+            "op": "add",
+            "multiplier": 0.3,
+            "offset": -50
+          },
+          {
+            "state": "avoidance",
+            "op": "add",
+            "multiplier": 0.2,
+            "offset": -50
+          }
+        ],
+        "explanations": {
+          "clinician": "Social: {value}/100 — inferred from regulatory capacity.",
+          "general": "사회적: {value}점 (간접 추정)"
+        }
+      }
+    },
+    "profile_matching": [
+      {
+        "id": "generalized",
+        "name": "범불안형",
+        "terms": [
+          {
+            "state": "worry",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          },
+          {
+            "state": "uncertaintyIntolerance",
+            "op": "add_inverted",
+            "multiplier": 0.004
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "범불안형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "범불안형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "범불안형 특징이 약간 있어요 ({pct}%).",
+            "weak": "범불안형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "만성걱정·불확실성 우세",
+        "desc_en": "Worry-dominant",
+        "ref": [
+          "Dugas 1998",
+          "Ren 2020"
+        ],
+        "basis_ko": "만성 걱정·불확실성 불내성 우세 = 범불안형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "somatic",
+        "name": "신체형",
+        "terms": [
+          {
+            "state": "hyperarousal",
+            "op": "add_inverted",
+            "multiplier": 0.006
+          },
+          {
+            "feature": "beta_power",
+            "op": "conditional_add",
+            "if_greater_than": 1.3,
+            "value": 0.2
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "신체형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "신체형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "신체형 특징이 약간 있어요 ({pct}%).",
+            "weak": "신체형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "과각성·신체증상 우세",
+        "desc_en": "Arousal-dominant",
+        "ref": [
+          "Nature 2025 GAD",
+          "Hoehn-Saric 2004"
+        ],
+        "basis_ko": "과각성·신체증상 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      },
+      {
+        "id": "avoidant",
+        "name": "회피형",
+        "terms": [
+          {
+            "state": "avoidance",
+            "op": "add_inverted",
+            "multiplier": 0.005
+          },
+          {
+            "state": "threatBias",
+            "op": "add_inverted",
+            "multiplier": 0.003
+          }
+        ],
+        "explanations": {
+          "clinician": {
+            "strong": "Strong similarity ({pct}%). Indicators converge.",
+            "moderate": "Moderate similarity ({pct}%).",
+            "mild": "Mild similarity ({pct}%).",
+            "weak": "Low similarity ({pct}%)."
+          },
+          "general": {
+            "strong": "회피형 특징이 강하게 나타나요 ({pct}%).",
+            "moderate": "회피형 특징이 중간 정도예요 ({pct}%).",
+            "mild": "회피형 특징이 약간 있어요 ({pct}%).",
+            "weak": "회피형 특징은 크지 않아요 ({pct}%)."
+          }
+        },
+        "thresholds": {
+          "strong": 0.6,
+          "moderate": 0.35,
+          "mild": 0.2
+        },
+        "desc_ko": "위협회피 우세",
+        "desc_en": "Avoidance-dominant",
+        "ref": [
+          "Cisler & Koster 2010"
+        ],
+        "basis_ko": "위협 회피·안전행동 우세형.",
+        "coefficient_status": "하위유형 근거는 논문/진단기준. 판별 계수는 Genius 검수 대상."
+      }
+    ],
+    "_algo_meta": {
+      "basis": "anxiety 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
+      "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
     }
   },
   "references": {
