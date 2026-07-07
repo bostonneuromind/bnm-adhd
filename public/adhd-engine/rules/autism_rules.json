@@ -3472,6 +3472,9 @@
     "qeeg_norms": {
       "metrics": {
         "frontal_theta": {
+          "primary": true,
+          "derived_path": "frontal_theta_beta",
+          "engine_status": "산출됨",
           "site": "Fz",
           "healthy": {
             "mean": 1.0,

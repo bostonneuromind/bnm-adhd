@@ -3470,6 +3470,9 @@
     "qeeg_norms": {
       "metrics": {
         "beta_power": {
+          "primary": true,
+          "derived_path": null,
+          "engine_status": "엔진확장대기",
           "site": "frontal",
           "healthy": {
             "mean": 1.0,

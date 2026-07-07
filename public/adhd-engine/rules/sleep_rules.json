@@ -3468,6 +3468,9 @@
     "qeeg_norms": {
       "metrics": {
         "delta_beta_ratio": {
+          "primary": true,
+          "derived_path": null,
+          "engine_status": "엔진확장대기",
           "site": "central",
           "healthy": {
             "mean": 2.5,

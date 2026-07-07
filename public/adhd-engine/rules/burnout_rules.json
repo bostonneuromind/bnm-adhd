@@ -3469,6 +3469,9 @@
     "qeeg_norms": {
       "metrics": {
         "frontal_alpha_asymmetry": {
+          "primary": true,
+          "derived_path": "frontal_alpha_asymmetry",
+          "engine_status": "산출됨",
           "site": "F3-F4",
           "healthy": {
             "mean": 0.0,
