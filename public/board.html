@@ -39,6 +39,7 @@
   body[data-lang="en"] .en-text{display:inline}
 </style>
 <script src="/bnm-lang-sync.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body data-lang="en">
 <!-- 비번 게이트 (일반관리자 bnm1#) -->
@@ -98,6 +99,17 @@
     <div id="qpager"></div>
     <p id="qeeg-empty" class="muted" style="display:none"><span class="en-text">No QEEG results.</span><span class="ko-text">QEEG 결과가 없습니다.</span></p>
 
+    <div id="trend-wrap" style="background:#fff;border:1px solid #D7E3ED;border-radius:12px;padding:16px 18px;margin:6px 0 18px;display:none">
+      <div style="font-size:14px;font-weight:700;color:#2E5A7A;margin-bottom:2px">
+        <span class="ko-text">세션 진행에 따른 변화</span><span class="en-text">Change across sessions</span>
+      </div>
+      <div style="font-size:11.5px;color:#8FA9BC;margin-bottom:8px">
+        <span class="ko-text">설문 점수가 세션마다 어떻게 변하는지 — 낮아지면 대개 호전.</span>
+        <span class="en-text">How assessment scores move across sessions — lower usually means improvement.</span>
+      </div>
+      <div style="position:relative;height:260px"><canvas id="trend-canvas"></canvas></div>
+      <p id="trend-empty" style="color:#8FA9BC;font-size:12.5px;margin:8px 0 0;display:none"></p>
+    </div>
     <h3><span class="en-text">Assessments</span><span class="ko-text">설문 평가</span></h3>
     <table>
       <thead><tr>
@@ -269,6 +281,7 @@
     rowsEl.innerHTML = rows.map(function (a) {
       return '<tr><td>' + esc(fmtDate(a.session_date)) + '</td><td>' + esc(a.assessment_id || '') + '</td><td>' + esc(pct(a.total_score)) + '</td><td>' + esc(pct(a.inattention_score)) + '</td><td>' + esc(pct(a.hyperactivity_score)) + '</td><td>' + esc(a.subtype || '') + '</td><td>' + esc(a.criteria_met_count != null ? a.criteria_met_count : '') + '</td></tr>';
     }).join('');
+    if (window.renderSessionTrend) window.renderSessionTrend(rows);
   }
 
   /* ---------- 보기 / 다운로드 / PDF(인쇄) ---------- */
@@ -372,4 +385,45 @@
   }
 })();
 </script>
+
+<script>
+/* ===== 세션 추세 그래프 (설문 점수, 세션 자유 추가 대응) ===== */
+(function(){
+  var C={dark:'#2E5A7A',main:'#4A90C2',soft:'#BDD7E7',ink:'#374151',dim:'#8FA9BC',alpha:'#3FA687',smr:'#E0A32E'};
+  var trendChart=null;
+  window.renderSessionTrend=function(rows){
+    var canvas=document.getElementById('trend-canvas');
+    var wrap=document.getElementById('trend-wrap');
+    var empty=document.getElementById('trend-empty');
+    if(!canvas||typeof Chart==='undefined') return;
+    var ko=(document.body.getAttribute('data-lang')==='ko');
+    if(!rows||rows.length<1){ if(wrap)wrap.style.display='none'; if(trendChart){trendChart.destroy();trendChart=null;} return; }
+    if(wrap)wrap.style.display='block';
+    var sorted=rows.slice().sort(function(a,b){ return String(a.session_date||'').localeCompare(String(b.session_date||'')); });
+    if(sorted.length<2){
+      canvas.style.display='none';
+      if(empty){ empty.style.display='block'; empty.textContent=ko?'세션이 2개 이상이면 변화 추이가 그려집니다.':'The trend appears once there are 2+ sessions.'; }
+      if(trendChart){trendChart.destroy();trendChart=null;} return;
+    }
+    canvas.style.display='block'; if(empty)empty.style.display='none';
+    var labels=sorted.map(function(r){ return String(r.session_date||'').slice(0,10); });
+    // board pct(): score는 0~1 → ×100 (동일 스케일 유지)
+    function s100(v){ return v==null?null:Math.round((+v)*1000)/10; }
+    var total=sorted.map(function(r){return s100(r.total_score);});
+    var inatt=sorted.map(function(r){return s100(r.inattention_score);});
+    var hyper=sorted.map(function(r){return s100(r.hyperactivity_score);});
+    if(trendChart)trendChart.destroy();
+    trendChart=new Chart(canvas,{type:'line',data:{labels:labels,datasets:[
+      {label:ko?'총점':'Total',data:total,borderColor:C.main,backgroundColor:'transparent',tension:.3,spanGaps:true,pointRadius:4,borderWidth:2.5},
+      {label:ko?'주의력':'Inattention',data:inatt,borderColor:C.alpha,backgroundColor:'transparent',tension:.3,spanGaps:true,pointRadius:4,borderWidth:2.5},
+      {label:ko?'과활동':'Hyperactivity',data:hyper,borderColor:C.smr,backgroundColor:'transparent',tension:.3,spanGaps:true,pointRadius:4,borderWidth:2.5}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{
+      legend:{position:'bottom',labels:{color:C.ink,font:{size:12},usePointStyle:true,pointStyle:'line'}},
+      tooltip:{mode:'index',intersect:false,callbacks:{label:function(c){return c.dataset.label+': '+c.parsed.y+'%';}}}
+    },scales:{x:{ticks:{color:C.dim,font:{size:11}},grid:{display:false}},
+      y:{title:{display:true,text:'%',color:C.dim},ticks:{color:C.dim,callback:function(v){return v+'%';}},grid:{color:'#E8EEF3'},beginAtZero:true,suggestedMax:100}}}});
+  };
+})();
+</script>
+
 </body></html>
