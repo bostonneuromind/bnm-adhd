@@ -598,14 +598,14 @@
   var C={dark:'#2E5A7A',main:'#4A90C2',mid:'#7BAFD0',soft:'#BDD7E7',bg:'#E8F1F8',ink:'#374151',dim:'#8FA9BC'};
 
   var CONDITIONS=[
-    {key:'depression', ko:'우울', en:'Depression', ready:true, rules:'adhd-engine/rules/depression_rules.json'},
-    {key:'anxiety', ko:'불안', en:'Anxiety', ready:true, rules:'adhd-engine/rules/anxiety_rules.json'},
-    {key:'sleep', ko:'수면', en:'Sleep', ready:true, rules:'adhd-engine/rules/sleep_rules.json'},
-    {key:'burnout', ko:'번아웃', en:'Burnout', ready:true, rules:'adhd-engine/rules/burnout_rules.json'},
-    {key:'ptsd', ko:'PTSD', en:'PTSD', ready:true, rules:'adhd-engine/rules/ptsd_rules.json'},
-    {key:'ocd', ko:'강박(OCD)', en:'OCD', ready:true, rules:'adhd-engine/rules/ocd_rules.json'},
-    {key:'bipolar', ko:'양극성', en:'Bipolar', ready:true, rules:'adhd-engine/rules/bipolar_rules.json'},
-    {key:'autism', ko:'자폐', en:'Autism', ready:true, rules:'adhd-engine/rules/autism_rules.json'},
+    {key:'depression', ko:'우울', en:'Depression', ready:false},
+    {key:'anxiety', ko:'불안', en:'Anxiety', ready:false},
+    {key:'sleep', ko:'수면', en:'Sleep', ready:false},
+    {key:'burnout', ko:'번아웃', en:'Burnout', ready:false},
+    {key:'ptsd', ko:'PTSD', en:'PTSD', ready:false},
+    {key:'ocd', ko:'강박(OCD)', en:'OCD', ready:false},
+    {key:'bipolar', ko:'양극성', en:'Bipolar', ready:false},
+    {key:'autism', ko:'자폐', en:'Autism', ready:false},
     {key:'adhd', ko:'ADHD', en:'ADHD', ready:true, rules:'adhd-engine/rules/adhd_rules.json'}
   ];
   var _cache={};
@@ -652,6 +652,8 @@
     // 요약
     var norms=gm.norms||{}, nm=norms.metrics||{}, qn=(gm.qeeg_norms||{}).metrics||{}, cr=norms.cross_rules||[], ad=gm.adaptation||{};
     h+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">';
+    h+=stat((gm.state_formulas||[]).length, KE('판단공식','State formulas'));
+    h+=stat((gm.profile_matching||[]).length, KE('하위유형','Subtypes'));
     h+=stat(Object.keys(nm).length, KE('행동 norm','Behavior norms'));
     h+=stat(Object.keys(qn).length, KE('QEEG norm','QEEG norms'));
     h+=stat(cr.length, KE('교차판별','Cross-rules'));
@@ -698,6 +700,53 @@
       h+=panel('🚀 '+KE('적응 처방 규칙','Adaptive Rules'), KE('반응 곡선 대비 판정 → 난이도·게임 조정. 세션당 기대 향상 '+(ad.expected_gain_per_session_pct||1.5)+'%.','Trajectory vs expected → adjust.'),
         ad.rules.map(function(r){ var ic={fast:'🚀',on_track:'✅',plateau:'🔄',slow:'🐢',goal_reached:'🏆'}[r.id]||'•';
           return '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #EEF2F4"><span style="font-size:1.1rem">'+ic+'</span><div style="flex:1"><b style="color:'+C.dark+';font-size:12.5px">'+esc(r.id)+'</b> <span style="font-size:11px;color:'+C.dim+'">→ '+esc(r.action||'')+'</span><div style="font-size:12px;color:'+C.ink+';margin-top:2px">'+KE(r.ko||'',r.en||'')+'</div></div></div>'; }).join(''));
+    }
+
+    // ⑥ 판단 알고리즘 — 상태 계산 공식 (증상별 핵심 판단 로직)
+    var sf=gm.state_formulas||[], af=gm.axis_formulas||{}, pm=gm.profile_matching||[];
+    if(sf.length){
+      h+=panel('🧮 '+KE('상태 계산 공식 (판단 엔진)','State Formulas (Judgment Engine)'),
+        KE('측정 지표로 이 증상의 5개 상태를 계산하는 실제 판단 공식. 증상마다 다름.','Core formulas computing 5 states from measures; unique per condition.'),
+        sf.map(function(s){ var tm=(s.formula&&s.formula.terms)||[];
+          return '<div style="border:1px solid '+C.soft+';border-radius:10px;padding:10px 14px;margin-bottom:8px">'+
+            '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;align-items:baseline"><b style="color:'+C.dark+'">'+esc(s.name||s.id)+'</b>'+
+            '<span style="font-size:11px;color:'+C.dim+'">base '+((s.formula&&s.formula.base)||0)+'</span></div>'+
+            '<div style="font-family:ui-monospace,monospace;font-size:11.5px;color:'+C.main+';margin-top:5px;line-height:1.7">'+
+            tm.map(function(t){ var src=t.feature||t.state||'?'; var op=({add:'+',subtract:'−',add_inverted:'+inv',conditional_add:'?+'})[t.op]||t.op;
+              return '<span style="display:inline-block;background:'+C.bg+';border-radius:6px;padding:2px 7px;margin:2px 3px 2px 0">'+esc(op)+' '+esc(src)+'×'+esc(String(t.multiplier!=null?t.multiplier:t.value||''))+(t.if_less_than!=null?' (&lt;'+t.if_less_than+')':'')+(t.if_greater_than!=null?' (&gt;'+t.if_greater_than+')':'')+'</span>'; }).join('')+'</div>'+
+            (s.summary_ko?'<div style="font-size:11.5px;color:'+C.ink+';margin-top:5px;line-height:1.6;font-weight:600">'+esc(s.summary_ko)+'</div>':(s.basis_ko?'<div style="font-size:11px;color:'+C.ink+';margin-top:5px;line-height:1.6">'+KE(s.basis_ko,s.basis_en||'')+'</div>':''))+
+            (s.evidence?s.evidence.map(function(L){return '<div style="background:'+C.bg+';border-radius:8px;padding:8px 10px;margin-top:6px;font-size:10.5px;line-height:1.6">'+
+              '<div style="color:'+C.dark+';font-weight:700">'+esc(L.indicator)+' <span style="color:'+C.main+'">'+esc(L.direction)+'</span></div>'+
+              '<div style="color:'+C.ink+';margin-top:2px">📚 '+esc(L.meta)+'</div>'+
+              '<div style="color:'+C.ink+'">📊 '+esc(L.effect)+'</div>'+
+              '<div style="color:#B4690E">⚠ '+esc(L.limit)+'</div></div>';}).join(''):
+              (s.ref?'<div style="font-size:10.5px;color:'+C.main+';margin-top:4px">📚 '+esc((s.ref||[]).join(' · '))+'</div>':''))+
+            (s.coefficient_status?'<div style="font-size:10px;color:'+C.dim+';margin-top:4px;font-style:italic">🔬 '+esc(s.coefficient_status)+'</div>':'')+'</div>'; }).join(''));
+    }
+
+    // ⑦ 축 계산 (Bio-Psycho-Social)
+    if(Object.keys(af).length){
+      h+=panel('🧭 '+KE('축 계산 (생물-심리-사회)','Axis Formulas (Bio-Psycho-Social)'),
+        KE('상태들을 종합해 3대 축 점수를 산출.','Composites states into 3 axis scores.'),
+        Object.keys(af).map(function(k){ var a=af[k]; var ex=(a.explanations&&a.explanations.general)||'';
+          return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #EEF2F4"><b style="color:'+C.dark+';min-width:60px">'+esc(k)+'</b>'+
+            '<div style="flex:1"><span style="font-family:ui-monospace,monospace;font-size:11px;color:'+C.main+'">'+
+            (a.terms||[]).map(function(t){return esc((t.state||t.feature||'')+'×'+(t.multiplier||''));}).join(' + ')+'</span>'+
+            '<div style="font-size:11.5px;color:'+C.dim+';margin-top:2px">'+esc(ex)+'</div></div></div>'; }).join(''));
+    }
+
+    // ⑧ 하위유형 판별 (profile matching)
+    if(pm.length){
+      h+=panel('🎯 '+KE('하위유형 판별','Subtype Matching'),
+        KE('측정 프로파일이 어느 하위유형과 닮았는지 판별 (강/중/약 유사도).','Matches profile to subtypes with strong/moderate/mild similarity.'),
+        pm.map(function(p){
+          return '<div style="background:#F0F6FB;border-left:4px solid '+C.main+';border-radius:0 10px 10px 0;padding:10px 14px;margin-bottom:8px">'+
+            '<div style="font-weight:800;color:'+C.dark+';font-size:13px">'+esc(p.name||p.id)+'</div>'+
+            '<div style="font-size:12px;color:'+C.ink+';margin:3px 0;line-height:1.6">'+KE(p.desc_ko||'',p.desc_en||'')+'</div>'+
+            (p.basis_ko?'<div style="font-size:11px;color:'+C.ink+';margin:3px 0;line-height:1.5">'+esc(p.basis_ko)+'</div>':'')+
+            (p.ref?'<div style="font-size:10.5px;color:'+C.main+';margin:3px 0">📚 '+esc((p.ref||[]).join(' · '))+'</div>':'')+
+            '<div style="font-family:ui-monospace,monospace;font-size:10.5px;color:'+C.dim+'">'+
+            (p.terms||[]).map(function(t){return esc((t.state||t.feature||'')+(t.if_less_than!=null?'&lt;'+t.if_less_than:t.if_greater_than!=null?'&gt;'+t.if_greater_than:'×'+(t.multiplier||t.value||'')));}).join(' · ')+'</div></div>'; }).join(''));
     }
 
     // 판단 파이프라인 요약
