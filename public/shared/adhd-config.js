@@ -29,13 +29,14 @@ window.ADHD_CONFIG = {
 
   // 판매 모델: 'consumer'(셀프호스트 단일org) | 'professional'(SaaS 클리닉 테넌트)
   deployMode: 'consumer',
+  siteKey:    'adhd',           // [source-site] 가입 RPC p_source_site로 전달 (사이트 라벨) — adhd-training/shared config와 정합
 
   // 백엔드 API 베이스 — learning은 자체 Next.js api/ 보유 → '' (상대경로). 정적 분과(attention/peak)는 이 값을 learning 도메인으로 둠.
   apiBase:    '',
   edgeBase:   'https://sepierapapsansprurpr.supabase.co/functions/v1',
 
-  // 환자 매직링크 착지 경로(origin 기준) — symptom 환자는 symptomcatcher 진입점으로. 미설정 시 '/'(홈) 폴백.
-  portalPath: '/symptomcatcher.html',
+  // 환자 매직링크 착지(origin 기준) — ADHD 환자는 앱(app.html)으로. (adhd-training/shared config와 정합)
+  portalPath: '/app.html',
 
   // i18n (4원칙, 기본 en) — bnm-lang-sync.js와 동일 기조
   defaultLang:'en'
