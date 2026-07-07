@@ -3559,7 +3559,17 @@
         ],
         "basis_ko": "피질 과각성(수면 델타/베타 저하) = 불면 핵심 병태.",
         "basis_en": "Cortical hyperarousal (low sleep delta/beta) = core insomnia pathophysiology.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 과각성 모델 확립. 야간측정 필요.",
+        "evidence": [
+          {
+            "indicator": "autonomic + delta_beta_ratio",
+            "direction": "자율각성·델타베타↓ → 과각성",
+            "meta": "Riemann 2010 (Sleep Med Rev 과각성 모델); Bonnet & Arand 2010",
+            "effect": "불면 = 24시간 피질·자율 과각성; CBT-I가 감소",
+            "limit": "수면 EEG는 야간 측정 필요; 주간 대리지표 한계"
+          }
+        ],
+        "summary_ko": "과각성 = 피질·자율 과각성 (불면 핵심 병태, Riemann 2010)."
       },
       {
         "id": "sleepCognition",
@@ -3582,7 +3592,17 @@
         ],
         "basis_ko": "수면 역기능 신념·걱정(전환곤란)이 각성 증폭.",
         "basis_en": "Dysfunctional sleep cognitions amplify arousal.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 인지모델. 간접 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "conflictEffect (전환)",
+            "direction": "전환곤란 → 수면걱정 고착",
+            "meta": "Harvey 2002 (인지모델); Espie 2006 (주의-의도-노력)",
+            "effect": "수면 역기능 신념·선택주의가 각성 증폭",
+            "limit": "수면 인지는 자기보고 표준; 전환과제 간접"
+          }
+        ],
+        "summary_ko": "수면인지 = 수면 걱정·역기능 신념 (전환곤란 대리)."
       },
       {
         "id": "conditionedArousal",
@@ -3605,7 +3625,17 @@
         ],
         "basis_ko": "침대-각성 조건화(변산성↑) = 불면 만성화.",
         "basis_en": "Conditioned bed-arousal (RT variability) chronifies insomnia.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 자극통제 이론. 대리 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "rtVariability",
+            "direction": "변산↑ → 각성 불안정",
+            "meta": "Perlis 1997 (신경인지 모델); Bootzin 자극통제",
+            "effect": "침대-각성 조건화가 불면 만성화",
+            "limit": "조건화는 이론적 구성; RT변산은 일반 각성 지표"
+          }
+        ],
+        "summary_ko": "조건화각성 = 침대-각성 학습 (각성 불안정 대리)."
       },
       {
         "id": "circadian",
@@ -3633,7 +3663,17 @@
         ],
         "basis_ko": "수면-각성 리듬 불일치(주간각성·처리속도)가 불면 유발.",
         "basis_en": "Circadian misalignment (daytime alertness/speed).",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 시간생물학. 대리 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "detection + meanRt (주간 각성)",
+            "direction": "주간각성 저하 → 리듬 문제",
+            "meta": "Wittmann 2006 (사회적 시차); Roenneberg 크로노타입",
+            "effect": "수면-각성 리듬 불일치가 주간 기능 저하",
+            "limit": "일주기는 시간생물학 측정(멜라토닌 등)이 표준"
+          }
+        ],
+        "summary_ko": "일주기 = 수면-각성 리듬 (주간 각성으로 대리)."
       },
       {
         "id": "sleepHygiene",
@@ -3654,7 +3694,17 @@
         ],
         "basis_ko": "수면방해 습관·주간 기능(작업기억) 반영.",
         "basis_en": "Sleep-disrupting habits / daytime function.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 위생 문헌. 결과 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "matchAccuracy (주간 WM)",
+            "direction": "주간 WM 저하 → 수면질 반영",
+            "meta": "Irish 2015 (수면위생 리뷰); PVT 수면부족 문헌",
+            "effect": "수면부족이 주간 인지 저하로 반영",
+            "limit": "위생은 행동 자기보고 표준; WM은 결과 지표"
+          }
+        ],
+        "summary_ko": "수면위생 = 방해 습관 (주간 WM 결과로 반영)."
       }
     ],
     "axis_formulas": {
@@ -3855,7 +3905,8 @@
     "_algo_meta": {
       "basis": "sleep 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
       "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
-      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정.",
+      "evidence_grade": "sleep: 각 지표↔상태 연결마다 메타/리뷰 근거+효과크기+한계 명시."
     }
   },
   "references": {

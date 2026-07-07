@@ -3556,7 +3556,17 @@
         ],
         "basis_ko": "침습 강박사고(전환곤란).",
         "basis_en": "Intrusive obsessions (cognitive inflexibility).",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 인지모델. 간접 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "conflictEffect",
+            "direction": "전환곤란 → 강박사고 고착",
+            "meta": "Rachman 1997 (강박사고 이론); Gruner 2016 (인지경직 메타)",
+            "effect": "인지 경직성·전환곤란이 침습사고 유지",
+            "limit": "강박사고는 자기보고 표준; 전환과제 간접"
+          }
+        ],
+        "summary_ko": "강박사고 = 침습 반복사고 (전환곤란 대리)."
       },
       {
         "id": "compulsions",
@@ -3578,7 +3588,17 @@
         ],
         "basis_ko": "고통감소 강박행동(작업기억으로 확인충동 대체).",
         "basis_en": "Compulsions for distress relief.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 확인-기억 이론. 간접 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "matchAccuracy",
+            "direction": "기억신뢰 저하 → 확인충동",
+            "meta": "van den Hout 2003 (확인-기억불신); Salkovskis RIM",
+            "effect": "반복 확인이 기억 신뢰 저하 → 악순환",
+            "limit": "강박행동은 관찰/자기보고 표준; WM 간접"
+          }
+        ],
+        "summary_ko": "강박행동 = 반복 확인·의식 (기억 WM 대리)."
       },
       {
         "id": "inhibition",
@@ -3605,7 +3625,17 @@
         ],
         "basis_ko": "반응 억제 결손 = OCD 특징(프론토-선조체).",
         "basis_en": "Response inhibition deficit, OCD hallmark.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 억제 메타. 내적표현형 특이성 고려.",
+        "evidence": [
+          {
+            "indicator": "inhibition + commission",
+            "direction": "억제 결손 → OCD",
+            "meta": "Chamberlain 2005 (리뷰); ENIGMA-OCD 2025 (fMRI 메가분석)",
+            "effect": "반응억제 결손 = OCD 내적표현형; SSRT 지연",
+            "limit": "억제 결손은 내적표현형(가족도 보임); OCD 특이성 부분적"
+          }
+        ],
+        "summary_ko": "반응억제 = 억제 결손 (Chamberlain 2005, ENIGMA-OCD)."
       },
       {
         "id": "errorMonitoring",
@@ -3634,7 +3664,17 @@
         ],
         "basis_ko": "과도한 오류감시(ERN 증폭, 전두 세타)=ACC 과활성.",
         "basis_en": "Enhanced error monitoring (ERN/frontal theta), ACC hyperactivity.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 ERN 메타(견고). ERP↔QEEG 대리 검수.",
+        "evidence": [
+          {
+            "indicator": "conflictEffect + frontal_theta",
+            "direction": "과다감시 → 갈등·세타↑",
+            "meta": "Endrass 2014 (ERN 리뷰); Riesel 2019 (ERN 메타)",
+            "effect": "⚠ ERN 증폭 = OCD 가장 견고한 신경지표 (내측전두/ACC)",
+            "limit": "ERN은 ERP(과제유발) 측정; resting QEEG 세타는 대리"
+          }
+        ],
+        "summary_ko": "오류감시 = 과도한 오류감시 (ERN 증폭, Riesel 2019 메타)."
       },
       {
         "id": "dysfunctionalBeliefs",
@@ -3656,7 +3696,17 @@
         ],
         "basis_ko": "책임 과다·위협 과대평가 = OCD 인지모델(중립탐지 반영).",
         "basis_en": "Inflated responsibility/threat overestimation, OCD cognitive model.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 OCD 인지모델. 간접 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "detection (중립 탐지)",
+            "direction": "위협과대평가 → 중립탐지 저하",
+            "meta": "OCCWG 2005 (OBQ); Salkovskis 책임 이론",
+            "effect": "책임 과다·위협 과대평가 = OCD 인지영역",
+            "limit": "신념은 자기보고(OBQ) 표준; 탐지 간접"
+          }
+        ],
+        "summary_ko": "역기능신념 = 책임·위협 과대평가 (중립탐지 대리)."
       }
     ],
     "axis_formulas": {
@@ -3858,7 +3908,8 @@
     "_algo_meta": {
       "basis": "ocd 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
       "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
-      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정.",
+      "evidence_grade": "ocd: 각 지표↔상태 연결마다 메타/리뷰 근거+효과크기+한계 명시."
     }
   },
   "references": {

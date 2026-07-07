@@ -3609,7 +3609,24 @@
         ],
         "basis_ko": "좌측 전두 저활성(FAA) = 접근동기·보상민감성 저하 = 무쾌감 확립 지표. 보상탐지 저하는 복측선조체 저활성 반영.",
         "basis_en": "Left frontal hypoactivation (FAA) = reduced approach motivation/reward sensitivity; hallmark of anhedonia.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "지표↔상태 방향은 메타/리뷰 근거. 정밀 계수는 실측 표준화 후 Genius 확정.",
+        "evidence": [
+          {
+            "indicator": "detection (보상/긍정 탐지)",
+            "direction": "저하 → 무쾌감↑",
+            "meta": "Halahakoon 2020 (JAMA Psychiatry, 보상학습 메타); Pizzagalli 2014 (Annu Rev Clin Psychol 리뷰)",
+            "effect": "복측선조체 보상반응 둔화 일관 (fMRI 메타); 보상 wanting 저하",
+            "limit": "행동 탐지과제로 무쾌감을 직접 측정하는 표준화된 효과크기는 제한적 — 신경영상 근거가 더 강함"
+          },
+          {
+            "indicator": "frontal_alpha_asymmetry (전두 알파 비대칭)",
+            "direction": "좌측 저활성 → 접근동기·무쾌감",
+            "meta": "van der Vinne 2017 (메타); Nusslock & Alloy 2017 (리뷰)",
+            "effect": "좌측 전두 저활성 = 접근동기 저하 (Davidson 모델)",
+            "limit": "⚠ npj 2025 메타(23연구/1928 MDD)에서 진단용 효과크기 '작음' — 보조 지표로만, 단독 판단 불가"
+          }
+        ],
+        "summary_ko": "무쾌감 = 보상계 반응 둔화(선조체) + 접근동기 저하(좌측 전두). 신경영상 근거 강, EEG 지표는 보조."
       },
       {
         "id": "rumination",
@@ -3632,7 +3649,17 @@
         ],
         "basis_ko": "인지 전환·이탈 곤란(전환비용↑)이 반추 고착과 연관 (손상된 이탈 이론).",
         "basis_en": "Impaired disengagement/switching (higher switch cost) linked to ruminative fixation.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 이론+실증 근거. 계수는 간접 지표라 특히 검수 필요.",
+        "evidence": [
+          {
+            "indicator": "conflictEffect (인지 전환비용)",
+            "direction": "전환곤란 → 반추 고착",
+            "meta": "Koster 2011 (Clin Psychol Rev, 손상된 이탈 이론); Whitmer & Gotlib 2013 (Psychol Bull)",
+            "effect": "부정정보 이탈 곤란 = 반추와 연관 (이론+실증)",
+            "limit": "반추는 자기보고가 표준. 전환과제는 간접 지표 — 상관은 있으나 인과 계수는 미확립"
+          }
+        ],
+        "summary_ko": "반추 = 부정정보에서 주의를 떼지 못하는 인지 경직성. 전환비용으로 간접 추정."
       },
       {
         "id": "cognitiveControl",
@@ -3660,7 +3687,24 @@
         ],
         "basis_ko": "작업기억·처리속도 결손 = 우울 확립 인지결손 (메타 소~중 효과크기).",
         "basis_en": "Working memory/processing speed deficits, established in depression meta-analyses.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향·크기는 메타(g값) 근거. 두 지표 가중 비율은 Genius 검수.",
+        "evidence": [
+          {
+            "indicator": "matchAccuracy (작업기억)",
+            "direction": "저하 → 인지통제↓",
+            "meta": "Rock 2014 (Psychol Med, 메타); Semkovska 2019 (Lancet Psychiatry, 메타)",
+            "effect": "작업기억 결손 Hedges g≈0.3-0.5 (급성기), 관해기 소~중",
+            "limit": "처리속도로 상당부분 설명됨 (Semkovska 2019) — 독립 효과는 작을 수 있음"
+          },
+          {
+            "indicator": "meanRt (처리속도)",
+            "direction": "느림 → 인지통제↓",
+            "meta": "Rock 2014; Nuño 2021 (처리속도 메타)",
+            "effect": "처리속도 저하 = 우울 최대 인지결손, 여러 인지결손 매개",
+            "limit": "약물·연령 교란 가능; 상태(급성/관해)에 따라 변동"
+          }
+        ],
+        "summary_ko": "인지통제 = 작업기억 + 처리속도. 처리속도가 핵심 결손이며 다른 결손을 상당부분 설명."
       },
       {
         "id": "attentionalBias",
@@ -3682,7 +3726,17 @@
         ],
         "basis_ko": "긍정자극 탐지 저하·부정 편향 = 우울 인지모델 핵심 (부정 정보 우선처리).",
         "basis_en": "Reduced positive detection / negative attention bias, core to cognitive model of depression.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 메타(d=0.52) 근거. 단 측정조건(노출시간) 민감 — 계수 검수 필요.",
+        "evidence": [
+          {
+            "indicator": "detection (긍정 탐지)",
+            "direction": "긍정탐지 저하/부정편향 → 우울",
+            "meta": "Peckham 2010 (Depress Anxiety 메타, 29연구); Suslow 2020 (eye-tracking 메타)",
+            "effect": "부정 자극 주의편향 dot-probe d=0.52; 지속 응시편향",
+            "limit": "⚠ 1000ms 이상 자극에서만 일관 관찰; 초기주의(100ms)엔 불명확 (De Raedt & Koster 2010). p-curve 논란(Winer & Salem 2016)"
+          }
+        ],
+        "summary_ko": "주의편향 = 부정정보 지속 주의 + 긍정정보 둔감. dot-probe d=0.52, 단 노출시간 의존적."
       },
       {
         "id": "autonomic",
@@ -3705,7 +3759,17 @@
         ],
         "basis_ko": "자율신경 조절 저하(HRV↓, 반응 변산성↑) = 우울 확립 소견.",
         "basis_en": "Reduced autonomic regulation (lower HRV, higher RT variability) in depression.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "HRV↔우울은 메타 확립. 단 RT변산성=대리라 실제 HRV 측정 시 재보정 필요.",
+        "evidence": [
+          {
+            "indicator": "rtVariability (반응 변산성/자율 대리지표)",
+            "direction": "HRV 저하 → 자율 불안정",
+            "meta": "Kemp 2010 (Biol Psychiatry 메타, 18연구/673); Koenig 2016 (청소년 메타); Koch 2019 (메타)",
+            "effect": "HRV 저하 Hedges g≈-0.29~-0.33; 심각도와 음의 상관 r=-0.35",
+            "limit": "⚠ RT 변산성은 HRV의 직접 측정이 아닌 대리 — 실제 HRV 측정 권장. 항우울제(삼환계) 교란"
+          }
+        ],
+        "summary_ko": "자율신경 = HRV 저하로 확립(Kemp 2010 g≈-0.3). 게임 RT변산성은 대리지표."
       }
     ],
     "axis_formulas": {
@@ -3915,7 +3979,8 @@
     "_algo_meta": {
       "basis": "depression 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
       "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
-      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정.",
+      "evidence_grade": "우울: 각 지표↔상태 연결마다 메타분석/리뷰 근거 + 효과크기(Hedges g, d) + 한계 명시. 품질 기준 템플릿."
     }
   },
   "references": {

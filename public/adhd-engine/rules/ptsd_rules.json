@@ -3560,7 +3560,17 @@
         ],
         "basis_ko": "침습 재경험 = PTSD 기준 B(위협편향·중립탐지 저하).",
         "basis_en": "Intrusive re-experiencing, DSM-5 criterion B.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 DSM-5/인지모델. 간접 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "detection (중립/안전 탐지)",
+            "direction": "위협편향 → 중립탐지 저하",
+            "meta": "Ehlers & Clark 2000 (인지모델); DSM-5 기준B",
+            "effect": "트라우마 관련 위협 주의편향; 침습 촉발",
+            "limit": "재경험은 자기보고 표준; 주의과제 간접, 트라우마 특이 자극 필요"
+          }
+        ],
+        "summary_ko": "재경험 = 침습 기억·위협편향 (중립탐지 대리)."
       },
       {
         "id": "avoidance",
@@ -3582,7 +3592,17 @@
         ],
         "basis_ko": "트라우마 회피 = 기준 C(억제·회피 조절).",
         "basis_en": "Trauma avoidance, criterion C.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 DSM-5. 간접 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "inhibition",
+            "direction": "회피충동 → 억제 곤란",
+            "meta": "DSM-5 기준C; Foa 정서처리 이론",
+            "effect": "회피가 트라우마 처리·소거 방해",
+            "limit": "회피는 행동관찰 표준; 억제과제 간접"
+          }
+        ],
+        "summary_ko": "회피 = 트라우마 회피 (억제 대리)."
       },
       {
         "id": "negativeCognition",
@@ -3604,7 +3624,17 @@
         ],
         "basis_ko": "부정 인지·정서 마비 = 기준 D(긍정탐지 저하).",
         "basis_en": "Negative cognition/mood, criterion D.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 DSM-5. 간접 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "detection (긍정 탐지)",
+            "direction": "긍정탐지 저하 → 부정인지",
+            "meta": "DSM-5 기준D; Ehlers & Clark 2000",
+            "effect": "부정 신념·정서마비 = 기준 D",
+            "limit": "인지는 자기보고 표준; 탐지는 간접"
+          }
+        ],
+        "summary_ko": "부정인지 = 부정 신념·마비 (긍정탐지 대리)."
       },
       {
         "id": "hyperarousal",
@@ -3632,7 +3662,17 @@
         ],
         "basis_ko": "과각성·과잉경계 = 기준 E(자율 항진·변산).",
         "basis_en": "Hyperarousal, criterion E (autonomic).",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 대규모 메타. 이질성·특이성 고려 검수.",
+        "evidence": [
+          {
+            "indicator": "autonomic + rtVariability",
+            "direction": "자율 항진·변산 → 과각성",
+            "meta": "Pole 2007 (Psychol Bull 메타, 58연구; HR r=0.18-0.27); HRV 메타(Campbell g=-0.26)",
+            "effect": "안정시 HR 증가, HRV 저하, 놀람반응 항진",
+            "limit": "⚠ 연구간 이질성 큼; 단일 HRV 지표 특이성 낮음"
+          }
+        ],
+        "summary_ko": "과각성 = 자율 항진·과잉경계 (Pole 2007 HR r≈0.2, HRV↓)."
       },
       {
         "id": "dissociation",
@@ -3654,7 +3694,17 @@
         ],
         "basis_ko": "이인증·비현실감 = 해리 아형(작업기억·현재연결).",
         "basis_en": "Depersonalization/derealization, dissociative subtype.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 해리 아형 문헌. 간접 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "matchAccuracy",
+            "direction": "현재연결 저하 → 해리",
+            "meta": "Lanius 2010 (해리 아형); DSM-5 해리 명시자",
+            "effect": "이인증·비현실감 = 정서 과조절 아형",
+            "limit": "해리는 자기보고 표준; WM은 간접 대리"
+          }
+        ],
+        "summary_ko": "해리 = 이인증·비현실감 (현재연결 WM 대리)."
       }
     ],
     "axis_formulas": {
@@ -3856,7 +3906,8 @@
     "_algo_meta": {
       "basis": "ptsd 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
       "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
-      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정.",
+      "evidence_grade": "ptsd: 각 지표↔상태 연결마다 메타/리뷰 근거+효과크기+한계 명시."
     }
   },
   "references": {

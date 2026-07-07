@@ -3558,7 +3558,17 @@
         ],
         "basis_ko": "사회 의사소통 차이(사회단서 탐지). ※차이,결함 아님.",
         "basis_en": "Social communication difference (cue detection). Difference, not deficit.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 사회주의 문헌. 신경다양성 관점, 개인차 커 검수.",
+        "evidence": [
+          {
+            "indicator": "detection (사회 단서)",
+            "direction": "사회단서 탐지 차이",
+            "meta": "Constantino SRS; Chita-Tegmark 2016 (사회주의 메타)",
+            "effect": "사회 자극 주의 배분 차이 (병리 아닌 차이)",
+            "limit": "⚠ 개인차 매우 큼(스펙트럼); '결함' 아닌 '차이'로 해석"
+          }
+        ],
+        "summary_ko": "사회의사소통 = 사회단서 처리 차이 (강점기반, 결함 아님)."
       },
       {
         "id": "sensoryProcessing",
@@ -3580,7 +3590,17 @@
         ],
         "basis_ko": "감각 과민/저민(자율 각성). 상류 영향.",
         "basis_en": "Sensory hyper/hypo-reactivity (autonomic).",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 감각 문헌. 간접 지표·개인차 검수.",
+        "evidence": [
+          {
+            "indicator": "autonomic",
+            "direction": "감각부하 → 자율 각성",
+            "meta": "Marco 2011 (감각 리뷰); Dunn SP-2",
+            "effect": "감각 과민/저민에 자율 반응 항진",
+            "limit": "감각은 자기보고(SP-2) 표준; 자율 간접"
+          }
+        ],
+        "summary_ko": "감각처리 = 과민/저민 (자율 각성 대리)."
       },
       {
         "id": "executiveFunction",
@@ -3608,7 +3628,17 @@
         ],
         "basis_ko": "실행기능(전환·작업기억) 차이. 개인차 큼.",
         "basis_en": "Executive function (shifting/WM) difference.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향·크기는 EF 메타. 개인차 고려 검수.",
+        "evidence": [
+          {
+            "indicator": "matchAccuracy + conflictEffect",
+            "direction": "WM·전환 차이 → EF",
+            "meta": "Demetriou 2018 (ASD EF 메타, g≈0.48); BRIEF-2",
+            "effect": "실행기능 전반 차이 Hedges g≈0.48",
+            "limit": "개인차 큼; 지능·연령 교란"
+          }
+        ],
+        "summary_ko": "실행기능 = 전환·작업기억 차이 (Demetriou 2018 g≈0.48)."
       },
       {
         "id": "emotionRegulation",
@@ -3636,7 +3666,17 @@
         ],
         "basis_ko": "정서조절이 감각-행동 관계 매개(자율·변산).",
         "basis_en": "Emotion regulation mediates sensory-behavior link.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 ER 문헌. 간접 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "autonomic + rtVariability",
+            "direction": "자율·변산 → 정서조절",
+            "meta": "Mazefsky 2013 (ER 리뷰); Fernandez-Prieto 2021 (매개)",
+            "effect": "정서조절이 감각-행동 관계 매개",
+            "limit": "ER은 자기/타인보고 표준; 자율 간접"
+          }
+        ],
+        "summary_ko": "정서조절 = 정서 조절 (자율·변산 대리, 감각-행동 매개)."
       },
       {
         "id": "flexibility",
@@ -3659,7 +3699,17 @@
         ],
         "basis_ko": "인지 유연성·전환(전환비용). 특별관심=강점.",
         "basis_en": "Cognitive flexibility/shifting; special interests as strengths.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 유연성 문헌. 강점기반 관점 검수.",
+        "evidence": [
+          {
+            "indicator": "conflictEffect",
+            "direction": "전환비용↑ → 경직성",
+            "meta": "Geurts 2009 (유연성 리뷰); DSM-5 RRB",
+            "effect": "인지 유연성·전환 차이 = 반복행동 연관",
+            "limit": "⚠ 특별관심은 강점일 수 있음 — 병리화 지양"
+          }
+        ],
+        "summary_ko": "유연성 = 전환·경직성 (전환비용). 특별관심=강점."
       }
     ],
     "axis_formulas": {
@@ -3855,7 +3905,8 @@
     "_algo_meta": {
       "basis": "autism 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
       "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
-      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정.",
+      "evidence_grade": "autism: 각 지표↔상태 연결마다 메타/리뷰 근거+효과크기+한계 명시."
     }
   },
   "references": {

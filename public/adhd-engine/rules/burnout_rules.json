@@ -3560,7 +3560,17 @@
         ],
         "basis_ko": "정서적 소진 = 번아웃 최핵심 차원(자율 회복력 저하).",
         "basis_en": "Emotional exhaustion, core burnout dimension (reduced autonomic recovery).",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 Maslach 모델. 생리 대리지표 근거 약함, 검수 필요.",
+        "evidence": [
+          {
+            "indicator": "autonomic + detection",
+            "direction": "자율회복력·각성 저하 → 소진",
+            "meta": "Maslach 2001 (Annu Rev Psychol); Melamed 2006 (SMBM, Psychol Bull 리뷰)",
+            "effect": "정서적 소진 = 번아웃 최핵심; 만성 스트레스 자율 부하",
+            "limit": "⚠ 번아웃 특이 생리지표 부족 — 소진↔자율 연결은 스트레스 문헌 원용, 직접 효과크기 제한"
+          }
+        ],
+        "summary_ko": "소진 = 정서 에너지 고갈 (자율 회복력 저하). Maslach 핵심 차원."
       },
       {
         "id": "cynicism",
@@ -3583,7 +3593,17 @@
         ],
         "basis_ko": "냉소·이탈 = 소진 방어(전환곤란).",
         "basis_en": "Cynicism/detachment as defense against exhaustion.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 Maslach/JD-R. 간접 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "conflictEffect",
+            "direction": "전환곤란 → 냉소 고착",
+            "meta": "Maslach 2001; Demerouti 2001 (JD-R 모델)",
+            "effect": "냉소·이탈 = 소진 방어; 재관여 저하",
+            "limit": "냉소는 태도 자기보고 표준; 전환과제 간접"
+          }
+        ],
+        "summary_ko": "냉소 = 일·사람 거리두기 (전환곤란 대리)."
       },
       {
         "id": "efficacy",
@@ -3610,7 +3630,17 @@
         ],
         "basis_ko": "직업적 효능감 저하 = 번아웃 3차원(긍정탐지·수행).",
         "basis_en": "Reduced professional efficacy, third burnout dimension.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 Maslach. 간접 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "detection + matchAccuracy",
+            "direction": "긍정탐지·수행 저하 → 효능감↓",
+            "meta": "Maslach 2001; Leiter 1992 (효능감 차원)",
+            "effect": "직업적 효능감 저하 = 번아웃 3차원",
+            "limit": "효능감은 자기보고 표준; 행동수행은 간접"
+          }
+        ],
+        "summary_ko": "효능감 = 성취·유능감 (긍정탐지·수행 대리)."
       },
       {
         "id": "cognitiveFatigue",
@@ -3638,7 +3668,17 @@
         ],
         "basis_ko": "인지피로(작업기억·처리속도 저하) = 만성 스트레스 인지영향.",
         "basis_en": "Cognitive fatigue (WM/speed decline) from chronic stress.",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 인지 메타. 우울 공존 고려 검수.",
+        "evidence": [
+          {
+            "indicator": "matchAccuracy + meanRt",
+            "direction": "WM·처리속도 저하 → 인지피로",
+            "meta": "Deligkaris 2014 (번아웃 인지 메타/리뷰); Melamed 2006 SMBM",
+            "effect": "번아웃 실행기능·주의·기억 저하 일관 보고",
+            "limit": "연구간 이질성 큼; 우울 공존 교란"
+          }
+        ],
+        "summary_ko": "인지피로 = 작업기억·처리속도 저하 (Deligkaris 2014)."
       },
       {
         "id": "recovery",
@@ -3660,7 +3700,17 @@
         ],
         "basis_ko": "회복 실패·심리적 분리 곤란(자율신경).",
         "basis_en": "Failed recovery / poor detachment (autonomic).",
-        "coefficient_status": "방향·관여는 논문 근거. 정밀 계수는 Genius 검수·실측 조정 대상."
+        "coefficient_status": "방향은 회복 모델. 결과 지표 검수.",
+        "evidence": [
+          {
+            "indicator": "autonomic",
+            "direction": "자율 회복력 → 회복 능력",
+            "meta": "Sonnentag 2007 (회복 모델); Geurts 2006 (심리적 분리)",
+            "effect": "회복 실패·분리 곤란이 번아웃 유지",
+            "limit": "회복은 경험표집 표준; 자율은 결과 지표"
+          }
+        ],
+        "summary_ko": "회복 = 심리적 분리·재충전 (자율 회복력)."
       }
     ],
     "axis_formulas": {
@@ -3855,7 +3905,8 @@
     "_algo_meta": {
       "basis": "burnout 판단 알고리즘 (ADHD 구조 기반, 증상 지표로 계산). 논문 기반 초안 — Genius 임상 검수 필요.",
       "note_ko": "state=5축 상태, axis=BPS, profile=하위유형. 각 항목 논문 근거 부착. 계수는 초기 추정(검수 필요).",
-      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정."
+      "ref_policy": "각 공식·유형에 논문 레퍼런스(ref)+근거(basis) 부착. 논문=지표↔상태 방향·관여 근거. 정밀 계수 숫자=Genius 임상 검수·실측 조정.",
+      "evidence_grade": "burnout: 각 지표↔상태 연결마다 메타/리뷰 근거+효과크기+한계 명시."
     }
   },
   "references": {
