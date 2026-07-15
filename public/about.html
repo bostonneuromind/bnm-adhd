@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>try{var L=localStorage.getItem('bnm-lang')||'en';document.documentElement.lang=L;}catch(e){}</script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — ADHDCatcher · Boston NeuroMind</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css" />
+<style>
+:root{--cream:#f7f6f2;--ink:#1c2733;--mut:#5f6f7f;--navy:#2f5d8a;--navy-deep:#1f4568;--line:rgba(28,39,51,.14);--gold:#b9903a;--green:#3e7a52;--plum:#6d5590;--teal:#2f8a7d}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:16px 28px;border-bottom:1px solid var(--line)}
+header .logo{font-weight:800;font-size:18px;color:var(--ink);text-decoration:none}
+header .logo span{color:var(--navy)}
+header a.nav{color:var(--mut);text-decoration:none;font-size:15px;font-weight:600;margin-left:14px}
+main{max-width:860px;margin:0 auto;padding:36px 20px}
+h1{font-size:33px;letter-spacing:-0.5px;margin:6px 0 6px}
+h2{font-size:22px;color:var(--navy-deep);margin:0 0 10px}
+.lead{font-size:17px;line-height:1.85;color:#33414f}
+.sec{background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:26px 28px;margin:18px 0}
+.t{width:100%;border-collapse:collapse;font-size:15px;margin-top:10px}
+.t th{text-align:left;color:var(--mut);font-size:13px;padding:8px 10px;border-bottom:2px solid var(--line)}
+.t td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.6}
+.t td:first-child{white-space:nowrap;font-weight:800}
+.pill{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:800;color:#fff}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0;font-weight:800;font-size:15px}
+.flow .st{background:#fff;border:2px solid var(--navy);color:var(--navy-deep);border-radius:999px;padding:9px 16px}
+.flow .ar{color:var(--mut)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px;font-size:14.5px}
+.grid3>div{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;line-height:1.65}
+.cta{display:inline-block;margin-top:10px;padding:13px 26px;border-radius:999px;background:var(--navy);color:#fff;text-decoration:none;font-size:16px;font-weight:800}
+.note{font-size:13.5px;color:var(--mut);margin-top:10px;line-height:1.7}
+.pgt{padding:10px 16px;border:2px solid var(--line);border-radius:999px;background:#fff;font:inherit;font-size:14.5px;font-weight:800;color:var(--mut);cursor:pointer}
+.pgt.on{border-color:var(--navy);color:var(--navy-deep);background:#eef4fa}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">Boston <span>NeuroMind</span></a>
+  <a class="nav" href="/" data-ko="홈" data-en="Home">Home</a>
+  <a class="nav" href="contact.html" data-ko="상담 신청" data-en="Contact">Contact</a>
+  <span id="langBox" style="margin-left:auto;display:inline-flex;gap:4px"><button data-l="ko" style="border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:14px;cursor:pointer">KO</button><button data-l="en" style="border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:14px;cursor:pointer">EN</button></span>
+</header>
+<main>
+  <h1 data-ko="ADHDCatcher — 주의력을 데이터로 이해하고 훈련합니다" data-en="ADHDCatcher — Understand and train attention with data">ADHDCatcher — Understand and train attention with data</h1>
+  <p class="lead" data-ko="ADHDCatcher는 ADHD·주의력 고민을 인상이 아니라 기록으로 다룹니다. 구조화된 증상 체크, 일상 행동 사건 기록, 임상 문헌 기준 대조와 훈련 제안 — 진단을 내리는 것이 아니라, 이해와 준비를 돕는 플랫폼이에요." data-en="ADHDCatcher approaches ADHD and attention with records, not impressions: structured checks, daily behavioral logging, criteria mapping and training suggestions - understanding and preparation, not verdicts.">…</p>
+
+  <div class="pgtabs" style="display:flex;gap:8px;margin:18px 0 4px;flex-wrap:wrap">
+  <button class="pgt" data-p="1" data-ko="1 · 소개와 기능" data-en="1 · What it is">1 · What it is</button>
+  <button class="pgt" data-p="2" data-ko="2 · 여정과 차이" data-en="2 · Journey & edge">2 · Journey & edge</button>
+  <button class="pgt" data-p="3" data-ko="3 · FAQ와 시작" data-en="3 · FAQ & start">3 · FAQ & start</button>
+</div>
+<div id="pg1" class="pgpage"><div class="sec"><h2 data-ko="① 무엇을 하나요" data-en="① What it does">① What it does</h2><table class="t"><tbody><tr><td>🧩 <span data-ko="증상 체크" data-en="Symptom checks">Symptom checks</span></td><td data-ko="DSM-5-TR 영역에 정렬된 구조화 문항으로 현재 상태를 체계적으로 점검." data-en="Structured items aligned to DSM-5-TR domains.">…</td></tr><tr><td>📓 <span data-ko="행동 기록" data-en="Behavior log">Behavior log</span></td><td data-ko="일상의 사건(지각·분실·과집중…)을 가볍게 남기면 패턴이 드러납니다." data-en="Light daily event logs surface patterns.">…</td></tr><tr><td>📊 <span data-ko="기간 리포트" data-en="Period reports">Period reports</span></td><td data-ko="추이·트리거·강점을 그래프와 문장으로 — 임상 방문 준비 자료로." data-en="Trends, triggers and strengths - ready for clinical visits.">…</td></tr><tr><td>🎯 <span data-ko="훈련 제안" data-en="Training suggestions">Training suggestions</span></td><td data-ko="기록이 가리키는 영역에 맞춘 근거 기반 루틴(외재화·타이머·분할)." data-en="Evidence-based routines matched to your records.">…</td></tr><tr><td>🤖 <span data-ko="자기개선 엔진" data-en="Self-improving engine">Self-improving engine</span></td><td data-ko="사용할수록 판별·제안이 정교해지는 학습 루프 내장." data-en="A learning loop that sharpens with use.">…</td></tr></tbody></table></div></div>
+<div id="pg2" class="pgpage" style="display:none"><div class="sec"><h2 data-ko="② 이용 여정" data-en="② The journey">② The journey</h2><div class="flow"><span class="st" data-ko="체크·기록" data-en="Check & log">Check & log</span><span class="ar">→</span><span class="st" data-ko="패턴 발견" data-en="See patterns">See patterns</span><span class="ar">→</span><span class="st" data-ko="리포트" data-en="Report">Report</span><span class="ar">→</span><span class="st" data-ko="훈련·재점검" data-en="Train & recheck">Train & recheck</span></div><p class="lead" style="font-size:15.5px" data-ko="모든 단계의 기록이 이어져 다음 단계를 더 똑똑하게 만듭니다 — 언제든 처음부터가 아니라 이어서." data-en="Every step feeds the next - you continue, never restart.">…</p></div><div class="sec"><h2 data-ko="③ 왜 다른가요" data-en="③ Why it is different">③ Why it is different</h2><div class="grid3"><div data-ko="🧾 <b>인상이 아닌 기록</b> — 기억에 의존한 진료 대화 대신, 몇 주의 실데이터를 들고 갑니다." data-en="🧾 <b>Records over impressions</b> - Weeks of real data instead of memory-based accounts.">…</div><div data-ko="⚖️ <b>기준 정렬</b> — 임의 점수가 아니라 임상 표준 영역에 정렬된 구조." data-en="⚖️ <b>Criteria-aligned</b> - Structured to clinical standard domains.">…</div><div data-ko="👨‍👩‍👧 <b>온 가족 시점</b> — 당사자·부모·임상가가 같은 기록을 각자의 화면으로." data-en="👨‍👩‍👧 <b>Whole-family views</b> - One record - person, parent, clinician views.">…</div></div></div></div>
+<div id="pg3" class="pgpage" style="display:none"><div class="sec"><h2 data-ko="④ 자주 묻는 질문" data-en="④ FAQ">④ FAQ</h2><div style="border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;margin:9px 0;line-height:1.7"><b data-ko="Q. 여기서 ADHD 진단을 받을 수 있나요?" data-en="Q. Can I get an ADHD diagnosis here?">…</b><div data-ko="아니요. 이 플랫폼은 진단 도구가 아니라 이해·준비 도구예요. 결과는 임상 기준에 대조한 신호이며, 진단은 전문의와의 평가에서 이루어집니다." data-en="No - this is a tool for understanding and preparation. Results are criteria-mapped signals; diagnosis happens with a clinician.">…</div></div><div style="border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;margin:9px 0;line-height:1.7"><b data-ko="Q. 아이 것도 기록할 수 있나요?" data-en="Q. Can I log for my child?">…</b><div data-ko="네. 부모 시점 기록을 지원하고, 임상가와 연결되면 같은 기록을 진료에 활용할 수 있어요." data-en="Yes - parent-view logging is supported, and a linked clinician can use the same record in care.">…</div></div><div style="border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;margin:9px 0;line-height:1.7"><b data-ko="Q. 이용 비용은요?" data-en="Q. What does it cost?">…</b><div data-ko="플랜과 도입 형태에 따라 달라요 — 아래 상담 예약에서 15분이면 내 상황에 맞는 안내를 받을 수 있습니다." data-en="It depends on plan and setting - a 15-minute consultation below gets you an answer for your situation.">…</div></div><div style="border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;margin:9px 0;line-height:1.7"><b data-ko="Q. 개인정보는 어떻게 다루나요?" data-en="Q. How is my data handled?">…</b><div data-ko="개인 기록은 사용자 소유 원칙, 기관 데이터는 조직별 격리 — 그리고 우리는 진단이 아니라 준비를 돕는 도구입니다." data-en="Personal records follow a user-ownership principle; organizational data is isolated per site - and we prepare, never diagnose.">…</div></div></div><div class="sec"><h2 data-ko="⑤ 누구를 위한 도구인가요" data-en="⑤ Who it is for">⑤ Who it is for</h2><p class="lead" data-ko="학생·성인 당사자, 부모, 환자 진행을 추적하는 임상가" data-en="Students and adults, parents, and clinicians tracking progress">…</p><div class="grid3" style="margin-top:10px"><div data-ko="🔒 <b>프라이버시</b> — 개인 기록은 사용자 소유 원칙, 기관 데이터는 조직별 격리." data-en="🔒 <b>Privacy</b> - user-owned records; organizational data isolated per site.">…</div><div data-ko="🩺 <b>비진단 원칙</b> — 모든 결과는 신호와 준비이며, 최종 판단은 전문가의 몫." data-en="🩺 <b>Non-diagnostic</b> - signals and preparation; final calls belong to professionals.">…</div><div data-ko="📚 <b>근거 기반</b> — 해석과 훈련은 임상 문헌과 표준에 정렬." data-en="📚 <b>Evidence-based</b> - aligned to clinical literature and standards.">…</div></div><a class="cta" style="margin-top:14px" href="contact.html" data-ko="📥 상담 예약하기 →" data-en="📥 Book a consultation →">📥 Book a consultation →</a><p class="note" data-ko="※ 이 도구는 의료기기가 아니며 진단·치료를 대신하지 않습니다." data-en="※ This tool is not a medical device and does not replace diagnosis or treatment.">…</p></div>
+</div>
+<div class="pgnav" style="display:flex;justify-content:space-between;margin:6px 0 10px">
+  <button id="pgPrev" class="pgt" data-ko="← 이전" data-en="← Back">← Back</button>
+  <span id="pgInd" style="align-self:center;color:var(--mut);font-size:14px;font-weight:700">1 / 3</span>
+  <button id="pgNext" class="pgt" style="background:var(--navy);color:#fff;border-color:var(--navy)" data-ko="다음 →" data-en="Next →">Next →</button>
+</div></main>
+<script>
+(function(){
+  var CUR=1;
+  function go(p){ CUR=Math.max(1,Math.min(3,p));
+    for(var i=1;i<=3;i++){ document.getElementById('pg'+i).style.display=(i===CUR)?'':'none'; }
+    document.querySelectorAll('.pgtabs .pgt').forEach(function(b){ b.className='pgt'+((+b.dataset.p===CUR)?' on':''); });
+    document.getElementById('pgInd').textContent=CUR+' / 3';
+    document.getElementById('pgPrev').style.visibility=(CUR===1)?'hidden':'visible';
+    var nx=document.getElementById('pgNext');
+    var ko=(document.documentElement.lang==='ko');
+    nx.style.visibility=(CUR===3)?'hidden':'visible';
+    try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){}
+  }
+  document.querySelectorAll('.pgtabs .pgt').forEach(function(b){ b.addEventListener('click',function(){ go(+b.dataset.p); }); });
+  document.getElementById('pgPrev').addEventListener('click',function(){ go(CUR-1); });
+  document.getElementById('pgNext').addEventListener('click',function(){ go(CUR+1); });
+  go(1);
+})();
+</script>
+<script>
+(function(){
+  function setL(l){ document.documentElement.lang=l;
+    try{ localStorage.setItem('bnm-lang',l); }catch(e){}
+    var lb=document.getElementById('langBox');
+    if(lb) lb.querySelectorAll('button').forEach(function(b){ b.style.background=(b.dataset.l===l)?'var(--navy)':'#fff'; b.style.color=(b.dataset.l===l)?'#fff':'var(--ink)'; });
+    document.querySelectorAll('[data-ko]').forEach(function(el){ el.innerHTML=el.dataset[l]||el.dataset.en; });
+  }
+  var lb=document.getElementById('langBox');
+  if(lb) lb.querySelectorAll('button').forEach(function(b){ b.addEventListener('click',function(){ setL(b.dataset.l); }); });
+  var q=null; try{ q=new URLSearchParams(location.search).get('lang'); }catch(e){}
+  setL((q==='ko'||q==='en')? q : (document.documentElement.lang||'en'));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>try{var L=localStorage.getItem('bnm-lang')||localStorage.getItem('prev_lang')||'en';document.documentElement.lang=L;}catch(e){}</script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book a consultation — Boston NeuroMind</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css" />
+<style>
+:root{--cream:#f7f6f2;--ink:#1c2733;--mut:#5f6f7f;--terra:#2f5d8a;--terra-deep:#1f4568;--line:rgba(28,39,51,.14);--green:#3e7a52}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:14px;padding:16px 28px;border-bottom:1px solid var(--line)}
+header img{height:34px} header a{color:var(--mut);text-decoration:none;font-size:15px;font-weight:600;margin-left:14px}
+main{flex:1;max-width:720px;width:100%;margin:0 auto;padding:30px 18px}
+h1{font-size:31px;margin:4px 0 6px;letter-spacing:-0.4px}
+.sub{color:var(--mut);font-size:16.5px;line-height:1.75;margin-bottom:18px}
+.mode{display:flex;gap:10px;margin-bottom:18px}
+.mode button{flex:1;padding:15px 10px;border-radius:16px;border:2px solid var(--line);background:#fff;font:inherit;font-size:17px;font-weight:800;cursor:pointer;color:var(--mut)}
+.mode button.on{border-color:var(--terra);color:var(--terra-deep);background:#fff8f0;box-shadow:0 4px 16px rgba(207,107,69,.12)}
+.panel{background:#fff;border:1.5px solid var(--line);border-radius:22px;padding:24px 26px}
+.stepline{display:flex;align-items:center;gap:10px;margin:2px 0 14px}
+.stepline .n{width:32px;height:32px;border-radius:50%;background:var(--terra);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 32px}
+.stepline b{font-size:18.5px}
+.days{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:thin}
+.day{flex:0 0 86px;border:2px solid var(--line);border-radius:16px;background:#fff;padding:12px 6px;text-align:center;cursor:pointer;font:inherit}
+.day:hover{border-color:#d9a}
+.day.on{border-color:var(--terra);background:#fff8f0;box-shadow:0 4px 14px rgba(207,107,69,.15)}
+.day .dw{font-size:13.5px;color:var(--mut);font-weight:700}
+.day .dd{font-size:24px;font-weight:800;margin:2px 0}
+.day .dm{font-size:12.5px;color:var(--mut)}
+.day .ct{font-size:12px;color:var(--green);font-weight:800;margin-top:3px}
+.times{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;margin-top:6px}
+.tm{border:2px solid var(--line);border-radius:14px;background:#fff;padding:13px 8px;text-align:center;cursor:pointer;font:inherit}
+.tm .tt{font-size:18px;font-weight:800}
+.tm .td{font-size:12.5px;color:var(--mut);margin-top:2px}
+.tm.on{border-color:var(--terra);background:#fff8f0}
+.hint{font-size:14px;color:var(--mut);margin:8px 0 0;line-height:1.6}
+label{display:block;font-size:14.5px;font-weight:700;margin:14px 0 6px}
+input,select,textarea{width:100%;padding:14px;border:1.5px solid #ddd;border-radius:14px;font:inherit;font-size:17px;background:#fff}
+textarea{min-height:100px;resize:vertical}
+.cta{margin-top:18px;width:100%;padding:17px;border:none;border-radius:999px;background:var(--terra);color:#fff;font:inherit;font-size:18px;font-weight:800;cursor:pointer}
+.cta:disabled{background:#d8cbb8;cursor:not-allowed}
+#msg{margin-top:12px;font-size:16px;font-weight:700;text-align:center;line-height:1.65}
+.done{background:#f3f8ef;border:2px solid var(--green);border-radius:18px;padding:22px;text-align:center;font-size:18px;line-height:1.8}
+.done .big{font-size:26px;font-weight:800;color:var(--green)}
+.note{font-size:13px;color:var(--mut);margin-top:12px;line-height:1.7}
+.empty{color:var(--mut);font-size:16px;padding:14px 4px;line-height:1.7}
+</style>
+</head>
+<body>
+<header>
+  <a href="/" style="font-weight:800;font-size:18px;color:var(--ink);text-decoration:none">Boston <span style="color:var(--terra)">NeuroMind</span></a>
+  <a href="/" data-ko="홈" data-en="Home">Home</a>
+  <a href="about.html" data-ko="소개" data-en="About">About</a>
+  <span id="langBox" style="margin-left:auto;display:inline-flex;gap:4px"><button type="button" data-l="ko" style="border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:14px;cursor:pointer">KO</button><button type="button" data-l="en" style="border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:14px;cursor:pointer">EN</button></span>
+</header>
+<main>
+  <h1 data-ko="상담 예약" data-en="Book a consultation">Book a consultation</h1>
+  <p class="sub" data-ko="원하시는 날짜와 시간을 고르면 끝이에요. 시간이 안 맞으면 이메일 문의로 남겨 주셔도 됩니다." data-en="Pick a date and time — that's it. If nothing fits, leave an email inquiry instead.">…</p>
+  <div class="mode">
+    <button type="button" id="mBook" class="on" onclick="setMode('book')" data-ko="📅 날짜로 예약하기" data-en="📅 Book by date">📅 Book by date</button>
+    <button type="button" id="mMail" onclick="setMode('mail')" data-ko="✉️ 이메일로 문의하기" data-en="✉️ Email inquiry">✉️ Email inquiry</button>
+  </div>
+
+  <div class="panel" id="paneBook">
+    <div class="stepline"><span class="n">1</span><b data-ko="날짜를 골라 주세요" data-en="Choose a date">Choose a date</b></div>
+    <div class="days" id="days"><div class="empty" data-ko="예약 가능한 날짜를 불러오는 중…" data-en="Loading available dates…">Loading available dates…</div></div>
+    <div id="step2" style="display:none">
+      <div class="stepline" style="margin-top:16px"><span class="n">2</span><b data-ko="시간을 골라 주세요" data-en="Choose a time">Choose a time</b></div>
+      <div class="times" id="times"></div>
+      <p class="hint" data-ko="시간은 미국 동부 기준(ET)이에요." data-en="Times are US Eastern (ET).">Times are US Eastern (ET).</p>
+    </div>
+    <div id="step3" style="display:none">
+      <div class="stepline" style="margin-top:16px"><span class="n">3</span><b data-ko="연락 받으실 정보" data-en="Your details">Your details</b></div>
+      <label data-ko="성함 *" data-en="Name *">Name *</label><input id="bk_name" required maxlength="80">
+      <label data-ko="이메일 *" data-en="Email *">Email *</label><input id="bk_email" type="email" required maxlength="120">
+      <label data-ko="전화 (선택)" data-en="Phone (optional)">Phone (optional)</label><input id="bk_phone" maxlength="40">
+      <label data-ko="상담 주제" data-en="Topic">Topic</label>
+      <select id="bk_service">
+        <option value="general" data-ko="일반 상담" data-en="General">General</option>
+        <option value="clinician" data-ko="임상가·기관 도입" data-en="Clinician / organization">Clinician / organization</option>
+        <option value="screening" data-ko="AI 선별" data-en="AI Screening">AI Screening</option>
+        <option value="prevention" data-ko="AI 예방" data-en="AI Prevention">AI Prevention</option>
+        <option value="companion" data-ko="AI 말동무" data-en="AI Companion">AI Companion</option>
+        <option value="other" data-ko="기타" data-en="Other">Other</option>
+      </select>
+      <label data-ko="남기실 말씀 (선택)" data-en="Anything to add (optional)">Anything to add (optional)</label>
+      <textarea id="bk_msg" maxlength="1000"></textarea>
+      <button class="cta" id="bk_go" onclick="doBook()" data-ko="이 시간으로 예약하기 →" data-en="Book this time →">Book this time →</button>
+    </div>
+    <div id="msg"></div>
+  </div>
+
+  <div class="panel" id="paneMail" style="display:none">
+    <div class="stepline"><span class="n">✉️</span><b data-ko="이메일 문의" data-en="Email inquiry">Email inquiry</b></div>
+    <label data-ko="성함 *" data-en="Name *">Name *</label><input id="it_name" required maxlength="80">
+    <label data-ko="이메일 *" data-en="Email *">Email *</label><input id="it_email" type="email" required maxlength="120">
+    <label data-ko="전화 (선택)" data-en="Phone (optional)">Phone (optional)</label><input id="it_phone" maxlength="40">
+    <label data-ko="관심 서비스" data-en="Service of interest">Service of interest</label>
+    <select id="it_service">
+      <option value="general" data-ko="일반 문의" data-en="General">General</option>
+      <option value="clinician" data-ko="임상가·기관 도입" data-en="Clinician / organization">Clinician / organization</option>
+      <option value="screening" data-ko="AI 선별" data-en="AI Screening">AI Screening</option>
+      <option value="diagnosis" data-ko="AI 진단" data-en="AI Diagnosis">AI Diagnosis</option>
+      <option value="training" data-ko="AI 훈련" data-en="AI Training">AI Training</option>
+      <option value="prevention" data-ko="AI 예방" data-en="AI Prevention">AI Prevention</option>
+      <option value="mental" data-ko="AI 정신건강" data-en="AI Mental Health">AI Mental Health</option>
+      <option value="companion" data-ko="AI 말동무" data-en="AI Companion">AI Companion</option>
+    </select>
+    <label data-ko="내용 *" data-en="Message *">Message *</label>
+    <textarea id="it_msg" required maxlength="2000"></textarea>
+    <button class="cta" onclick="itSubmit()" data-ko="보내기 →" data-en="Send →">Send →</button>
+    <div id="msg2"></div>
+  </div>
+  <p class="note" data-ko="※ 남겨주신 정보는 상담 목적에만 사용됩니다. 민감한 건강 정보는 적지 말아 주세요." data-en="※ Your details are used only for this consultation. Please don't include sensitive health information.">…</p>
+</main>
+
+<script>
+var SLOTS=[], SEL={date:null, slot:null};
+function bi(k,e){ return (document.documentElement.lang==='ko')?k:e; }
+function sb(){ try{ return window.BNMAuth&&BNMAuth.client&&BNMAuth.client(); }catch(e){ return null; } }
+function setMode(m){
+  document.getElementById('paneBook').style.display=(m==='book')?'':'none';
+  document.getElementById('paneMail').style.display=(m==='mail')?'':'none';
+  document.getElementById('mBook').className=(m==='book')?'on':'';
+  document.getElementById('mMail').className=(m==='mail')?'on':'';
+}
+var DW_KO=['일','월','화','수','목','금','토'], DW_EN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var MO_KO=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+var MO_EN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function loadSlots(){
+  var box=document.getElementById('days');
+  fetch('https://vhdcxwknevfnvnzburtb.supabase.co/functions/v1/intake-book?slots=1&site=bnm')
+  .then(function(r){ return r.json(); })
+  .then(function(j){ SLOTS=(j&&j.slots)||[]; renderDays(); })
+  .catch(function(){ box.innerHTML='<div class="empty">'+bi('불러오기 실패 - 잠시 후 다시.','Load failed - try again shortly.')+'</div>'; });
+}
+function renderDays(){
+  var box=document.getElementById('days');
+  var byDate={}; SLOTS.forEach(function(s){ (byDate[s.date]=byDate[s.date]||[]).push(s); });
+  var dates=Object.keys(byDate).sort();
+  if(!dates.length){ box.innerHTML='<div class="empty">'+bi('지금은 열린 예약 시간이 없어요 — ✉️ 이메일 문의를 이용해 주세요.','No open times right now — please use ✉️ Email inquiry.')+'</div>'; return; }
+  var ko=(document.documentElement.lang==='ko');
+  box.innerHTML=dates.map(function(d){
+    var dt=new Date(d+'T12:00:00'), n=byDate[d].length;
+    return '<button type="button" class="day'+(SEL.date===d?' on':'')+'" onclick="pickDate(\''+d+'\')">'+
+      '<div class="dw">'+(ko?DW_KO[dt.getDay()]+'요일':DW_EN[dt.getDay()])+'</div>'+
+      '<div class="dd">'+dt.getDate()+'</div>'+
+      '<div class="dm">'+(ko?MO_KO[dt.getMonth()]:MO_EN[dt.getMonth()])+'</div>'+
+      '<div class="ct">'+n+(ko?'개 가능':' open')+'</div></button>';
+  }).join('');
+}
+function pickDate(d){
+  if(SEL.date!==d) SEL.slot=null;
+  SEL.date=d; renderDays();
+  var ko=(document.documentElement.lang==='ko');
+  var list=SLOTS.filter(function(s){ return s.date===d; });
+  document.getElementById('step2').style.display='';
+  document.getElementById('times').innerHTML=list.map(function(s){
+    var t=s.start_time.slice(0,5), h=+t.slice(0,2), mm=t.slice(3);
+    var ampm= ko ? ((h<12?'오전 ':'오후 ')+((h%12)||12)+':'+mm) : (((h%12)||12)+':'+mm+(h<12?' AM':' PM'));
+    return '<button type="button" class="tm'+(SEL.slot===s.id?' on':'')+'" onclick="pickTime('+s.id+')">'+
+      '<div class="tt">'+ampm+'</div><div class="td">'+s.duration_min+(ko?'분':' min')+'</div></button>';
+  }).join('');
+  document.getElementById('step3').style.display='none';
+  var t=document.getElementById('step2'); if(t.scrollIntoView) try{ t.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){}
+}
+function pickTime(id){
+  SEL.slot=id;
+  pickDate(SEL.date);          // 재렌더(선택 하이라이트 포함)
+  SEL.slot=id;                 // pickDate가 초기화하므로 복원
+  document.querySelectorAll('.tm').forEach(function(b){
+    if(b.getAttribute('onclick')==='pickTime('+id+')') b.className='tm on';
+  });
+  document.getElementById('step3').style.display='';
+  var t=document.getElementById('step3'); if(t.scrollIntoView) try{ t.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(e){}
+}
+function doBook(){
+  var m=document.getElementById('msg');
+  var row={ slot_id:SEL.slot, name:val('bk_name'), email:val('bk_email'), phone:val('bk_phone')||null,
+    service:document.getElementById('bk_service').value, message:val('bk_msg')||null, source:'bnm-adhd', site:'bnm' };
+  if(!SEL.slot){ m.textContent=bi('시간을 먼저 골라 주세요.','Please choose a time first.'); m.style.color='#b4552f'; return; }
+  if(document.getElementById('step3').style.display==='none'){ m.textContent=bi('시간을 먼저 골라 주세요.','Please choose a time first.'); m.style.color='#b4552f'; return; }
+  if(!row.name||!row.email){ m.textContent=bi('성함과 이메일을 확인해 주세요.','Please check name and email.'); m.style.color='#b4552f'; return; }
+  var btn=document.getElementById('bk_go'); btn.disabled=true; m.textContent='…'; m.style.color='var(--mut)';
+  fetch('https://vhdcxwknevfnvnzburtb.supabase.co/functions/v1/intake-book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row)})
+  .then(function(r){ return r.json().then(function(j){ j.__st=r.status; return j; }); })
+  .then(function(j){
+    btn.disabled=false;
+    if(j.__st===409){ m.textContent=bi('앗, 방금 마감된 시간이에요 — 다른 시간을 골라 주세요.','That time was just taken — please pick another.'); m.style.color='#b4552f'; SEL.slot=null; loadSlots(); document.getElementById('step3').style.display='none'; return; }
+    if(!j.ok){ m.textContent=bi('예약 실패: ','Booking failed: ')+(j.error||j.__st); m.style.color='#b4552f'; return; }
+    var s=SLOTS.find(function(x){ return x.id===SEL.slot; })||{};
+    var ko=(document.documentElement.lang==='ko');
+    var dt=new Date((s.date||'')+'T12:00:00');
+    var when=(ko? (dt.getMonth()+1)+'월 '+dt.getDate()+'일 ('+DW_KO[dt.getDay()]+') ' : DW_EN[dt.getDay()]+', '+MO_EN[dt.getMonth()]+' '+dt.getDate()+' · ')+(s.start_time||'').slice(0,5)+' ET · '+s.duration_min+(ko?'분':' min');
+    document.getElementById('paneBook').innerHTML='<div class="done"><div class="big">✓ '+bi('예약됐어요!','Booked!')+'</div>'+
+      '<div style="margin-top:8px">'+when+'</div>'+
+      '<div style="margin-top:8px;font-size:15px;color:var(--mut)">'+bi('확인 후 이메일로 안내드릴게요. 감사합니다!','We\'ll confirm by email. Thank you!')+'</div></div>';
+  })
+  .catch(function(e){ btn.disabled=false; m.textContent=bi('오류: ','Error: ')+e.message; m.style.color='#b4552f'; });
+}
+function val(id){ var e=document.getElementById(id); return e? e.value.trim():''; }
+function itSubmit(){
+  var m=document.getElementById('msg2');
+  var row={ name:val('it_name'), email:val('it_email'), phone:val('it_phone')||null,
+    service:document.getElementById('it_service').value, message:val('it_msg'), source:'bnm-adhd', site:'bnm',
+    lang:(document.documentElement.lang||'en') };
+  if(!row.name||!row.email||!row.message){ m.textContent=bi('필수 항목을 확인해 주세요.','Please fill the required fields.'); m.style.color='#b4552f'; return; }
+  m.textContent='...'; m.style.color='var(--mut)';
+  fetch('https://vhdcxwknevfnvnzburtb.supabase.co/functions/v1/intake-book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row)})
+  .then(function(r){ return r.json(); })
+  .then(function(j){
+    if(!j.ok){ m.textContent=bi('전송 실패','Failed')+(j.error?': '+j.error:''); m.style.color='#b4552f'; return; }
+    ['it_name','it_email','it_phone','it_msg'].forEach(function(i){ document.getElementById(i).value=''; });
+    m.textContent=bi('접수됐어요 - 확인 후 연락드릴게요!','Received - we will be in touch!'); m.style.color='var(--green)';
+  }).catch(function(e){ m.textContent=bi('오류: ','Error: ')+e.message; m.style.color='#b4552f'; });
+}
+(function(){
+  function setL(l){ document.documentElement.lang=l;
+    try{ localStorage.setItem('bnm-lang',l); localStorage.setItem('prev_lang',l); }catch(e){}
+    var lb=document.getElementById('langBox');
+    if(lb) lb.querySelectorAll('button').forEach(function(b){ b.style.background=(b.dataset.l===l)?'var(--terra)':'#fff'; b.style.color=(b.dataset.l===l)?'#fff':'var(--ink)'; });
+    document.querySelectorAll('[data-ko]').forEach(function(el){ el.innerHTML=el.dataset[l]||el.dataset.en; });
+    renderDays(); if(SEL.date) pickDate(SEL.date);
+  }
+  var lb=document.getElementById('langBox');
+  if(lb) lb.querySelectorAll('button').forEach(function(b){ b.addEventListener('click',function(){ setL(b.dataset.l); }); });
+  var q=null; try{ q=new URLSearchParams(location.search).get('lang'); }catch(e){}
+  setL((q==='ko'||q==='en')? q : (document.documentElement.lang||'en'));
+  loadSlots();
+})();
+</script>
+</body>
+</html>
